@@ -2,7 +2,7 @@ import { use } from 'react';
 import type * as PageTree from 'fumadocs-core/page-tree';
 import { TreeContextProvider } from 'fumadocs-ui/contexts/tree';
 import { SidebarProvider } from 'fumadocs-ui/components/sidebar/base';
-import { Pencil } from 'lucide-react';
+import { ArrowRight, Pencil } from 'lucide-react';
 import { config } from 'virtual:seemore/config';
 import type { PageModule, RouteEntry } from '../../shared/types.js';
 import { loadPage } from '../lib/pages.js';
@@ -104,7 +104,8 @@ export function NotFound() {
  * lists every page instead of apologising.
  *
  * Rendered from the same page tree the sidebar reads, so the order — `meta.json`, frontmatter
- * `order`, then title — is the order a reader would click through.
+ * `order`, then title — is the order a reader would click through. Same shell as a page:
+ * header, sidebar, footer — only the article is generated.
  */
 export function Overview() {
   const tree = usePageTree();
@@ -112,45 +113,84 @@ export function Overview() {
   return (
     <div className="seemore-shell">
       <Header />
-      <main className="seemore-main">
-        <article className="seemore-article prose">
-          <h1>{config.title}</h1>
-          {config.description !== undefined ? <p>{config.description}</p> : undefined}
-          <OverviewList nodes={tree.children} />
-        </article>
-        <SiteFooter />
-      </main>
+      <div className="seemore-body">
+        <Sidebar />
+
+        <main className="seemore-main">
+          <article className="seemore-article prose">
+            <h1>{config.title}</h1>
+            {config.description !== undefined ? <p>{config.description}</p> : undefined}
+            <OverviewSections nodes={tree.children} />
+          </article>
+
+          <SiteFooter />
+        </main>
+      </div>
+
+      {feature('navigation.top') ? <BackToTop /> : undefined}
+      <PagePreview />
     </div>
   );
 }
 
-function OverviewList({ nodes }: { nodes: PageTree.Node[] }) {
+/** Pages render as card grids; a folder opens a titled section holding its own cards. */
+type Segment = { pages: PageTree.Item[] } | { folder: PageTree.Folder };
+
+function OverviewSections({ nodes }: { nodes: PageTree.Node[] }) {
+  const segments: Segment[] = [];
+  for (const node of nodes) {
+    if (node.type === 'page') {
+      const last = segments.at(-1);
+      if (last !== undefined && 'pages' in last) last.pages.push(node);
+      else segments.push({ pages: [node] });
+    } else if (node.type === 'folder') {
+      segments.push({ folder: node });
+    }
+  }
+
   return (
-    <ul>
-      {nodes.map((node) => {
-        if (node.type === 'page') {
-          return (
-            <li key={node.url}>
-              <a href={node.url}>{node.name}</a>
-              {typeof node.description === 'string' && node.description !== '' ? (
-                <small> — {node.description}</small>
-              ) : undefined}
-            </li>
-          );
-        }
-        if (node.type === 'folder') {
-          // A folder stands for its index page when it has one, and lists the rest under it.
-          const children = node.index === undefined ? node.children : [node.index, ...node.children];
-          return (
-            <li key={String(node.name)}>
-              <h2>{node.name}</h2>
-              <OverviewList nodes={children} />
-            </li>
-          );
-        }
-        return undefined;
-      })}
-    </ul>
+    <>
+      {segments.map((segment, index) =>
+        'pages' in segment ? (
+          <OverviewGrid key={index} pages={segment.pages} />
+        ) : (
+          <section key={index} className="seemore-overview-section">
+            <h2 className="seemore-overview-section-title">{segment.folder.name}</h2>
+            {typeof segment.folder.description === 'string' && segment.folder.description !== '' ? (
+              <p className="seemore-overview-section-description">{segment.folder.description}</p>
+            ) : undefined}
+            {/* A folder stands for its index page when it has one, and lists the rest under it. */}
+            <OverviewSections
+              nodes={
+                segment.folder.index === undefined
+                  ? segment.folder.children
+                  : [segment.folder.index, ...segment.folder.children]
+              }
+            />
+          </section>
+        ),
+      )}
+    </>
+  );
+}
+
+function OverviewGrid({ pages }: { pages: PageTree.Item[] }) {
+  if (pages.length === 0) return undefined;
+
+  return (
+    <div className="seemore-overview-grid">
+      {pages.map((page) => (
+        <a key={page.url} href={page.url} className="seemore-overview-card group">
+          <span className="seemore-overview-card-row">
+            <span className="seemore-overview-card-title">{page.name}</span>
+            <ArrowRight className="seemore-overview-card-icon" aria-hidden="true" />
+          </span>
+          {typeof page.description === 'string' && page.description !== '' ? (
+            <span className="seemore-overview-card-description">{page.description}</span>
+          ) : undefined}
+        </a>
+      ))}
+    </div>
   );
 }
 

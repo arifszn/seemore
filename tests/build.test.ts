@@ -181,6 +181,9 @@ describe('the generated index page', () => {
     const result = await runBuild({ cwd: contentRoot, outDir });
 
     const $ = load(readFileSync(join(outDir, 'index.html'), 'utf8'));
+    // The full shell, sidebar included — the generated page is laid out like any other.
+    expect($('aside.seemore-sidebar').length).toBe(1);
+    expect($('.seemore-overview-card').length).toBe(4);
     const hrefs = $('article a').map((_, a) => $(a).attr('href')).get();
     // Every page is listed, in the order the sidebar shows.
     expect(hrefs).toEqual(['/alpha', '/beta', '/guide', '/guide/deep']);
