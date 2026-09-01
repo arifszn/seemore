@@ -1,5 +1,5 @@
 {
-  "name": "openmd",
+  "name": "@arifszn/openmd",
   "version": "1.0.0",
   "description": "Let AI write the Markdown. Let openmd show it better — see any folder of Markdown rendered in your browser, zero config.",
   "license": "MIT",

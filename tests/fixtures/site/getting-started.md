@@ -9,7 +9,7 @@ order: 1
 Install it, point it at a folder, done. See the [guide](./guide/index.md).
 
 ```ts
-import { defineConfig } from 'openmd';
+import { defineConfig } from '@arifszn/openmd';
 
 export default defineConfig({ title: 'My Docs' });
 ```

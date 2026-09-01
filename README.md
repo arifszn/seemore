@@ -2,7 +2,7 @@
 
 Let AI write the Markdown. Let openmd show it better.
 
-[![npm version](https://img.shields.io/npm/v/openmd)](https://www.npmjs.com/package/openmd)
+[![npm version](https://img.shields.io/npm/v/@arifszn%2Fopenmd)](https://www.npmjs.com/package/@arifszn/openmd)
 [![CI](https://github.com/arifszn/openmd/actions/workflows/ci.yml/badge.svg)](https://github.com/arifszn/openmd/actions/workflows/ci.yml)
 [![Licence: MIT](https://img.shields.io/badge/Licence-MIT-informational)](LICENSE)
 
@@ -16,18 +16,19 @@ layout. You don't move the files, you don't write any code, and there is nothing
 up.
 
 ```bash
-npx openmd              # see the current folder in your browser, live, no setup
-npx openmd build        # static export to dist/ for any host
+npx @arifszn/openmd     # see the current folder in your browser, live, no setup
+npx @arifszn/openmd build  # static export to dist/ for any host
 ```
 
 ## Getting started
 
 1. Open a terminal in your folder of Markdown files.
-2. Run `npx openmd`, then open the address it prints — `http://localhost:4040`
-   by default — in your browser.
+2. Run `npx @arifszn/openmd`, then open the address it prints —
+   `http://localhost:4040` by default — in your browser.
 
 From there it's live: every file you add, rename, retitle or delete is reflected
-immediately, navigation included. When you're happy, `npx openmd build` produces a folder
+immediately, navigation included. When you're happy, `npx @arifszn/openmd build`
+produces a folder
 of ordinary web files you can put on any host (more on that under
 [Publishing](#publishing)).
 
@@ -94,7 +95,7 @@ create `openmd.config.ts` next to your content:
 
 ```ts
 // openmd.config.ts
-import { defineConfig } from 'openmd';
+import { defineConfig } from '@arifszn/openmd';
 
 export default defineConfig({
   title: 'My Docs',
@@ -146,7 +147,7 @@ Combinations that cannot work are a config error naming both flags and the fix.
 ## Publishing
 
 ```bash
-npx openmd build
+npx @arifszn/openmd build
 ```
 
 The result is a `dist/` folder of plain web files — drop it on
