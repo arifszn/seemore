@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import { useLocation, type RouteObject } from 'react-router';
 import { decodePath } from '../shared/base.js';
-import { DocPage, DocsLayout, NotFound } from './layout/DocsLayout.js';
+import { DocPage, DocsLayout, NotFound, Overview } from './layout/DocsLayout.js';
 import { useRouteEntry } from './lib/pages.js';
 
 /** The current route URL: React Router has already removed the basename. */
@@ -12,8 +12,12 @@ export function useRouteUrl(): string {
 }
 
 function Page() {
-  const entry = useRouteEntry(useRouteUrl());
-  return entry === undefined ? <NotFound /> : <DocPage entry={entry} />;
+  const url = useRouteUrl();
+  const entry = useRouteEntry(url);
+  if (entry !== undefined) return <DocPage entry={entry} />;
+  // A folder with no `index.md` or root `README.md` still gets a home address: a generated
+  // list of every page, not an apology.
+  return url === '/' ? <Overview /> : <NotFound />;
 }
 
 /**

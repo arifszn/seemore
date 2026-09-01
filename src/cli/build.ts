@@ -52,8 +52,14 @@ export async function runBuild(options: BuildOptions): Promise<{ outDir: string;
   try {
     const prerender = await loadPrerenderModule(ctx, ssrOutDir);
     const urls = prerender.listRoutes();
+    // When no page claims `/`, the router generates an index page there — the same component
+    // the dev server renders — so the client build's empty shell never ships as the home page.
+    const routes = urls.includes('/') ? urls : ['/', ...urls];
+    if (routes.length > urls.length) {
+      console.log(pc.dim('seemore  no index page; generated one listing every page at /'));
+    }
 
-    for (const url of urls) {
+    for (const url of routes) {
       writeHtml(outDir, outputPathFor(url), applyTemplate(template, await prerender.render(url)));
     }
 
@@ -78,9 +84,9 @@ export async function runBuild(options: BuildOptions): Promise<{ outDir: string;
     if (config.features['social.cards']) await generateSocialCards(ctx, outDir);
 
     ctx.warnings.flush();
-    console.log(pc.green(`seemore  ${urls.length} pages written to ${relative(options.cwd, outDir) || outDir}`));
+    console.log(pc.green(`seemore  ${routes.length} pages written to ${relative(options.cwd, outDir) || outDir}`));
 
-    return { outDir, routes: urls.length };
+    return { outDir, routes: routes.length };
   } finally {
     rmSync(ssrOutDir, { recursive: true, force: true });
   }

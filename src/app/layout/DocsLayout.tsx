@@ -1,4 +1,5 @@
 import { use } from 'react';
+import type * as PageTree from 'fumadocs-core/page-tree';
 import { TreeContextProvider } from 'fumadocs-ui/contexts/tree';
 import { SidebarProvider } from 'fumadocs-ui/components/sidebar/base';
 import { Pencil } from 'lucide-react';
@@ -95,6 +96,61 @@ export function NotFound() {
         <p>There is no page at this address.</p>
       </main>
     </div>
+  );
+}
+
+/**
+ * The generated index: when no `index.md` or root `README.md` claims `/`, the home address
+ * lists every page instead of apologising.
+ *
+ * Rendered from the same page tree the sidebar reads, so the order — `meta.json`, frontmatter
+ * `order`, then title — is the order a reader would click through.
+ */
+export function Overview() {
+  const tree = usePageTree();
+
+  return (
+    <div className="seemore-shell">
+      <Header />
+      <main className="seemore-main">
+        <article className="seemore-article prose">
+          <h1>{config.title}</h1>
+          {config.description !== undefined ? <p>{config.description}</p> : undefined}
+          <OverviewList nodes={tree.children} />
+        </article>
+        <SiteFooter />
+      </main>
+    </div>
+  );
+}
+
+function OverviewList({ nodes }: { nodes: PageTree.Node[] }) {
+  return (
+    <ul>
+      {nodes.map((node) => {
+        if (node.type === 'page') {
+          return (
+            <li key={node.url}>
+              <a href={node.url}>{node.name}</a>
+              {typeof node.description === 'string' && node.description !== '' ? (
+                <small> — {node.description}</small>
+              ) : undefined}
+            </li>
+          );
+        }
+        if (node.type === 'folder') {
+          // A folder stands for its index page when it has one, and lists the rest under it.
+          const children = node.index === undefined ? node.children : [node.index, ...node.children];
+          return (
+            <li key={String(node.name)}>
+              <h2>{node.name}</h2>
+              <OverviewList nodes={children} />
+            </li>
+          );
+        }
+        return undefined;
+      })}
+    </ul>
   );
 }
 

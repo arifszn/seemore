@@ -1,4 +1,4 @@
-import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { load } from 'cheerio';
@@ -168,6 +168,31 @@ describe('seemore build', () => {
   });
 });
 
+describe('the generated index page', () => {
+  it('lists every page at / when no index or README claims it', async () => {
+    const contentRoot = mkdtempSync(join(tmpdir(), 'seemore-toc-'));
+    const outDir = join(contentRoot, 'dist');
+    writeFileSync(join(contentRoot, 'beta.md'), '---\ntitle: Beta\ndescription: The beta docs.\n---\n\n# Beta\n');
+    writeFileSync(join(contentRoot, 'alpha.md'), '---\ntitle: Alpha\n---\n\n# Alpha\n');
+    mkdirSync(join(contentRoot, 'guide'));
+    writeFileSync(join(contentRoot, 'guide/index.md'), '---\ntitle: Guide overview\n---\n\n# Guide\n');
+    writeFileSync(join(contentRoot, 'guide/deep.md'), '---\ntitle: Deep\n---\n\n# Deep\n');
+
+    const result = await runBuild({ cwd: contentRoot, outDir });
+
+    const $ = load(readFileSync(join(outDir, 'index.html'), 'utf8'));
+    const hrefs = $('article a').map((_, a) => $(a).attr('href')).get();
+    // Every page is listed, in the order the sidebar shows.
+    expect(hrefs).toEqual(['/alpha', '/beta', '/guide', '/guide/deep']);
+    expect($('article').text()).toContain('The beta docs.');
+    expect($('article').text()).not.toContain('Page not found');
+    // The generated page is counted with the rest.
+    expect(result.routes).toBe(5);
+
+    rmSync(contentRoot, { recursive: true, force: true });
+  }, 300_000);
+});
+
 /** `/sub` and `/sub/...` are both under the base; anything else at the root is a leak. */
 function isBased(url: string): boolean {
   if (!url.startsWith('/')) return true;
@@ -258,6 +283,22 @@ describe('failure policy', () => {
 
     await expect(runBuild({ cwd: contentRoot, outDir })).resolves.toMatchObject({ routes: 1 });
     expect(load(readFileSync(join(outDir, 'index.html'), 'utf8'))('article').text()).toContain('Home');
+    rmSync(contentRoot, { recursive: true, force: true });
+  });
+
+  it('renders a fence in a language Shiki has no grammar for as plain code', async () => {
+    const contentRoot = mkdtempSync(join(tmpdir(), 'seemore-lang-'));
+    const outDir = join(contentRoot, 'dist');
+    writeFileSync(
+      join(contentRoot, 'index.md'),
+      '---\ntitle: Home\n---\n\n# Home\n\n```d2\nx -> y: depends\n```\n',
+    );
+
+    // Without the fallback this throws `Language 'd2' not found` and the page never renders.
+    await expect(runBuild({ cwd: contentRoot, outDir })).resolves.toMatchObject({ routes: 1 });
+    expect(load(readFileSync(join(outDir, 'index.html'), 'utf8'))('article pre code').text()).toContain(
+      'x -> y: depends',
+    );
     rmSync(contentRoot, { recursive: true, force: true });
   });
 });

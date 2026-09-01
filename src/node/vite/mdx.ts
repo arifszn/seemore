@@ -61,5 +61,11 @@ export function createRemarkPlugins(options: SeemoreRemarkOptions): PluggableLis
 }
 
 export function createRehypePlugins(): PluggableList {
-  return [rehypeCode, rehypeToc];
+  return [
+    // A fence in a language Shiki has no grammar for (` ```d2 `, anything an AI dreamt up) is
+    // plain code on the page, not a dead one: `plaintext` is special-cased by Shiki and
+    // never needs loading.
+    [rehypeCode, { fallbackLanguage: 'plaintext' }],
+    rehypeToc,
+  ];
 }
