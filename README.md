@@ -18,12 +18,6 @@ click.
 openmd points at a folder that already exists and makes the correct static build the default.
 Dev mode writes nothing into your folder. `openmd build` writes only `dist/`.
 
-<!--
-  TODO before release: record two GIFs into docs/ and link them here.
-    docs/dev.gif    — edit a file, sidebar and page update live, scroll position kept
-    docs/build.gif  — openmd build, then npx surge dist, then a deep link reloaded
--->
-
 ## What you get by default
 
 - **Real HTML, not a shell.** Every route is prerendered to its own `index.html`. Fetch a
