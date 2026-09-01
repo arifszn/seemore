@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs';
+import { existsSync, realpathSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
@@ -37,12 +37,29 @@ export function cacheDir(contentRoot: string): string {
   return join(tmpdir(), 'openmd', key);
 }
 
-/** `openmd [dir]`, else probe `docs/` → `content/` → cwd. */
+/**
+ * `openmd [dir]`, else probe `docs/` → `content/` → cwd.
+ *
+ * The result is canonicalised through the filesystem. Every module id openmd derives from
+ * the root — import specifiers, watcher lookups — must use the real spelling, because Vite
+ * refuses to *load* a path containing a Windows 8.3 short-name segment (`RUNNER~1`) no
+ * matter what the fs allow list says. Real users hit this too: `C:\Users\<long name>\`
+ * carries a short alias on any drive with 8.3 names enabled.
+ */
 export function resolveContentRoot(cwd: string, explicit?: string): string {
-  if (explicit !== undefined) return resolve(cwd, explicit);
+  if (explicit !== undefined) return canonicalise(resolve(cwd, explicit));
   for (const candidate of ['docs', 'content']) {
     const dir = resolve(cwd, candidate);
-    if (existsSync(dir)) return dir;
+    if (existsSync(dir)) return canonicalise(dir);
   }
-  return resolve(cwd);
+  return canonicalise(resolve(cwd));
+}
+
+function canonicalise(dir: string): string {
+  try {
+    return realpathSync.native(dir);
+  } catch {
+    // A root that does not exist yet keeps its literal spelling; dev reports the empty corpus.
+    return dir;
+  }
 }

@@ -53,6 +53,10 @@ describe('watcher / sidebar refresh cycle', () => {
 
     dev = await runDev({ cwd: contentRoot, port: 0 });
 
+    // The server canonicalises the root through the filesystem (Windows 8.3 short names,
+    // symlinked tmpdirs), so modules must be addressed by the spelling it uses.
+    contentRoot = dev.ctx.contentRoot;
+
     // Pull the virtual modules into the client graph, as a connected browser would. Without
     // a client-side copy there is nothing for an HMR update to be about.
     for (const id of ['virtual:openmd/tree', 'virtual:openmd/routes']) {
