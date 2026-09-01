@@ -80,7 +80,7 @@
   }
 
   .seemore-body {
-    @apply mx-auto flex w-full max-w-7xl flex-1 gap-8 px-4;
+    @apply flex w-full flex-1;
   }
 
   .seemore-sidebar {
@@ -116,11 +116,10 @@
     @apply mt-4 mb-1 px-3 text-xs font-medium text-fd-muted-foreground uppercase;
   }
 
-  /* A sticky column on wide screens; a drawer below `md`, driven by the sidebar state. */
   .seemore-sidebar-column {
     /* `pt-20` clears the sticky header, which sits above the drawer. */
     @apply fixed inset-y-0 start-0 z-40 w-72 -translate-x-full overflow-y-auto border-e border-fd-border bg-fd-background px-4 pt-20 pb-4 transition-transform rtl:translate-x-full;
-    @apply md:sticky md:top-16 md:z-auto md:h-[calc(100vh-4rem)] md:w-64 md:translate-x-0 md:border-0 md:bg-transparent md:px-0 md:py-6 rtl:md:translate-x-0;
+    @apply md:sticky md:top-16 md:z-auto md:h-[calc(100vh-4rem)] md:w-64 md:translate-x-0 md:px-4 md:py-6 rtl:md:translate-x-0;
   }
 
   .seemore-sidebar-column[data-open='true'] {
@@ -132,11 +131,11 @@
   }
 
   .seemore-main {
-    @apply min-w-0 flex-1 py-8;
+    @apply mx-auto min-w-0 max-w-4xl flex-1 px-4 py-8 md:px-12 lg:px-16;
   }
 
   .seemore-toc {
-    @apply sticky top-16 hidden h-[calc(100vh-4rem)] flex-col w-56 shrink-0 py-8 text-sm lg:flex;
+    @apply sticky top-16 hidden h-[calc(100vh-4rem)] flex-col w-56 shrink-0 py-8 pe-4 text-sm lg:flex xl:pe-8;
   }
 
   .seemore-toc-title {
