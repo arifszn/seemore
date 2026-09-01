@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { resolveContentRoot } from '../src/node/paths.js';
 
 function tmp(): string {
-  return mkdtempSync(join(tmpdir(), 'seemore-paths-'));
+  return realpathSync(mkdtempSync(join(tmpdir(), 'seemore-paths-')));
 }
 
 describe('resolveContentRoot', () => {
