@@ -1,5 +1,4 @@
-import { useEffect, useRef } from 'react';
-import { TOCProvider, TOCScrollArea, useActiveAnchor, useTOCItems } from 'fumadocs-ui/components/toc';
+import { TOCProvider, TOCScrollArea, useTOCItems } from 'fumadocs-ui/components/toc';
 import { TOCEmpty, TOCItem, TOCItems } from 'fumadocs-ui/components/toc/default';
 import type { TocEntry } from '../../shared/types.js';
 import { feature } from '../lib/features.js';
@@ -35,25 +34,18 @@ export function IntegratedToc() {
 
 function TocBody() {
   const items = useTOCItems();
-  const active = useActiveAnchor();
-  const container = useRef<HTMLDivElement>(null);
-
-  // `toc.follow`: keep the active entry visible as the page scrolls.
-  useEffect(() => {
-    if (!feature('toc.follow') || active === undefined || container.current === null) return;
-    const element = container.current.querySelector(`a[href="#${CSS.escape(active)}"]`);
-    element?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-  }, [active]);
 
   if (items.length === 0) return <TOCEmpty />;
 
   return (
-    <div ref={container}>
-      <TOCItems>
-        {items.map((item) => (
-          <TOCItem key={item.url} item={item} />
-        ))}
-      </TOCItems>
-    </div>
+    <TOCItems>
+      {items.map((item) => (
+        // `toc.follow` is TOCItem's own `autoScroll`: it keeps the active entry visible
+        // using a scroll bounded to this container. A native `scrollIntoView` here — even
+        // with `block: 'nearest'` — walks every scroll ancestor including the page, and in
+        // engines that ignore the options it fights the reader's own scrolling.
+        <TOCItem key={item.url} item={item} autoScroll={feature('toc.follow')} />
+      ))}
+    </TOCItems>
   );
 }
