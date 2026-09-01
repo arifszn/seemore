@@ -29,7 +29,7 @@ export function seemoreWatcherPlugin(ctx: SeemoreContext): Plugin {
           if (path === ctx.config.configFile) return false;
           // chokidar reports native separators, so compare against a normalised path.
           const posix = path.replace(/\\/g, '/');
-          if (/(?:^|\/)(?:node_modules|\.git|dist|\.seemore)(?:$|\/)/.test(posix)) return true;
+          if (/(?:^|\/)(?:node_modules|\.git|dist|build|out|vendor|target|\.seemore)(?:$|\/)/.test(posix)) return true;
           if (/(?:^|\/)\.[^/]+/.test(posix)) return true;
           return stats?.isFile() === true && !CONTENT_FILE.test(posix);
         },
