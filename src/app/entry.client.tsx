@@ -1,14 +1,14 @@
 import { StrictMode } from 'react';
 import { hydrateRoot } from 'react-dom/client';
 import { RouterProvider, createBrowserRouter } from 'react-router';
-import { config } from 'virtual:openmd/config';
+import { config } from 'virtual:seemore/config';
 import { decodePath, stripBase, toBasename } from '../shared/base.js';
 import { createRouteObjects } from './router.js';
 import { preloadPage } from './lib/pages.js';
 import './styles/globals.css';
 
 const container = document.getElementById('root');
-if (container === null) throw new Error('openmd: #root is missing from the page shell.');
+if (container === null) throw new Error('seemore: #root is missing from the page shell.');
 
 const router = createBrowserRouter(createRouteObjects(), { basename: toBasename(config.base) });
 

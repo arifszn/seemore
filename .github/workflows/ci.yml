@@ -11,7 +11,7 @@ concurrency:
 
 jobs:
   test:
-    # Windows is not optional: openmd is fundamentally a path resolver, and Windows is where
+    # Windows is not optional: seemore is fundamentally a path resolver, and Windows is where
     # those bugs live.
     runs-on: ${{ matrix.os }}
     strategy:

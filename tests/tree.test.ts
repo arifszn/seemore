@@ -13,7 +13,7 @@ afterEach(() => {
 });
 
 function fixture(files: Record<string, string>): string {
-  const dir = mkdtempSync(join(tmpdir(), 'openmd-tree-'));
+  const dir = mkdtempSync(join(tmpdir(), 'seemore-tree-'));
   dirs.push(dir);
   for (const [path, content] of Object.entries(files)) {
     const full = join(dir, path);

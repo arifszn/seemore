@@ -10,11 +10,11 @@ export function TocProvider({ toc, children }: { toc: TocEntry[]; children: Reac
 
 export function Toc() {
   const items = useTOCItems();
-  if (items.length === 0) return <nav className="openmd-toc" aria-label="On this page" />;
+  if (items.length === 0) return <nav className="seemore-toc" aria-label="On this page" />;
 
   return (
-    <nav className="openmd-toc" aria-label="On this page">
-      <p className="openmd-toc-title">On this page</p>
+    <nav className="seemore-toc" aria-label="On this page">
+      <p className="seemore-toc-title">On this page</p>
       <TOCScrollArea>
         <TocBody />
       </TOCScrollArea>
@@ -27,7 +27,7 @@ export function IntegratedToc() {
   const items = useTOCItems();
   if (items.length === 0) return null;
   return (
-    <div className="openmd-toc-integrated">
+    <div className="seemore-toc-integrated">
       <TocBody />
     </div>
   );

@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react';
-import { getRoutes, subscribeRoutes } from 'virtual:openmd/routes';
+import { getRoutes, subscribeRoutes } from 'virtual:seemore/routes';
 import type { PageModule, RouteEntry } from '../../shared/types.js';
 
 /**

@@ -17,7 +17,7 @@ function Page() {
 }
 
 /**
- * One catch-all route, matched against `virtual:openmd/routes` at render time.
+ * One catch-all route, matched against `virtual:seemore/routes` at render time.
  *
  * Our URLs are exact strings, so there is no pattern matching for a router to do — and a
  * route table that never changes shape means creating or deleting a page needs no new
@@ -33,7 +33,7 @@ export function createRouteObjects(): RouteObject[] {
       path: '*',
       element: (
         <DocsLayout>
-          <Suspense fallback={<div className="openmd-loading" aria-busy="true" />}>
+          <Suspense fallback={<div className="seemore-loading" aria-busy="true" />}>
             <Page />
           </Suspense>
         </DocsLayout>

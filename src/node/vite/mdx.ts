@@ -12,11 +12,11 @@ import {
   remarkSteps,
 } from 'fumadocs-core/mdx-plugins';
 import {
-  remarkOpenmdAlerts,
-  remarkOpenmdAssets,
-  remarkOpenmdLinks,
-  remarkOpenmdWikilinks,
-  type OpenmdRemarkOptions,
+  remarkSeemoreAlerts,
+  remarkSeemoreAssets,
+  remarkSeemoreLinks,
+  remarkSeemoreWikilinks,
+  type SeemoreRemarkOptions,
 } from './remark.js';
 
 /**
@@ -30,7 +30,7 @@ import {
  * markdown, where it works identically in dev and build without depending on a
  * browser module having been evaluated.
  */
-export function createRemarkPlugins(options: OpenmdRemarkOptions): PluggableList {
+export function createRemarkPlugins(options: SeemoreRemarkOptions): PluggableList {
   return [
     // Strips the `---` block so it never renders. Its data already came from the scan.
     [remarkFrontmatter, ['yaml']],
@@ -40,11 +40,11 @@ export function createRemarkPlugins(options: OpenmdRemarkOptions): PluggableList
     remarkDirectiveAdmonition,
     // After the fumadocs admonition plugins, which handle `:::note`, and before anything that
     // rewrites link or text nodes inside the quote.
-    remarkOpenmdAlerts,
+    remarkSeemoreAlerts,
     remarkSteps,
     // Before `remark-image`: a reference to a file that is not there becomes a warning and a
     // visibly broken image, rather than a failed build.
-    () => remarkOpenmdAssets(options),
+    () => remarkSeemoreAssets(options),
     [
       remarkImage,
       {
@@ -55,8 +55,8 @@ export function createRemarkPlugins(options: OpenmdRemarkOptions): PluggableList
     ],
     // Rewrites ```mermaid fences to <Mermaid chart="…" />. We supply the component.
     remarkMdxMermaid,
-    () => remarkOpenmdWikilinks(options),
-    () => remarkOpenmdLinks(options),
+    () => remarkSeemoreWikilinks(options),
+    () => remarkSeemoreLinks(options),
   ];
 }
 

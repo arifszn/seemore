@@ -47,7 +47,7 @@ function createStaticClient(from: string): SearchClientLike {
     fallback ??= onMainThread();
     for (const [id, handlers] of pending) {
       pending.delete(id);
-      handlers.reject(new Error('openmd: the search worker stopped; retrying on the main thread.'));
+      handlers.reject(new Error('seemore: the search worker stopped; retrying on the main thread.'));
     }
     return fallback;
   };

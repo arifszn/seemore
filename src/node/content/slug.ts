@@ -107,7 +107,7 @@ export function resolveRoutes(files: string[]): ResolvedRoutes {
     errors.push(
       `Duplicate route ${url} produced by ${candidates.length} files:\n` +
         candidates.map((c) => `  - ${c.file}`).join('\n') +
-        `\nRename one of them, or exclude it with \`exclude\` in openmd.config.ts.`,
+        `\nRename one of them, or exclude it with \`exclude\` in seemore.config.ts.`,
     );
   }
 

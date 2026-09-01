@@ -1,7 +1,7 @@
 @import 'tailwindcss';
 
-/* openmd:imports — the configured fumadocs theme preset and the paths Tailwind must scan
-   are inserted here by the openmd Vite plugin. They belong above `preset.css`, and above
+/* seemore:imports — the configured fumadocs theme preset and the paths Tailwind must scan
+   are inserted here by the seemore Vite plugin. They belong above `preset.css`, and above
    every rule, because `@import` is only valid before the first style rule. */
 
 @import 'fumadocs-ui/css/preset.css';
@@ -13,212 +13,212 @@
 }
 
 @layer components {
-  .openmd-shell {
+  .seemore-shell {
     @apply flex min-h-screen flex-col;
   }
 
-  .openmd-header {
+  .seemore-header {
     @apply sticky top-0 z-50 flex items-center gap-2 border-b border-fd-border bg-fd-background/80 px-4 py-3 backdrop-blur md:gap-4;
   }
 
-  .openmd-brand {
+  .seemore-brand {
     @apply truncate;
   }
 
-  .openmd-sidebar-trigger {
+  .seemore-sidebar-trigger {
     @apply shrink-0 md:hidden;
   }
 
-  .openmd-brand {
+  .seemore-brand {
     @apply text-base font-semibold;
   }
 
-  .openmd-nav {
+  .seemore-nav {
     @apply flex items-center gap-3 text-sm text-fd-muted-foreground;
   }
 
-  .openmd-search-trigger {
+  .seemore-search-trigger {
     @apply ms-auto inline-flex shrink-0 items-center gap-2 rounded-lg border border-fd-border p-2 text-sm text-fd-muted-foreground sm:px-3 sm:py-1.5;
   }
 
   /* Icon only where there is no room for the label. */
-  .openmd-search-trigger span,
-  .openmd-search-trigger kbd {
+  .seemore-search-trigger span,
+  .seemore-search-trigger kbd {
     @apply hidden sm:inline;
   }
 
-  .openmd-search-trigger kbd {
+  .seemore-search-trigger kbd {
     @apply rounded border border-fd-border px-1 text-xs;
   }
 
-  .openmd-theme-toggle {
+  .seemore-theme-toggle {
     @apply shrink-0;
   }
 
-  .openmd-search-error {
+  .seemore-search-error {
     @apply px-4 py-6 text-sm text-fd-muted-foreground;
   }
 
-  .openmd-search-suggestion {
+  .seemore-search-suggestion {
     @apply px-4 pb-2 text-sm text-fd-muted-foreground;
   }
 
-  .openmd-search-suggestion span {
+  .seemore-search-suggestion span {
     @apply opacity-60;
   }
 
-  .openmd-theme-toggle {
+  .seemore-theme-toggle {
     @apply rounded-lg border border-fd-border p-2;
   }
 
-  .openmd-icon-dark {
+  .seemore-icon-dark {
     @apply hidden dark:block;
   }
 
-  .openmd-icon-light {
+  .seemore-icon-light {
     @apply block dark:hidden;
   }
 
-  .openmd-body {
+  .seemore-body {
     @apply mx-auto flex w-full max-w-7xl flex-1 gap-8 px-4;
   }
 
-  .openmd-sidebar {
+  .seemore-sidebar {
     @apply h-full;
   }
 
-  .openmd-sidebar-link {
+  .seemore-sidebar-link {
     @apply flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-sm text-fd-muted-foreground transition-colors;
   }
 
-  .openmd-sidebar-link:hover {
+  .seemore-sidebar-link:hover {
     @apply bg-fd-accent text-fd-accent-foreground;
   }
 
-  .openmd-sidebar-link[data-active='true'] {
+  .seemore-sidebar-link[data-active='true'] {
     @apply bg-fd-primary/10 font-medium text-fd-primary;
   }
 
-  .openmd-sidebar-folder-label {
+  .seemore-sidebar-folder-label {
     @apply text-fd-foreground;
   }
 
   /* The rule the nesting reads from: one guide line per level, indented from its parent. */
-  .openmd-sidebar-folder-content {
+  .seemore-sidebar-folder-content {
     @apply ms-4 flex flex-col border-s border-fd-border ps-1;
   }
 
-  .openmd-sidebar-folder {
+  .seemore-sidebar-folder {
     @apply flex flex-col;
   }
 
-  .openmd-sidebar-separator {
+  .seemore-sidebar-separator {
     @apply mt-4 mb-1 px-3 text-xs font-medium text-fd-muted-foreground uppercase;
   }
 
   /* A sticky column on wide screens; a drawer below `md`, driven by the sidebar state. */
-  .openmd-sidebar-column {
+  .seemore-sidebar-column {
     /* `pt-20` clears the sticky header, which sits above the drawer. */
     @apply fixed inset-y-0 start-0 z-40 w-72 -translate-x-full overflow-y-auto border-e border-fd-border bg-fd-background px-4 pt-20 pb-4 transition-transform rtl:translate-x-full;
     @apply md:sticky md:top-16 md:z-auto md:h-[calc(100vh-4rem)] md:w-64 md:translate-x-0 md:border-0 md:bg-transparent md:px-0 md:py-6 rtl:md:translate-x-0;
   }
 
-  .openmd-sidebar-column[data-open='true'] {
+  .seemore-sidebar-column[data-open='true'] {
     @apply translate-x-0 rtl:translate-x-0;
   }
 
-  .openmd-sidebar-backdrop {
+  .seemore-sidebar-backdrop {
     @apply fixed inset-0 z-30 bg-black/40 md:hidden;
   }
 
-  .openmd-main {
+  .seemore-main {
     @apply min-w-0 flex-1 py-8;
   }
 
-  .openmd-toc {
+  .seemore-toc {
     @apply sticky top-16 hidden h-[calc(100vh-4rem)] w-56 shrink-0 py-8 text-sm lg:block;
   }
 
-  .openmd-toc-title {
+  .seemore-toc-title {
     @apply mb-2 font-medium text-fd-muted-foreground;
   }
 
-  .openmd-toc-integrated {
+  .seemore-toc-integrated {
     @apply mt-6 border-t border-fd-border pt-4 text-sm;
   }
 
-  .openmd-breadcrumb {
+  .seemore-breadcrumb {
     @apply mb-4 flex flex-wrap items-center gap-2 text-sm text-fd-muted-foreground;
   }
 
-  .openmd-page-footer {
+  .seemore-page-footer {
     @apply mt-10 grid grid-cols-2 gap-4 border-t border-fd-border pt-6 text-sm;
   }
 
-  .openmd-next {
+  .seemore-next {
     @apply flex items-center justify-end gap-2 text-end;
   }
 
-  .openmd-prev {
+  .seemore-prev {
     @apply flex items-center gap-2;
   }
 
-  .openmd-edit-link {
+  .seemore-edit-link {
     @apply mt-8 inline-flex items-center gap-2 text-sm text-fd-muted-foreground;
   }
 
-  .openmd-site-footer {
+  .seemore-site-footer {
     @apply mt-10 flex flex-wrap gap-4 border-t border-fd-border pt-6 text-sm text-fd-muted-foreground;
   }
 
-  .openmd-back-to-top {
+  .seemore-back-to-top {
     @apply fixed bottom-6 end-6 inline-flex items-center gap-2 rounded-full border border-fd-border bg-fd-background px-4 py-2 text-sm shadow;
   }
 
-  .openmd-preview {
+  .seemore-preview {
     @apply pointer-events-none fixed z-50 max-h-80 w-[400px] overflow-hidden rounded-xl border border-fd-border bg-fd-popover p-4 text-sm shadow-lg;
   }
 
-  .openmd-preview-title {
+  .seemore-preview-title {
     @apply mb-2 font-medium;
   }
 
-  .openmd-preview-body {
+  .seemore-preview-body {
     @apply line-clamp-6 opacity-80;
   }
 
-  .openmd-loading {
+  .seemore-loading {
     @apply min-h-[50vh];
   }
 
-  .openmd-broken-wikilink {
+  .seemore-broken-wikilink {
     @apply cursor-help border-b border-dotted border-fd-muted-foreground text-fd-muted-foreground;
   }
 
-  .openmd-mermaid {
+  .seemore-mermaid {
     @apply my-6 flex justify-center;
   }
 
-  .openmd-mermaid-source {
+  .seemore-mermaid-source {
     @apply w-full overflow-x-auto text-xs opacity-60;
   }
 
-  .openmd-mermaid-error {
+  .seemore-mermaid-error {
     @apply my-6 rounded-lg border border-fd-border p-4 text-sm text-fd-muted-foreground;
   }
 
-  .openmd-pdf {
+  .seemore-pdf {
     @apply my-6 block;
   }
 
-  .openmd-pdf embed {
+  .seemore-pdf embed {
     @apply block h-[70vh] w-full rounded-lg border border-fd-border;
   }
 
-  .openmd-pdf a {
+  .seemore-pdf a {
     @apply mt-2 block text-sm text-fd-muted-foreground;
   }
 }
 
-/* openmd:user-css — the stylesheet named by `css` in openmd.config.ts is inlined here, at
+/* seemore:user-css — the stylesheet named by `css` in seemore.config.ts is inlined here, at
    the very end, so that it wins against everything above it. */

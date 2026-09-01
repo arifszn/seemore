@@ -5,7 +5,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 /**
- * The installed openmd package directory.
+ * The installed seemore package directory.
  *
  * Works from the bundled CLI (`dist/cli/index.js`) and from the sources during tests, which
  * is why it walks for `package.json` rather than assuming a depth.
@@ -18,7 +18,7 @@ export function packageRoot(): string {
     if (parent === dir) break;
     dir = parent;
   }
-  throw new Error('openmd: could not locate its own package root.');
+  throw new Error('seemore: could not locate its own package root.');
 }
 
 /** The browser layer, which ships as source and is compiled in-process. */
@@ -34,13 +34,13 @@ export function appRoot(): string {
  */
 export function cacheDir(contentRoot: string): string {
   const key = createHash('sha256').update(resolve(contentRoot)).digest('hex').slice(0, 12);
-  return join(tmpdir(), 'openmd', key);
+  return join(tmpdir(), 'seemore', key);
 }
 
 /**
- * `openmd [dir]`, else probe `docs/` → `content/` → cwd.
+ * `seemore [dir]`, else probe `docs/` → `content/` → cwd.
  *
- * The result is canonicalised through the filesystem. Every module id openmd derives from
+ * The result is canonicalised through the filesystem. Every module id seemore derives from
  * the root — import specifiers, watcher lookups — must use the real spelling, because Vite
  * refuses to *load* a path containing a Windows 8.3 short-name segment (`RUNNER~1`) no
  * matter what the fs allow list says. Real users hit this too: `C:\Users\<long name>\`

@@ -11,7 +11,7 @@ export const DEFAULT_EXCLUDES = [
   '**/node_modules/**',
   '**/.git/**',
   '**/dist/**',
-  '**/.openmd/**',
+  '**/.seemore/**',
   '**/.*/**',
   '**/.*',
   '**/CHANGELOG.md',

@@ -1,6 +1,6 @@
 import chokidar, { type FSWatcher } from 'chokidar';
 import type { Plugin, ViteDevServer } from 'vite';
-import type { OpenmdContext } from '../context.js';
+import type { SeemoreContext } from '../context.js';
 import { VIRTUAL } from './plugin.js';
 
 const CONTENT_FILE = /\.(?:mdx?|json)$/i;
@@ -13,11 +13,11 @@ const CONTENT_FILE = /\.(?:mdx?|json)$/i;
  * virtual modules that depend on the corpus are reloaded through Vite's own HMR machinery so
  * the sidebar re-renders in place instead of reloading the page.
  */
-export function openmdWatcherPlugin(ctx: OpenmdContext): Plugin {
+export function seemoreWatcherPlugin(ctx: SeemoreContext): Plugin {
   let watcher: FSWatcher | undefined;
 
   return {
-    name: 'openmd:watcher',
+    name: 'seemore:watcher',
     apply: 'serve',
 
     configureServer(server) {
@@ -52,7 +52,7 @@ export function openmdWatcherPlugin(ctx: OpenmdContext): Plugin {
           if (path !== ctx.config.configFile) return;
           server.environments.client.hot.send({ type: 'full-reload', path: '*' });
           server.config.logger.info(
-            'openmd  config changed — reloading. Changes to `base` need a restart to take effect.',
+            'seemore  config changed — reloading. Changes to `base` need a restart to take effect.',
           );
         });
       }
@@ -70,7 +70,7 @@ export function openmdWatcherPlugin(ctx: OpenmdContext): Plugin {
 /** Exported for the watcher test, which drives it without going through chokidar's timing. */
 export async function handleContentChange(
   server: ViteDevServer,
-  ctx: OpenmdContext,
+  ctx: SeemoreContext,
   event: string,
   path: string,
 ): Promise<void> {

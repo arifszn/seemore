@@ -27,11 +27,11 @@ function localUrls(html: string): string[] {
   return urls;
 }
 
-describe('openmd build', () => {
+describe('seemore build', () => {
   let outDir: string;
 
   beforeAll(async () => {
-    outDir = mkdtempSync(join(tmpdir(), 'openmd-build-'));
+    outDir = mkdtempSync(join(tmpdir(), 'seemore-build-'));
     await runBuild({ cwd: FIXTURE, outDir });
   }, 300_000);
 
@@ -121,7 +121,7 @@ describe('openmd build', () => {
     // Ambiguous `[[page]]` resolves to the shallowest match, deterministically.
     expect(hrefs).toContain('/reference/page');
     expect(hrefs).not.toContain(undefined);
-    expect($('.openmd-broken-wikilink').text()).toContain('No Such Page');
+    expect($('.seemore-broken-wikilink').text()).toContain('No Such Page');
   });
 
   it('produces a search index containing every page', () => {
@@ -178,7 +178,7 @@ describe('base path handling', () => {
   let outDir: string;
 
   beforeAll(async () => {
-    outDir = mkdtempSync(join(tmpdir(), 'openmd-base-'));
+    outDir = mkdtempSync(join(tmpdir(), 'seemore-base-'));
     await runBuild({ cwd: FIXTURE, outDir, base: '/sub/' });
   }, 300_000);
 
@@ -204,7 +204,7 @@ describe('base path handling', () => {
 
   it('points the search index fetch at the based URL', () => {
     // The fetch URL lives in the bundle, not in the markup: the client reads it from
-    // `virtual:openmd/config`.
+    // `virtual:seemore/config`.
     const bundle = readdirSync(join(outDir, 'assets'))
       .filter((file) => file.endsWith('.js'))
       .map((file) => read(outDir, join('assets', file)))
@@ -223,7 +223,7 @@ describe('base path handling', () => {
 
 describe('failure policy', () => {
   it('fails the build on a duplicate slug, listing every colliding file', async () => {
-    const contentRoot = mkdtempSync(join(tmpdir(), 'openmd-dupe-'));
+    const contentRoot = mkdtempSync(join(tmpdir(), 'seemore-dupe-'));
     writeFileSync(join(contentRoot, 'Deep Dive.md'), '---\ntitle: One\n---\n');
     writeFileSync(join(contentRoot, 'deep-dive.md'), '---\ntitle: Two\n---\n');
 
@@ -234,7 +234,7 @@ describe('failure policy', () => {
   });
 
   it('fails the build on invalid frontmatter, naming the file and the field', async () => {
-    const contentRoot = mkdtempSync(join(tmpdir(), 'openmd-frontmatter-'));
+    const contentRoot = mkdtempSync(join(tmpdir(), 'seemore-frontmatter-'));
     writeFileSync(join(contentRoot, 'bad.md'), '---\ntitle: 42\norder: soon\n---\n');
 
     await expect(runBuild({ cwd: contentRoot, outDir: join(contentRoot, 'dist') })).rejects.toThrow(
@@ -244,7 +244,7 @@ describe('failure policy', () => {
   });
 
   it('fails the build when the content root holds no Markdown at all', async () => {
-    const contentRoot = mkdtempSync(join(tmpdir(), 'openmd-empty-'));
+    const contentRoot = mkdtempSync(join(tmpdir(), 'seemore-empty-'));
     await expect(runBuild({ cwd: contentRoot, outDir: join(contentRoot, 'dist') })).rejects.toThrow(
       /No Markdown files found/,
     );
@@ -252,7 +252,7 @@ describe('failure policy', () => {
   });
 
   it('only warns about a missing image, because the page is visibly wrong on its own', async () => {
-    const contentRoot = mkdtempSync(join(tmpdir(), 'openmd-image-'));
+    const contentRoot = mkdtempSync(join(tmpdir(), 'seemore-image-'));
     const outDir = join(contentRoot, 'dist');
     writeFileSync(join(contentRoot, 'index.md'), '---\ntitle: Home\n---\n\n# Home\n\n![gone](./nope.png)\n');
 
@@ -264,7 +264,7 @@ describe('failure policy', () => {
 
 describe('applyTemplate', () => {
   it('treats page content as text, not as a replacement pattern', () => {
-    const template = '<html><head><!--openmd-head--></head><body><!--openmd-app--></body></html>';
+    const template = '<html><head><!--seemore-head--></head><body><!--seemore-app--></body></html>';
     // `$&`, `` $` `` and `$1` are substitution patterns to `String.replace`.
     const html = "<p>Use $& in sed, $` for the prefix, and $1 for a group.</p>";
 
@@ -272,7 +272,7 @@ describe('applyTemplate', () => {
 
     expect(out).toContain(html);
     expect(out).toContain('<title>$&</title>');
-    expect(out).not.toContain('openmd-app');
+    expect(out).not.toContain('seemore-app');
   });
 });
 
@@ -284,7 +284,7 @@ describe('the GitHub Pages base warning', () => {
   });
 
   it('names the exact config line to add, and never guesses the base itself', async () => {
-    const contentRoot = mkdtempSync(join(tmpdir(), 'openmd-ghpages-'));
+    const contentRoot = mkdtempSync(join(tmpdir(), 'seemore-ghpages-'));
     const outDir = join(contentRoot, 'dist');
     writeFileSync(join(contentRoot, 'index.md'), '---\ntitle: Home\n---\n\n# Home\n');
 
@@ -315,7 +315,7 @@ describe('the GitHub Pages base warning', () => {
 
 describe('output directory safety', () => {
   it('refuses to build into a directory that contains the project', async () => {
-    const contentRoot = mkdtempSync(join(tmpdir(), 'openmd-outdir-'));
+    const contentRoot = mkdtempSync(join(tmpdir(), 'seemore-outdir-'));
     writeFileSync(join(contentRoot, 'index.md'), '---\ntitle: Home\n---\n\n# Home\n');
 
     // `--out .` would empty the very directory being documented.
@@ -329,12 +329,12 @@ describe('output directory safety', () => {
 
 describe('stylesheet composition', () => {
   it('keeps the fumadocs preset and puts the user stylesheet last', async () => {
-    const contentRoot = mkdtempSync(join(tmpdir(), 'openmd-css-'));
+    const contentRoot = mkdtempSync(join(tmpdir(), 'seemore-css-'));
     const outDir = join(contentRoot, 'out');
     writeFileSync(join(contentRoot, 'index.md'), '---\ntitle: Home\n---\n\n# Home\n');
-    writeFileSync(join(contentRoot, 'custom.css'), '.openmd-article { --openmd-user-marker: 1; }\n');
+    writeFileSync(join(contentRoot, 'custom.css'), '.seemore-article { --seemore-user-marker: 1; }\n');
     writeFileSync(
-      join(contentRoot, 'openmd.config.ts'),
+      join(contentRoot, 'seemore.config.ts'),
       "export default { title: 'Themed', theme: 'ocean', css: './custom.css' };",
     );
 
@@ -347,9 +347,9 @@ describe('stylesheet composition', () => {
 
     // Inlining user CSS above the `@import` chain would silently drop the whole preset.
     expect(css).toContain('--color-fd-background');
-    expect(css).toContain('--openmd-user-marker');
+    expect(css).toContain('--seemore-user-marker');
     // And it has to land after our own rules, or it cannot override them.
-    expect(css.indexOf('--openmd-user-marker')).toBeGreaterThan(css.indexOf('.openmd-header'));
+    expect(css.indexOf('--seemore-user-marker')).toBeGreaterThan(css.indexOf('.seemore-header'));
 
     rmSync(contentRoot, { recursive: true, force: true });
   });

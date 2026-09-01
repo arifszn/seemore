@@ -41,7 +41,7 @@ function Link({ href, prefetch: _prefetch, ...props }: ComponentProps<'a'> & { p
   return <RouterLink to={href ?? ''} viewTransition {...props} />;
 }
 
-export function OpenmdProvider({ children }: { children: ReactNode }) {
+export function SeemoreProvider({ children }: { children: ReactNode }) {
   return (
     <FrameworkProvider
       usePathname={usePathname}

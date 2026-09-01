@@ -8,7 +8,7 @@ export function Breadcrumb() {
   if (path.length === 0) return null;
 
   return (
-    <nav className="openmd-breadcrumb" aria-label="Breadcrumb">
+    <nav className="seemore-breadcrumb" aria-label="Breadcrumb">
       {path.map((node, index) => {
         const url = node.type === 'page' ? node.url : node.type === 'folder' ? node.index?.url : undefined;
         return (

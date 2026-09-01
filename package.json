@@ -1,15 +1,15 @@
 {
-  "name": "@arifszn/openmd",
+  "name": "seemore",
   "version": "1.0.0",
-  "description": "Let AI write the Markdown. Let openmd show it better — see any folder of Markdown rendered in your browser, zero config.",
+  "description": "Let AI write the Markdown. Let seemore show it better — see any folder of Markdown rendered in your browser, zero config.",
   "license": "MIT",
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/arifszn/openmd.git"
+    "url": "git+https://github.com/arifszn/seemore.git"
   },
   "bin": {
-    "openmd": "./dist/cli/index.js"
+    "seemore": "./dist/cli/index.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

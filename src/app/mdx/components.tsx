@@ -1,7 +1,7 @@
 import type { AnchorHTMLAttributes, ComponentProps } from 'react';
 import { Link } from 'react-router';
 import defaultMdxComponents from 'fumadocs-ui/mdx';
-import { config } from 'virtual:openmd/config';
+import { config } from 'virtual:seemore/config';
 import { isExternalHref, stripBase } from '../../shared/base.js';
 import { Mermaid } from './Mermaid.js';
 import { Pdf } from './Pdf.js';

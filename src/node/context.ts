@@ -1,14 +1,14 @@
 import { createLinkResolver, type LinkResolver } from './content/links.js';
 import type { ContentPage, ScanResult } from './content/scan.js';
-import { createSource, type OpenmdSource } from './content/source.js';
-import type { ResolvedOpenmdConfig } from './config/schema.js';
+import { createSource, type SeemoreSource } from './content/source.js';
+import type { ResolvedSeemoreConfig } from './config/schema.js';
 import { createWarningCollector, type WarningCollector } from './report.js';
 
-export interface OpenmdContext {
-  config: ResolvedOpenmdConfig;
+export interface SeemoreContext {
+  config: ResolvedSeemoreConfig;
   /** Absolute path of the directory being documented. Usually outside the Vite root. */
   contentRoot: string;
-  source: OpenmdSource;
+  source: SeemoreSource;
   warnings: WarningCollector;
   pages(): ContentPage[];
   /** Rebuilt on every refresh, so remark plugins must read it late. */
@@ -20,13 +20,13 @@ export interface OpenmdContext {
 }
 
 export interface CreateContextOptions {
-  config: ResolvedOpenmdConfig;
+  config: ResolvedSeemoreConfig;
   contentRoot: string;
   /** Dev keeps drafts so they can be written; the build drops them. */
   includeDrafts?: boolean;
 }
 
-export function createContext(options: CreateContextOptions): OpenmdContext {
+export function createContext(options: CreateContextOptions): SeemoreContext {
   const { config, contentRoot } = options;
 
   const source = createSource({

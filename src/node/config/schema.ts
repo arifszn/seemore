@@ -78,8 +78,8 @@ export const configSchema = z.object({
   exclude: z.array(z.string()).default([]),
 });
 
-/** What a user writes in `openmd.config.ts`. */
-export type OpenmdConfig = Omit<z.input<typeof configSchema>, 'features' | 'theme' | 'search'> & {
+/** What a user writes in `seemore.config.ts`. */
+export type SeemoreConfig = Omit<z.input<typeof configSchema>, 'features' | 'theme' | 'search'> & {
   features?: FeatureFlag[];
   theme?: Theme;
   search?: z.input<typeof searchSchema>;
@@ -90,8 +90,8 @@ export type SearchConfig =
   | { provider: 'orama-cloud'; endpoint: string; apiKey: string }
   | { provider: 'algolia'; appId: string; apiKey: string; indexName: string };
 
-/** What the rest of openmd consumes: every optional filled in, every path absolute. */
-export interface ResolvedOpenmdConfig {
+/** What the rest of seemore consumes: every optional filled in, every path absolute. */
+export interface ResolvedSeemoreConfig {
   title: string;
   description?: string;
   favicon?: string;

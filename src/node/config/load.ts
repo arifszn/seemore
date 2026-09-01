@@ -4,9 +4,9 @@ import { createJiti } from 'jiti';
 import { z } from 'zod';
 import { normaliseBase } from '../base.js';
 import { resolveFeatures, type FeatureFlag } from './features.js';
-import { configSchema, THEMES, type OpenmdConfig, type ResolvedOpenmdConfig, type SearchConfig } from './schema.js';
+import { configSchema, THEMES, type SeemoreConfig, type ResolvedSeemoreConfig, type SearchConfig } from './schema.js';
 
-const CONFIG_NAMES = ['openmd.config.ts', 'openmd.config.mts', 'openmd.config.js', 'openmd.config.mjs'];
+const CONFIG_NAMES = ['seemore.config.ts', 'seemore.config.mts', 'seemore.config.js', 'seemore.config.mjs'];
 
 export interface LoadConfigOptions {
   /** Directory to look in, and the base for relative paths inside the config. */
@@ -15,11 +15,11 @@ export interface LoadConfigOptions {
   configPath?: string;
 }
 
-/** Turn a validated config into the fully-resolved shape the rest of openmd consumes. */
+/** Turn a validated config into the fully-resolved shape the rest of seemore consumes. */
 export function resolveConfig(
-  input: OpenmdConfig,
+  input: SeemoreConfig,
   options: { root: string; configFile?: string },
-): ResolvedOpenmdConfig {
+): ResolvedSeemoreConfig {
   const parsed = parseOrThrow(input, options.configFile);
 
   const search: SearchConfig = parsed.search === 'static' ? { provider: 'static' } : (parsed.search as SearchConfig);
@@ -48,13 +48,13 @@ export function resolveConfig(
 }
 
 export interface LoadedConfig {
-  config: ResolvedOpenmdConfig;
+  config: ResolvedSeemoreConfig;
   /** Absolute path of the config file that was used, if any. */
   file?: string;
 }
 
 /**
- * Load `openmd.config.ts` with jiti. Not Vite's `ssrLoadModule`: the config
+ * Load `seemore.config.ts` with jiti. Not Vite's `ssrLoadModule`: the config
  * decides `base`, `base` configures Vite, and Vite would have to already exist to load it.
  */
 export async function loadConfig(options: LoadConfigOptions): Promise<LoadedConfig> {
@@ -79,7 +79,7 @@ export async function loadConfig(options: LoadConfigOptions): Promise<LoadedConf
   }
 
   return {
-    config: resolveConfig(loaded as OpenmdConfig, { root: dirname(file), configFile: file }),
+    config: resolveConfig(loaded as SeemoreConfig, { root: dirname(file), configFile: file }),
     file,
   };
 }
@@ -104,11 +104,11 @@ function resolveFrom(root: string, path: string): string {
   return isAbsolute(path) ? path : resolve(root, path);
 }
 
-function parseOrThrow(input: OpenmdConfig, file: string | undefined): z.output<typeof configSchema> {
+function parseOrThrow(input: SeemoreConfig, file: string | undefined): z.output<typeof configSchema> {
   const result = configSchema.safeParse(input);
   if (result.success) return result.data;
 
-  const where = file === undefined ? 'openmd config' : file;
+  const where = file === undefined ? 'seemore config' : file;
   const issues = result.error.issues.map((issue) => {
     const field = issue.path.length === 0 ? '(root)' : issue.path.join('.');
     return `  - ${field}: ${explain(issue)}`;

@@ -13,7 +13,7 @@ import type { ComponentProps } from 'react';
  */
 export function Pdf({ src, title, ...props }: ComponentProps<'embed'> & { src: string }) {
   return (
-    <span className="openmd-pdf">
+    <span className="seemore-pdf">
       <embed src={src} type="application/pdf" title={title} {...props} />
       <a href={src} download>
         Download {title ?? 'PDF'}

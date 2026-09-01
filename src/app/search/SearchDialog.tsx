@@ -12,14 +12,14 @@ import {
   SearchDialogOverlay,
 } from 'fumadocs-ui/components/dialog/search';
 import type { SharedProps } from 'fumadocs-ui/contexts/search';
-import { config } from 'virtual:openmd/config';
+import { config } from 'virtual:seemore/config';
 import { stripBase } from '../../shared/base.js';
 import { feature } from '../lib/features.js';
 import { createSearchClient } from './client.js';
 
 /**
  * Our own dialog rather than fumadocs' `DefaultSearchDialog`, because the default one talks
- * to a search *route*; openmd has no server, so the client is a static index read in a
+ * to a search *route*; seemore has no server, so the client is a static index read in a
  * worker.
  */
 /**
@@ -82,7 +82,7 @@ export function SearchDialog(props: SharedProps) {
           <SearchDialogClose />
         </SearchDialogHeader>
         {completion === '' ? undefined : (
-          <p className="openmd-search-suggestion" aria-hidden="true">
+          <p className="seemore-search-suggestion" aria-hidden="true">
             {search}
             <span>{completion}</span>
           </p>
@@ -91,7 +91,7 @@ export function SearchDialog(props: SharedProps) {
           <SearchDialogList items={items} />
         ) : (
           // A search box that silently finds nothing is worse than one that says why.
-          <p className="openmd-search-error" role="alert">
+          <p className="seemore-search-error" role="alert">
             {query.error.message}
           </p>
         )}

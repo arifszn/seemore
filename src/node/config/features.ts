@@ -4,7 +4,7 @@ import type { Feature, FeatureFlag, ResolvedFeatures } from '../../shared/types.
  * Feature flags.
  *
  * MkDocs Material's model — one flat list of dotted strings — but typed as a union, which
- * their YAML cannot do. Because openmd has default-on features where MkDocs has none, the
+ * their YAML cannot do. Because seemore has default-on features where MkDocs has none, the
  * list is additive over the defaults and a `!` prefix turns a default-on feature off.
  */
 
@@ -85,7 +85,7 @@ export function resolveFeatures(
 
   if (problems.length > 0) {
     throw new Error(
-      `Incompatible \`features\` in openmd config:\n${problems.map((p) => `  - ${p}`).join('\n')}`,
+      `Incompatible \`features\` in seemore config:\n${problems.map((p) => `  - ${p}`).join('\n')}`,
     );
   }
 

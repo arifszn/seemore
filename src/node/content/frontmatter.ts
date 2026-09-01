@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 /**
  * Frontmatter is validated, not restricted: unknown keys pass through so that a corpus
- * written for another tool still builds. Only the keys openmd acts on are typed.
+ * written for another tool still builds. Only the keys seemore acts on are typed.
  */
 export const frontmatterSchema = z
   .object({

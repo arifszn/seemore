@@ -5,7 +5,7 @@ import { isAbsolute, join, relative, resolve } from 'node:path';
 import pc from 'picocolors';
 import { build as viteBuild } from 'vite';
 import { loadConfig } from '../node/config/load.js';
-import { createContext, type OpenmdContext } from '../node/context.js';
+import { createContext, type SeemoreContext } from '../node/context.js';
 import { normaliseBase } from '../shared/base.js';
 import { resolveContentRoot } from '../node/paths.js';
 import { applyTemplate, outputPathFor, writeHtml } from '../node/prerender/emit.js';
@@ -37,18 +37,18 @@ export async function runBuild(options: BuildOptions): Promise<{ outDir: string;
   const scan = ctx.source.current();
   failOnErrors(ctx.errors(), contentRoot);
   if (scan.pages.length === 0) {
-    throw new Error(`No Markdown files found under ${contentRoot}. Point openmd at a folder that has some, or check \`exclude\`.`);
+    throw new Error(`No Markdown files found under ${contentRoot}. Point seemore at a folder that has some, or check \`exclude\`.`);
   }
   for (const warning of scan.warnings) ctx.warnings.add(warning);
 
-  console.log(pc.dim(`openmd  ${scan.pages.length} pages from ${relative(options.cwd, contentRoot) || '.'}`));
+  console.log(pc.dim(`seemore  ${scan.pages.length} pages from ${relative(options.cwd, contentRoot) || '.'}`));
 
   // 1. The client bundle, which also produces the HTML template every page is injected into.
   await viteBuild(createViteConfig({ ctx, mode: 'build', outDir }));
   const template = readFileSync(join(outDir, 'index.html'), 'utf8');
 
   // 2. The same module graph, evaluated in node.
-  const ssrOutDir = mkdtempSync(join(tmpdir(), 'openmd-ssr-'));
+  const ssrOutDir = mkdtempSync(join(tmpdir(), 'seemore-ssr-'));
   try {
     const prerender = await loadPrerenderModule(ctx, ssrOutDir);
     const urls = prerender.listRoutes();
@@ -58,7 +58,7 @@ export async function runBuild(options: BuildOptions): Promise<{ outDir: string;
     }
 
     // 3. The shell an unknown address falls back to, which is also Surge's `200.html`.
-    const notFound = applyTemplate(template, await prerender.render('/__openmd_not_found'));
+    const notFound = applyTemplate(template, await prerender.render('/__seemore_not_found'));
     writeHtml(outDir, '404.html', notFound);
     writeDeployArtifacts(outDir, config.base, notFound);
 
@@ -69,7 +69,7 @@ export async function runBuild(options: BuildOptions): Promise<{ outDir: string;
       writeFileSync(join(outDir, 'api', 'search.json'), index, 'utf8');
 
       const size = measureIndex(index);
-      console.log(pc.dim(`openmd  search index ${formatBytes(size.gzipped)} gzipped`));
+      console.log(pc.dim(`seemore  search index ${formatBytes(size.gzipped)} gzipped`));
       if (size.warning !== undefined) ctx.warnings.add(size.warning);
     }
 
@@ -78,7 +78,7 @@ export async function runBuild(options: BuildOptions): Promise<{ outDir: string;
     if (config.features['social.cards']) await generateSocialCards(ctx, outDir);
 
     ctx.warnings.flush();
-    console.log(pc.green(`openmd  ${urls.length} pages written to ${relative(options.cwd, outDir) || outDir}`));
+    console.log(pc.green(`seemore  ${urls.length} pages written to ${relative(options.cwd, outDir) || outDir}`));
 
     return { outDir, routes: urls.length };
   } finally {
@@ -88,7 +88,7 @@ export async function runBuild(options: BuildOptions): Promise<{ outDir: string;
 
 /**
  * The build empties `outDir` before writing, and `outDir` is always outside the Vite root —
- * openmd's root is its own package — so Vite's own guard against that never fires. A typo
+ * seemore's root is its own package — so Vite's own guard against that never fires. A typo
  * like `--out .` would delete the project, so it is refused here instead.
  */
 function assertSafeOutDir(outDir: string, cwd: string, contentRoot: string): void {
@@ -110,10 +110,10 @@ function assertSafeOutDir(outDir: string, cwd: string, contentRoot: string): voi
 }
 
 /**
- * The hosted search providers need an SDK that openmd does not depend on. Finding out in the
+ * The hosted search providers need an SDK that seemore does not depend on. Finding out in the
  * browser means an empty search box; finding out here means a line in the build log.
  */
-async function warnIfSearchSdkMissing(ctx: OpenmdContext, provider: 'algolia' | 'orama-cloud'): Promise<void> {
+async function warnIfSearchSdkMissing(ctx: SeemoreContext, provider: 'algolia' | 'orama-cloud'): Promise<void> {
   const packageName = provider === 'algolia' ? 'algoliasearch' : '@orama/core';
   try {
     createRequire(join(ctx.config.root, 'noop.js')).resolve(packageName);
@@ -127,7 +127,7 @@ async function warnIfSearchSdkMissing(ctx: OpenmdContext, provider: 'algolia' | 
 /** Failing conditions produce a silently wrong site; warnings produce a visibly wrong page. */
 function failOnErrors(errors: string[], contentRoot: string): void {
   if (errors.length === 0) return;
-  throw new Error(`openmd found ${errors.length} problem(s) in ${contentRoot}:\n\n${errors.join('\n\n')}`);
+  throw new Error(`seemore found ${errors.length} problem(s) in ${contentRoot}:\n\n${errors.join('\n\n')}`);
 }
 
 /**
@@ -139,8 +139,8 @@ function warnAboutMissingBase(base: string, configFile: string | undefined): voi
   const repo = process.env.GITHUB_REPOSITORY?.split('/')[1];
   console.warn(
     pc.yellow(
-      `openmd  \`base\` is not set, and GitHub Pages serves project sites from a subpath.\n` +
-        `        Add this to ${configFile ?? 'openmd.config.ts'}:\n\n` +
+      `seemore  \`base\` is not set, and GitHub Pages serves project sites from a subpath.\n` +
+        `        Add this to ${configFile ?? 'seemore.config.ts'}:\n\n` +
         `          base: '/${repo ?? 'your-repo'}/',\n\n` +
         `        Or pass --base '/${repo ?? 'your-repo'}/'. Ignore this if you deploy to a domain root.`,
     ),

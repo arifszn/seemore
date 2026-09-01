@@ -3,7 +3,7 @@ import { Moon, PanelLeft, Search, Sun } from 'lucide-react';
 import { useSearchContext } from 'fumadocs-ui/contexts/search';
 import { SidebarTrigger } from 'fumadocs-ui/components/sidebar/base';
 import { useTheme } from 'fumadocs-ui/provider/base';
-import { config } from 'virtual:openmd/config';
+import { config } from 'virtual:seemore/config';
 
 export function Header() {
   const search = useSearchContext();
@@ -11,16 +11,16 @@ export function Header() {
   const location = useLocation();
 
   return (
-    <header className="openmd-header">
-      <SidebarTrigger className="openmd-sidebar-trigger" aria-label="Toggle navigation">
+    <header className="seemore-header">
+      <SidebarTrigger className="seemore-sidebar-trigger" aria-label="Toggle navigation">
         <PanelLeft />
       </SidebarTrigger>
 
-      <Link to="/" className="openmd-brand" viewTransition>
+      <Link to="/" className="seemore-brand" viewTransition>
         {config.title}
       </Link>
 
-      <nav className="openmd-nav" aria-label="Site">
+      <nav className="seemore-nav" aria-label="Site">
         {(config.nav ?? []).map((item) =>
           item.link === undefined ? (
             <span key={item.text}>{item.text}</span>
@@ -38,7 +38,7 @@ export function Header() {
       </nav>
 
       {search.enabled ? (
-        <button type="button" className="openmd-search-trigger" onClick={() => search.setOpenSearch(true)}>
+        <button type="button" className="seemore-search-trigger" onClick={() => search.setOpenSearch(true)}>
           <Search aria-hidden="true" />
           <span>Search</span>
           <kbd>{'⌘K'}</kbd>
@@ -47,12 +47,12 @@ export function Header() {
 
       <button
         type="button"
-        className="openmd-theme-toggle"
+        className="seemore-theme-toggle"
         aria-label="Toggle dark mode"
         onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
       >
-        <Sun className="openmd-icon-light" aria-hidden="true" />
-        <Moon className="openmd-icon-dark" aria-hidden="true" />
+        <Sun className="seemore-icon-light" aria-hidden="true" />
+        <Moon className="seemore-icon-dark" aria-hidden="true" />
       </button>
     </header>
   );

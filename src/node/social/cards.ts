@@ -1,7 +1,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { ogImagePath } from '../../shared/og.js';
-import type { OpenmdContext } from '../context.js';
+import type { SeemoreContext } from '../context.js';
 
 /**
  * `social.cards`: one OG image per page, rendered at build time.
@@ -9,7 +9,7 @@ import type { OpenmdContext } from '../context.js';
  * `takumi-js` is an optional peer of fumadocs-ui and is not installed by default, so the
  * flag degrades to a warning rather than to an install-time cost everybody pays.
  */
-export async function generateSocialCards(ctx: OpenmdContext, outDir: string): Promise<number> {
+export async function generateSocialCards(ctx: SeemoreContext, outDir: string): Promise<number> {
   // `takumi-js` is an optional peer, so it is loaded by specifier and typed structurally —
   // a hard import would make it a required dependency of every build.
   let takumi: TakumiModule;

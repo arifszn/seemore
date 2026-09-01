@@ -3,7 +3,7 @@ import { Link } from 'react-router';
 import { ArrowLeft, ArrowRight, ArrowUp } from 'lucide-react';
 import { findNeighbour } from 'fumadocs-core/page-tree';
 import type * as PageTree from 'fumadocs-core/page-tree';
-import { config } from 'virtual:openmd/config';
+import { config } from 'virtual:seemore/config';
 
 /** `navigation.footer`: previous / next links. */
 export function PageFooter({ tree, url }: { tree: PageTree.Root; url: string }) {
@@ -11,11 +11,11 @@ export function PageFooter({ tree, url }: { tree: PageTree.Root; url: string }) 
   if (previous === undefined && next === undefined) return null;
 
   return (
-    <nav className="openmd-page-footer" aria-label="Previous and next page">
+    <nav className="seemore-page-footer" aria-label="Previous and next page">
       {previous === undefined ? (
         <span />
       ) : (
-        <Link to={previous.url} viewTransition className="openmd-prev">
+        <Link to={previous.url} viewTransition className="seemore-prev">
           <ArrowLeft aria-hidden="true" />
           <span>{previous.name}</span>
         </Link>
@@ -23,7 +23,7 @@ export function PageFooter({ tree, url }: { tree: PageTree.Root; url: string }) 
       {next === undefined ? (
         <span />
       ) : (
-        <Link to={next.url} viewTransition className="openmd-next">
+        <Link to={next.url} viewTransition className="seemore-next">
           <span>{next.name}</span>
           <ArrowRight aria-hidden="true" />
         </Link>
@@ -35,7 +35,7 @@ export function PageFooter({ tree, url }: { tree: PageTree.Root; url: string }) 
 export function SiteFooter() {
   if (config.footer === undefined) return null;
   return (
-    <footer className="openmd-site-footer">
+    <footer className="seemore-site-footer">
       {config.footer.text === undefined ? undefined : <p>{config.footer.text}</p>}
       {(config.footer.links ?? []).map((link) => (
         <a key={link.link} href={link.link}>
@@ -62,7 +62,7 @@ export function BackToTop() {
   return (
     <button
       type="button"
-      className="openmd-back-to-top"
+      className="seemore-back-to-top"
       onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
     >
       <ArrowUp aria-hidden="true" />

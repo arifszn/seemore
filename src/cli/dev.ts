@@ -1,7 +1,7 @@
 import { createServer, type ViteDevServer } from 'vite';
 import pc from 'picocolors';
 import { loadConfig } from '../node/config/load.js';
-import { createContext, type OpenmdContext } from '../node/context.js';
+import { createContext, type SeemoreContext } from '../node/context.js';
 import { normaliseBase } from '../shared/base.js';
 import { resolveContentRoot } from '../node/paths.js';
 import { createViteConfig } from '../node/vite/config.js';
@@ -20,14 +20,14 @@ export interface DevOptions {
 
 export interface DevServer {
   server: ViteDevServer;
-  ctx: OpenmdContext;
+  ctx: SeemoreContext;
   url: string;
   close(): Promise<void>;
 }
 
 /**
  * The dev server. Nothing is written into the user's folder: the Vite root is
- * openmd's own `src/app`, and caches go to the OS temp directory.
+ * seemore's own `src/app`, and caches go to the OS temp directory.
  */
 export async function runDev(options: DevOptions): Promise<DevServer> {
   const contentRoot = resolveContentRoot(options.cwd, options.dir);
@@ -43,7 +43,7 @@ export async function runDev(options: DevOptions): Promise<DevServer> {
   const scan = ctx.source.current();
   for (const message of [...scan.errors, ...scan.warnings]) ctx.warnings.add(message);
   if (scan.pages.length === 0) {
-    ctx.warnings.add(`No Markdown files found under ${contentRoot}. openmd will serve an empty site until there are.`);
+    ctx.warnings.add(`No Markdown files found under ${contentRoot}. seemore will serve an empty site until there are.`);
   }
 
   const base = createViteConfig({ ctx, mode: 'dev' });
@@ -63,7 +63,7 @@ export async function runDev(options: DevOptions): Promise<DevServer> {
   const url = `http://localhost:${resolvedPort}${config.base}`;
 
   ctx.warnings.flush();
-  console.log(`\n  ${pc.green('openmd')}  ${pc.bold(url)}`);
+  console.log(`\n  ${pc.green('seemore')}  ${pc.bold(url)}`);
   console.log(`  ${pc.dim(`${scan.pages.length} pages from ${contentRoot}`)}\n`);
 
   return {

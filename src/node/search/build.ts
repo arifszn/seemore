@@ -4,7 +4,7 @@ import { createFromSource } from 'fumadocs-core/search/server';
 import { structure } from 'fumadocs-core/mdx-plugins';
 import { withBase } from '../base.js';
 import { parseFrontmatter } from '../content/frontmatter.js';
-import type { OpenmdContext } from '../context.js';
+import type { SeemoreContext } from '../context.js';
 
 /** Above this, a static index is a real download cost worth naming. */
 export const SIZE_WARNING_BYTES = 1_500_000;
@@ -15,7 +15,7 @@ export const SIZE_WARNING_BYTES = 1_500_000;
  * The index is produced node-side from the raw markdown rather than from the compiled MDX
  * modules, so dev and build share one code path and neither has to evaluate browser code.
  */
-export async function buildSearchIndex(ctx: OpenmdContext): Promise<string> {
+export async function buildSearchIndex(ctx: SeemoreContext): Promise<string> {
   const loader = await ctx.source.loader.get();
   const bodies = new Map<string, string>();
 
@@ -65,7 +65,7 @@ export function measureIndex(json: string): IndexSize {
     warning:
       `The static search index is ${formatBytes(gzipped)} gzipped, which every visitor downloads before ` +
       `their first search. Above ${formatBytes(SIZE_WARNING_BYTES)} consider a hosted index: set ` +
-      `\`search: { provider: 'orama-cloud', … }\` or \`search: { provider: 'algolia', … }\` in openmd.config.ts.`,
+      `\`search: { provider: 'orama-cloud', … }\` or \`search: { provider: 'algolia', … }\` in seemore.config.ts.`,
   };
 }
 

@@ -1,7 +1,7 @@
 import { pathToFileURL } from 'node:url';
 import { join } from 'node:path';
 import { build } from 'vite';
-import type { OpenmdContext } from '../context.js';
+import type { SeemoreContext } from '../context.js';
 import { createViteConfig } from '../vite/config.js';
 
 export interface RenderResult {
@@ -21,14 +21,14 @@ export interface PrerenderModule {
  * bundle is compiled for the browser; the driver needs the same module graph evaluated in
  * node, with the same virtual modules, so the two can never describe different sites.
  */
-export async function loadPrerenderModule(ctx: OpenmdContext, ssrOutDir: string): Promise<PrerenderModule> {
+export async function loadPrerenderModule(ctx: SeemoreContext, ssrOutDir: string): Promise<PrerenderModule> {
   await build(createViteConfig({ ctx, mode: 'build', ssrOutDir }));
 
   const entry = join(ssrOutDir, 'entry.prerender.js');
   const loaded = (await import(pathToFileURL(entry).href)) as Partial<PrerenderModule>;
 
   if (typeof loaded.render !== 'function' || typeof loaded.listRoutes !== 'function') {
-    throw new Error(`openmd: the prerender build at ${entry} did not export \`render\` and \`listRoutes\`.`);
+    throw new Error(`seemore: the prerender build at ${entry} did not export \`render\` and \`listRoutes\`.`);
   }
 
   return { render: loaded.render, listRoutes: loaded.listRoutes };

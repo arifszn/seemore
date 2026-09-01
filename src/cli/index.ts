@@ -5,16 +5,16 @@ import { runBuild } from './build.js';
 import { runDev } from './dev.js';
 
 const USAGE = `
-${pc.bold('openmd')} — turn a folder of Markdown into a docs site
+${pc.bold('seemore')} — turn a folder of Markdown into a docs site
 
-  openmd [dir]           start the dev server
-  openmd build [dir]     build a static site into dist/
+  seemore [dir]           start the dev server
+  seemore build [dir]     build a static site into dist/
 
 Options
   --port <number>        dev server port (default 4040)
   --host [host]          expose the dev server on the network
   --open / --no-open     open a browser on start (default: no)
-  --config <path>        path to openmd.config.ts
+  --config <path>        path to seemore.config.ts
   --out <dir>            build output directory (default: dist)
   --base <path>          subpath the site is served from, e.g. /my-repo/
   -h, --help             show this message
@@ -84,6 +84,6 @@ export async function main(argv: string[] = process.argv.slice(2)): Promise<void
 }
 
 main().catch((error: unknown) => {
-  console.error(`\n${pc.red('openmd')} ${error instanceof Error ? error.message : String(error)}\n`);
+  console.error(`\n${pc.red('seemore')} ${error instanceof Error ? error.message : String(error)}\n`);
   process.exitCode = 1;
 });

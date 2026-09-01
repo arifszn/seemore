@@ -7,7 +7,7 @@ import type { VFile } from 'vfile';
 import type { LinkResolver } from '../content/links.js';
 import { toPosix } from '../content/slug.js';
 
-export interface OpenmdRemarkOptions {
+export interface SeemoreRemarkOptions {
   contentRoot: string;
   /** Read late: the resolver is replaced on every rescan. */
   getResolver: () => LinkResolver;
@@ -31,10 +31,10 @@ const ALERT_MARKER = /^\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*/;
  * GitHub alerts — `> [!NOTE]` — become fumadocs callouts.
  *
  * fumadocs ships `:::note` and directive admonitions, neither of which is what people
- * actually have in their repositories. openmd points at folders that already exist, so the
+ * actually have in their repositories. seemore points at folders that already exist, so the
  * syntax GitHub renders is the syntax that has to work.
  */
-export function remarkOpenmdAlerts(): Transformer<Root, Root> {
+export function remarkSeemoreAlerts(): Transformer<Root, Root> {
   return (tree) => {
     visit(tree, 'blockquote', (node: Blockquote, index, parent) => {
       if (parent === undefined || index === undefined) return;
@@ -83,7 +83,7 @@ function stripMarker(paragraph: Paragraph, marker: string): void {
  * Unresolved targets become styled plain text rather than dead links, because a link that
  * goes nowhere is worse than visibly missing text.
  */
-export function remarkOpenmdWikilinks(options: OpenmdRemarkOptions): Transformer<Root, Root> {
+export function remarkSeemoreWikilinks(options: SeemoreRemarkOptions): Transformer<Root, Root> {
   return (tree, file) => {
     const from = virtualPath(options.contentRoot, file);
     const resolver = options.getResolver();
@@ -113,7 +113,7 @@ export function remarkOpenmdWikilinks(options: OpenmdRemarkOptions): Transformer
             type: 'mdxJsxTextElement',
             name: 'span',
             attributes: [
-              { type: 'mdxJsxAttribute', name: 'className', value: 'openmd-broken-wikilink' },
+              { type: 'mdxJsxAttribute', name: 'className', value: 'seemore-broken-wikilink' },
               { type: 'mdxJsxAttribute', name: 'title', value: 'Unresolved link' },
             ],
             children: [{ type: 'text', value: resolved.label }],
@@ -145,7 +145,7 @@ export function remarkOpenmdWikilinks(options: OpenmdRemarkOptions): Transformer
  * into JSX first takes it out of that plugin's way, leaving the broken reference visible on
  * the page exactly as the author wrote it.
  */
-export function remarkOpenmdAssets(options: OpenmdRemarkOptions): Transformer<Root, Root> {
+export function remarkSeemoreAssets(options: SeemoreRemarkOptions): Transformer<Root, Root> {
   return (tree, file) => {
     if (typeof file.path !== 'string' || file.path === '') return;
     const dir = dirname(file.path);
@@ -166,7 +166,7 @@ export function remarkOpenmdAssets(options: OpenmdRemarkOptions): Transformer<Ro
         attributes: [
           { type: 'mdxJsxAttribute', name: 'src', value: node.url },
           { type: 'mdxJsxAttribute', name: 'alt', value: node.alt ?? '' },
-          { type: 'mdxJsxAttribute', name: 'data-openmd-missing', value: 'true' },
+          { type: 'mdxJsxAttribute', name: 'data-seemore-missing', value: 'true' },
         ],
         children: [],
       } as unknown as PhrasingContent);
@@ -179,7 +179,7 @@ function isExternal(url: string): boolean {
 }
 
 /** Relative `.md`/`.mdx` links become routes, base included. */
-export function remarkOpenmdLinks(options: OpenmdRemarkOptions): Transformer<Root, Root> {
+export function remarkSeemoreLinks(options: SeemoreRemarkOptions): Transformer<Root, Root> {
   return (tree, file) => {
     const from = virtualPath(options.contentRoot, file);
     const resolver = options.getResolver();

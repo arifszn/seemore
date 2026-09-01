@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { config } from 'virtual:openmd/config';
+import { config } from 'virtual:seemore/config';
 import { findRoute, loadPage, peekPage } from '../lib/pages.js';
 import { feature } from '../lib/features.js';
 import { mdxComponents } from '../mdx/components.js';
@@ -60,12 +60,12 @@ export function PagePreview() {
 
   return (
     <div
-      className="openmd-preview"
+      className="seemore-preview"
       role="tooltip"
       style={{ left: Math.min(state.x + 16, window.innerWidth - 420), top: state.y + 16 }}
     >
-      <p className="openmd-preview-title">{findRoute(state.url)?.title ?? config.title}</p>
-      <div className="openmd-preview-body" aria-hidden="true">
+      <p className="seemore-preview-title">{findRoute(state.url)?.title ?? config.title}</p>
+      <div className="seemore-preview-body" aria-hidden="true">
         <Content components={mdxComponents} />
       </div>
     </div>

@@ -1,4 +1,4 @@
-import { config } from 'virtual:openmd/config';
+import { config } from 'virtual:seemore/config';
 import type { Feature } from '../../shared/types.js';
 
 /** Feature flags are resolved node-side; the browser only reads them. */

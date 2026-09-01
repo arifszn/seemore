@@ -1,38 +1,38 @@
-# openmd
+# seemore
 
-Let AI write the Markdown. Let openmd show it better.
+Let AI write the Markdown. Let seemore show it better.
 
-[![npm version](https://img.shields.io/npm/v/@arifszn%2Fopenmd)](https://www.npmjs.com/package/@arifszn/openmd)
-[![CI](https://github.com/arifszn/openmd/actions/workflows/ci.yml/badge.svg)](https://github.com/arifszn/openmd/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/@arifszn%2Fseemore)](https://www.npmjs.com/package/seemore)
+[![CI](https://github.com/arifszn/seemore/actions/workflows/ci.yml/badge.svg)](https://github.com/arifszn/seemore/actions/workflows/ci.yml)
 [![Licence: MIT](https://img.shields.io/badge/Licence-MIT-informational)](LICENSE)
 
 AI tools write Markdown — specs, notes, guides, READMEs, whole folders of it, faster than
 anyone can read. A pile of `.md` files is write-only memory: nothing to click, nothing to
 search, no order.
 
-openmd is the other half. Point it at a folder that already exists and read it in your
+seemore is the other half. Point it at a folder that already exists and read it in your
 browser instead — every file rendered, with navigation, search and a clean reading
 layout. You don't move the files, you don't write any code, and there is nothing to set
 up.
 
 ```bash
-npx @arifszn/openmd     # see the current folder in your browser, live, no setup
-npx @arifszn/openmd build  # static export to dist/ for any host
+npx seemore     # see the current folder in your browser, live, no setup
+npx seemore build  # static export to dist/ for any host
 ```
 
 ## Getting started
 
 1. Open a terminal in your folder of Markdown files.
-2. Run `npx @arifszn/openmd`, then open the address it prints —
+2. Run `npx seemore`, then open the address it prints —
    `http://localhost:4040` by default — in your browser.
 
 From there it's live: every file you add, rename, retitle or delete is reflected
-immediately, navigation included. When you're happy, `npx @arifszn/openmd build`
+immediately, navigation included. When you're happy, `npx seemore build`
 produces a folder
 of ordinary web files you can put on any host (more on that under
 [Publishing](#publishing)).
 
-With no folder given, openmd looks for `docs/`, then `content/`, then uses the folder you
+With no folder given, seemore looks for `docs/`, then `content/`, then uses the folder you
 are standing in.
 
 ## What you get by default
@@ -91,11 +91,11 @@ Pages are ordered by:
 ## Configuration
 
 Optional. A folder with no config file builds correctly. If you want to adjust things,
-create `openmd.config.ts` next to your content:
+create `seemore.config.ts` next to your content:
 
 ```ts
-// openmd.config.ts
-import { defineConfig } from '@arifszn/openmd';
+// seemore.config.ts
+import { defineConfig } from 'seemore';
 
 export default defineConfig({
   title: 'My Docs',
@@ -147,7 +147,7 @@ Combinations that cannot work are a config error naming both flags and the fix.
 ## Publishing
 
 ```bash
-npx @arifszn/openmd build
+npx seemore build
 ```
 
 The result is a `dist/` folder of plain web files — drop it on
@@ -155,7 +155,7 @@ The result is a `dist/` folder of plain web files — drop it on
 [Cloudflare Pages](https://pages.cloudflare.com) or
 [GitHub Pages](https://pages.github.com), or hand it to any web host. Every page is its
 own file, so no host needs special rules to serve a deep link, and reloading after moving
-around the site works everywhere. Alongside the pages, openmd writes the few conventions
+around the site works everywhere. Alongside the pages, seemore writes the few conventions
 individual hosts look for:
 
 | File | Read by |
@@ -166,35 +166,35 @@ individual hosts look for:
 | `.nojekyll` | GitHub Pages — without it, Jekyll drops every path starting with `_` |
 
 None of these are required for a host that is not listed. If yours serves a folder of
-files, it serves an openmd build.
+files, it serves a seemore build.
 
 **GitHub Pages, one thing to know:** project sites live at
-`username.github.io/my-repo/`, not at the root. Tell openmd once:
+`username.github.io/my-repo/`, not at the root. Tell seemore once:
 
 ```ts
 export default defineConfig({ base: '/my-repo/' });
 ```
 
-or `openmd build --base /my-repo/`. Under GitHub Actions with no `base` set, the build
+or `seemore build --base /my-repo/`. Under GitHub Actions with no `base` set, the build
 prints the exact line to add.
 
 ## Command reference
 
 ```
-openmd [dir]           start the live preview
-openmd build [dir]     static export into dist/
+seemore [dir]           start the live preview
+seemore build [dir]     static export into dist/
 
   --port <number>      preview server port (default 4040)
   --host [host]        expose the preview server on the network
   --open / --no-open   open a browser on start (default: no)
-  --config <path>      path to openmd.config.ts
+  --config <path>      path to seemore.config.ts
   --out <dir>          build output directory (default: dist)
   --base <path>        subpath the site is served from
 ```
 
-## What openmd is not
+## What seemore is not
 
-openmd shows folders of Markdown in your browser and exports them for hosting — that's
+seemore shows folders of Markdown in your browser and exports them for hosting — that's
 all it does. It is not a general site builder, not a CMS, and not a place to build
 custom web apps.
 Multi-version docs, translations, and opening the site by double-clicking a file on disk
@@ -206,7 +206,7 @@ Built in the open on open tools: [fumadocs](https://fumadocs.vercel.app) provide
 interface presets, with [Shiki](https://shiki.style), [Mermaid](https://mermaid.js.org),
 [Vite](https://vite.dev) and [React Router](https://reactrouter.com) underneath. Bug
 reports and pull requests are welcome at
-[github.com/arifszn/openmd](https://github.com/arifszn/openmd).
+[github.com/arifszn/seemore](https://github.com/arifszn/seemore).
 
 ## Licence
 

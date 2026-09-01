@@ -4,14 +4,14 @@ import type { InlineConfig, Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import mdx from '@mdx-js/rollup';
-import type { OpenmdContext } from '../context.js';
+import type { SeemoreContext } from '../context.js';
 import { appRoot, cacheDir, packageRoot } from '../paths.js';
 import { createRehypePlugins, createRemarkPlugins } from './mdx.js';
-import { openmdPlugin } from './plugin.js';
-import { openmdWatcherPlugin } from './watcher.js';
+import { seemorePlugin } from './plugin.js';
+import { seemoreWatcherPlugin } from './watcher.js';
 
 export interface ViteConfigOptions {
-  ctx: OpenmdContext;
+  ctx: SeemoreContext;
   mode: 'dev' | 'build';
   /** Absolute output directory. Ignored in dev. */
   outDir?: string;
@@ -54,9 +54,9 @@ export function createViteConfig({ ctx, mode, outDir, ssrOutDir }: ViteConfigOpt
       react({ include: /\.(?:mdx?|jsx?|tsx?)$/ }),
       // Before Tailwind: our plugin injects the theme preset into the root stylesheet, and
       // Tailwind must see the injected version.
-      openmdPlugin({ ctx, serveSearch: mode === 'dev' }),
+      seemorePlugin({ ctx, serveSearch: mode === 'dev' }),
       tailwindcss(),
-      ...(mode === 'dev' ? [openmdWatcherPlugin(ctx)] : []),
+      ...(mode === 'dev' ? [seemoreWatcherPlugin(ctx)] : []),
     ],
 
     // Vite bundles workers with the browser export condition, but a worker has no `document`.
@@ -66,8 +66,8 @@ export function createViteConfig({ ctx, mode, outDir, ssrOutDir }: ViteConfigOpt
     worker: { plugins: () => [workerConditionPlugin()] },
 
     resolve: {
-      // The app is compiled from openmd's own sources, so its dependencies must resolve
-      // from openmd's directory rather than from the user's project.
+      // The app is compiled from seemore's own sources, so its dependencies must resolve
+      // from seemore's directory rather than from the user's project.
       dedupe: ['react', 'react-dom', 'react-router', 'fumadocs-core', 'fumadocs-ui'],
     },
 
@@ -81,7 +81,7 @@ export function createViteConfig({ ctx, mode, outDir, ssrOutDir }: ViteConfigOpt
         // Only real exclusions here. Vite merges these into chokidar's ignore *list*, where a
         // leading `!` is a negated matcher that matches everything it is not — so the obvious
         // `!<contentRoot>/**` "re-include" would silently ignore the entire project instead.
-        // Content outside the Vite root is watched by openmd's own chokidar instance.
+        // Content outside the Vite root is watched by seemore's own chokidar instance.
         ignored: ['**/node_modules/**', '**/.git/**'],
       },
     },
@@ -99,7 +99,7 @@ export function createViteConfig({ ctx, mode, outDir, ssrOutDir }: ViteConfigOpt
           outDir,
           emptyOutDir: true,
           rollupOptions: { input: join(root, 'index.html') },
-          // The app bundle is openmd's own, not the user's; warning them about a size they
+          // The app bundle is seemore's own, not the user's; warning them about a size they
           // cannot act on is noise.
           chunkSizeWarningLimit: 2_000,
         },
@@ -136,12 +136,12 @@ function withRealPaths(paths: string[]): string[] {
  * Point worker bundles at the DOM-free build of packages that ship two.
  *
  * Resolution goes through Vite so pnpm's layout is respected — these packages are deep
- * transitive dependencies and are not resolvable from openmd's own directory — and only the
+ * transitive dependencies and are not resolvable from seemore's own directory — and only the
  * final `index.dom.js` is swapped for its sibling.
  */
 function workerConditionPlugin(): Plugin {
   return {
-    name: 'openmd:worker-conditions',
+    name: 'seemore:worker-conditions',
     enforce: 'pre',
     async resolveId(source, importer, options) {
       if (!WORKER_SAFE_ENTRIES.has(source)) return undefined;

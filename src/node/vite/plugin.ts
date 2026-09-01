@@ -3,24 +3,24 @@ import { createRequire } from 'node:module';
 import { dirname } from 'node:path';
 import type { Plugin, ViteDevServer } from 'vite';
 import { withBase } from '../base.js';
-import type { OpenmdContext } from '../context.js';
+import type { SeemoreContext } from '../context.js';
 import { buildSearchIndex } from '../search/build.js';
 import { toPosix } from '../content/slug.js';
 
 export const VIRTUAL = {
-  tree: 'virtual:openmd/tree',
-  routes: 'virtual:openmd/routes',
-  config: 'virtual:openmd/config',
+  tree: 'virtual:seemore/tree',
+  routes: 'virtual:seemore/routes',
+  config: 'virtual:seemore/config',
 } as const;
 
 /**
- * Prefix for content-body imports emitted into `virtual:openmd/routes`.
+ * Prefix for content-body imports emitted into `virtual:seemore/routes`.
  *
  * A bare absolute path would be read as *root*-relative by Vite, and the content root is
  * normally outside the Vite root. Resolving our own prefix to the real file id keeps dev and
  * build identical, and lets `@mdx-js/rollup` transform the file as it normally would.
  */
-const PAGE_PREFIX = 'openmd-page:';
+const PAGE_PREFIX = 'seemore-page:';
 
 const resolvedId = (id: string) => `\0${id}`;
 
@@ -31,12 +31,12 @@ const resolvedId = (id: string) => `\0${id}`;
  * and the user's own stylesheet has to go at the bottom, or it loses to the rules it is
  * meant to override and, worse, invalidates the imports it was inlined above.
  */
-const IMPORTS_MARKER = /\/\* openmd:imports[\s\S]*?\*\//;
-const USER_CSS_MARKER = /\/\* openmd:user-css[\s\S]*?\*\//;
+const IMPORTS_MARKER = /\/\* seemore:imports[\s\S]*?\*\//;
+const USER_CSS_MARKER = /\/\* seemore:user-css[\s\S]*?\*\//;
 
 const require_ = createRequire(import.meta.url);
 
-function styleImports(ctx: OpenmdContext): string {
+function styleImports(ctx: SeemoreContext): string {
   const lines: string[] = [`@import 'fumadocs-ui/css/${ctx.config.theme}.css';`];
 
   // Tailwind cannot scan class names it never sees, and fumadocs-ui ships compiled JS.
@@ -49,7 +49,7 @@ function styleImports(ctx: OpenmdContext): string {
   return lines.join('\n');
 }
 
-function userCss(ctx: OpenmdContext): string {
+function userCss(ctx: SeemoreContext): string {
   if (ctx.config.css === undefined) return '';
 
   const css = readIfExists(ctx.config.css);
@@ -62,17 +62,17 @@ function userCss(ctx: OpenmdContext): string {
   return `/* ${ctx.config.css} */\n${css}`;
 }
 
-export interface OpenmdPluginOptions {
-  ctx: OpenmdContext;
+export interface SeemorePluginOptions {
+  ctx: SeemoreContext;
   /** Dev serves the index from memory; build writes it to `dist/api/search.json`. */
   serveSearch?: boolean;
 }
 
-export function openmdPlugin({ ctx, serveSearch = false }: OpenmdPluginOptions): Plugin {
+export function seemorePlugin({ ctx, serveSearch = false }: SeemorePluginOptions): Plugin {
   let server: ViteDevServer | undefined;
 
   return {
-    name: 'openmd',
+    name: 'seemore',
     enforce: 'pre',
 
     resolveId(id) {
@@ -159,7 +159,7 @@ function hotStoreModule(suffix: string, value: string): string {
   // `import.meta.hot.accept()` is written out in full because Vite detects self-accepting
   // modules syntactically — through an alias it sees an ordinary module and reloads the page.
   return `const state = import.meta.hot
-  ? (import.meta.hot.data.openmd${suffix} ||= { listeners: new Set() })
+  ? (import.meta.hot.data.seemore${suffix} ||= { listeners: new Set() })
   : { listeners: new Set() };
 
 state.value = ${value};
@@ -183,13 +183,13 @@ if (import.meta.hot) {
 }
 
 /**
- * `virtual:openmd/routes`: one entry per page, with the body behind a dynamic
+ * `virtual:seemore/routes`: one entry per page, with the body behind a dynamic
  * import so the router, the hover prefetch and the prerender driver all read one map.
  *
  * `import.meta.glob` is deliberately not used: glob patterns that escape the Vite root fail
- * silently, which is the exact failure class openmd exists to prevent.
+ * silently, which is the exact failure class seemore exists to prevent.
  */
-function renderRoutesValue(ctx: OpenmdContext): string {
+function renderRoutesValue(ctx: SeemoreContext): string {
   const entries = ctx.pages().map((page) => {
     // Backslashes are legal in a Windows path and fatal in an import specifier.
     const specifier = `${PAGE_PREFIX}${page.absPath.replace(/\\/g, '/')}`;
@@ -209,7 +209,7 @@ function renderRoutesValue(ctx: OpenmdContext): string {
 }
 
 /** The serialisable slice of the config the browser needs. */
-function clientConfig(ctx: OpenmdContext) {
+function clientConfig(ctx: SeemoreContext) {
   const { config } = ctx;
   return {
     title: config.title,

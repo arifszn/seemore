@@ -1,7 +1,7 @@
 import { StrictMode } from 'react';
 import { renderToString } from 'react-dom/server';
 import { RouterProvider, createMemoryRouter } from 'react-router';
-import { config } from 'virtual:openmd/config';
+import { config } from 'virtual:seemore/config';
 import { toBasename, withBase } from '../shared/base.js';
 import { ogImagePath } from '../shared/og.js';
 import { createRouteObjects } from './router.js';

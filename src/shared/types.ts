@@ -38,7 +38,7 @@ export type ClientSearchConfig =
   | { provider: 'orama-cloud'; endpoint: string; apiKey: string }
   | { provider: 'algolia'; appId: string; apiKey: string; indexName: string };
 
-/** The payload of `virtual:openmd/config`. */
+/** The payload of `virtual:seemore/config`. */
 export interface ClientConfig {
   title: string;
   description?: string;
@@ -53,7 +53,7 @@ export interface ClientConfig {
   contentRoot: string;
 }
 
-/** One entry of `virtual:openmd/routes`. */
+/** One entry of `virtual:seemore/routes`. */
 export interface RouteEntry {
   url: string;
   /** Virtual path relative to the content root — what an edit link points at. */

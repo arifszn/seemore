@@ -22,5 +22,5 @@ export function writeHtml(outDir: string, relativePath: string, html: string): v
 export function applyTemplate(template: string, { html, head }: { html: string; head: string }): string {
   // Replacer functions, not strings: a page containing `$&` or `` $` `` would otherwise
   // splice the marker — or the whole document head — into its own body.
-  return template.replace('<!--openmd-head-->', () => head).replace('<!--openmd-app-->', () => html);
+  return template.replace('<!--seemore-head-->', () => head).replace('<!--seemore-app-->', () => html);
 }

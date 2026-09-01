@@ -6,7 +6,7 @@ import { loadConfig, resolveConfig } from '../src/node/config/load.js';
 import { isFeatureEnabled } from '../src/node/config/features.js';
 
 function tmp(): string {
-  return mkdtempSync(join(tmpdir(), 'openmd-config-'));
+  return mkdtempSync(join(tmpdir(), 'seemore-config-'));
 }
 
 describe('resolveConfig defaults', () => {
@@ -93,14 +93,14 @@ describe('loadConfig', () => {
   it('loads a TypeScript config through jiti', async () => {
     const dir = tmp();
     writeFileSync(
-      join(dir, 'openmd.config.ts'),
+      join(dir, 'seemore.config.ts'),
       `import { defineConfig } from ${JSON.stringify(new URL('../src/index.ts', import.meta.url).pathname)};
        type Extra = { n: number };
        const extra: Extra = { n: 1 };
        export default defineConfig({ title: 'Typed' + String(extra.n), base: '/sub' });`,
     );
     const { config, file } = await loadConfig({ root: dir });
-    expect(file).toBe(join(dir, 'openmd.config.ts'));
+    expect(file).toBe(join(dir, 'seemore.config.ts'));
     expect(config.title).toBe('Typed1');
     expect(config.base).toBe('/sub/');
   });
@@ -120,7 +120,7 @@ describe('loadConfig', () => {
 
   it('names the config file in a validation error', async () => {
     const dir = tmp();
-    writeFileSync(join(dir, 'openmd.config.ts'), `export default { theme: 'not-a-theme' };`);
-    await expect(loadConfig({ root: dir })).rejects.toThrow(/openmd\.config\.ts/);
+    writeFileSync(join(dir, 'seemore.config.ts'), `export default { theme: 'not-a-theme' };`);
+    await expect(loadConfig({ root: dir })).rejects.toThrow(/seemore\.config\.ts/);
   });
 });

@@ -28,10 +28,10 @@ export function useSearchHighlight(): void {
 
     if (highlightApi !== undefined && HighlightCtor !== undefined) {
       ensureHighlightStyle();
-      highlightApi.set('openmd-search', new HighlightCtor(...ranges));
+      highlightApi.set('seemore-search', new HighlightCtor(...ranges));
       ranges[0]?.startContainer.parentElement?.scrollIntoView({ block: 'center', behavior: 'smooth' });
       return () => {
-        highlightApi.delete('openmd-search');
+        highlightApi.delete('seemore-search');
       };
     }
 
@@ -46,13 +46,13 @@ export function useSearchHighlight(): void {
  * meaningful where the Custom Highlight API exists anyway.
  */
 function ensureHighlightStyle(): void {
-  const id = 'openmd-highlight-style';
+  const id = 'seemore-highlight-style';
   if (document.getElementById(id) !== null) return;
 
   const style = document.createElement('style');
   style.id = id;
   style.textContent =
-    '::highlight(openmd-search){background-color:color-mix(in oklab,var(--color-fd-primary) 30%,transparent)}';
+    '::highlight(seemore-search){background-color:color-mix(in oklab,var(--color-fd-primary) 30%,transparent)}';
   document.head.append(style);
 }
 

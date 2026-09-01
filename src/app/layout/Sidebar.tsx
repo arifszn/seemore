@@ -26,19 +26,19 @@ type SeparatorProps = ComponentProps<typeof BaseSeparator>;
 type FolderProps = ComponentProps<typeof BaseFolder>;
 
 const styled = {
-  SidebarItem: (props: ItemProps) => <BaseItem {...props} className="openmd-sidebar-link" />,
-  SidebarFolder: (props: FolderProps) => <BaseFolder {...props} className="openmd-sidebar-folder" />,
+  SidebarItem: (props: ItemProps) => <BaseItem {...props} className="seemore-sidebar-link" />,
+  SidebarFolder: (props: FolderProps) => <BaseFolder {...props} className="seemore-sidebar-folder" />,
   SidebarFolderLink: (props: FolderLinkProps) => (
-    <BaseFolderLink {...props} className="openmd-sidebar-link openmd-sidebar-folder-label" />
+    <BaseFolderLink {...props} className="seemore-sidebar-link seemore-sidebar-folder-label" />
   ),
   // Must be a flex row: the chevron the primitive appends positions itself with `ms-auto`.
   SidebarFolderTrigger: (props: FolderTriggerProps) => (
-    <BaseFolderTrigger {...props} className="openmd-sidebar-link openmd-sidebar-folder-label" />
+    <BaseFolderTrigger {...props} className="seemore-sidebar-link seemore-sidebar-folder-label" />
   ),
   SidebarFolderContent: (props: FolderContentProps) => (
-    <BaseFolderContent {...props} className="openmd-sidebar-folder-content" />
+    <BaseFolderContent {...props} className="seemore-sidebar-folder-content" />
   ),
-  SidebarSeparator: (props: SeparatorProps) => <BaseSeparator {...props} className="openmd-sidebar-separator" />,
+  SidebarSeparator: (props: SeparatorProps) => <BaseSeparator {...props} className="seemore-sidebar-separator" />,
 };
 
 const renderPageTree = createPageTreeRenderer(styled);
@@ -60,9 +60,9 @@ export function Sidebar({ children }: { children?: ReactNode }) {
     Folder: feature('navigation.sections')
       ? ({ item, children }) => (
           // Top-level entries read as headed groups rather than collapsible folders.
-          <BaseFolder collapsible={false} defaultOpen className="openmd-sidebar-folder">
-            <BaseSeparator className="openmd-sidebar-separator">{item.name}</BaseSeparator>
-            <BaseFolderContent className="openmd-sidebar-folder-content">{children}</BaseFolderContent>
+          <BaseFolder collapsible={false} defaultOpen className="seemore-sidebar-folder">
+            <BaseSeparator className="seemore-sidebar-separator">{item.name}</BaseSeparator>
+            <BaseFolderContent className="seemore-sidebar-folder-content">{children}</BaseFolderContent>
           </BaseFolder>
         )
       : undefined,
@@ -73,14 +73,14 @@ export function Sidebar({ children }: { children?: ReactNode }) {
       {open ? (
         <button
           type="button"
-          className="openmd-sidebar-backdrop"
+          className="seemore-sidebar-backdrop"
           aria-label="Close navigation"
           onClick={() => setOpen(false)}
         />
       ) : undefined}
 
-      <div className="openmd-sidebar-column" data-open={open}>
-        <aside className="openmd-sidebar" aria-label="Documentation navigation">
+      <div className="seemore-sidebar-column" data-open={open}>
+        <aside className="seemore-sidebar" aria-label="Documentation navigation">
           <SidebarViewport>{rendered}</SidebarViewport>
         </aside>
         {children}

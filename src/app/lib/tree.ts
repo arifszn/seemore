@@ -1,12 +1,12 @@
 import { useSyncExternalStore } from 'react';
 import { deserializePageTree } from 'fumadocs-core/source/client';
 import type * as PageTree from 'fumadocs-core/page-tree';
-import { getTree, subscribeTree } from 'virtual:openmd/tree';
+import { getTree, subscribeTree } from 'virtual:seemore/tree';
 
 /**
  * The page tree, kept current across content edits.
  *
- * `virtual:openmd/tree` is a self-accepting module, so a create, rename, retitle or delete
+ * `virtual:seemore/tree` is a self-accepting module, so a create, rename, retitle or delete
  * replaces its value and notifies here — the sidebar re-renders in place, with no reload and
  * no lost scroll position.
  */

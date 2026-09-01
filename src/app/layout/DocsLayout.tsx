@@ -2,7 +2,7 @@ import { use } from 'react';
 import { TreeContextProvider } from 'fumadocs-ui/contexts/tree';
 import { SidebarProvider } from 'fumadocs-ui/components/sidebar/base';
 import { Pencil } from 'lucide-react';
-import { config } from 'virtual:openmd/config';
+import { config } from 'virtual:seemore/config';
 import type { PageModule, RouteEntry } from '../../shared/types.js';
 import { loadPage } from '../lib/pages.js';
 import { useRouteUrl } from '../router.js';
@@ -13,7 +13,7 @@ import { usePrefetch } from '../features/prefetch.js';
 import { PagePreview } from '../features/preview.js';
 import { useSearchHighlight } from '../features/highlight.js';
 import { useHashScroll } from '../features/anchors.js';
-import { OpenmdProvider } from './Provider.js';
+import { SeemoreProvider } from './Provider.js';
 import { Header } from './Header.js';
 import { Sidebar } from './Sidebar.js';
 import { Breadcrumb } from './Breadcrumb.js';
@@ -21,18 +21,18 @@ import { BackToTop, PageFooter, SiteFooter } from './Footer.js';
 import { IntegratedToc, Toc, TocProvider } from './Toc.js';
 
 /**
- * The shell openmd owns. fumadocs-ui supplies the primitives — sidebar,
+ * The shell seemore owns. fumadocs-ui supplies the primitives — sidebar,
  * TOC, search dialog, MDX components — and one layout, tuned by feature flags, arranges them.
  */
 export function DocsLayout({ children }: { children: React.ReactNode }) {
   const tree = usePageTree();
 
   return (
-    <OpenmdProvider>
+    <SeemoreProvider>
       <TreeContextProvider tree={tree}>
         <SidebarProvider>{children}</SidebarProvider>
       </TreeContextProvider>
-    </OpenmdProvider>
+    </SeemoreProvider>
   );
 }
 
@@ -54,19 +54,19 @@ export function DocPage({ entry }: { entry: RouteEntry }) {
 
   return (
     <TocProvider toc={page.toc ?? []}>
-      <div className="openmd-shell">
+      <div className="seemore-shell">
         <Header />
-        <div className="openmd-body">
+        <div className="seemore-body">
           <Sidebar>{integrated ? <IntegratedToc /> : undefined}</Sidebar>
 
-          <main className="openmd-main">
+          <main className="seemore-main">
             {feature('navigation.path') ? <Breadcrumb /> : undefined}
-            <article className="openmd-article prose">
+            <article className="seemore-article prose">
               <Content components={mdxComponents} />
             </article>
 
             {config.editLink !== undefined && feature('content.action.edit') ? (
-              <a className="openmd-edit-link" href={joinUrl(config.editLink.base, entry.file)}>
+              <a className="seemore-edit-link" href={joinUrl(config.editLink.base, entry.file)}>
                 <Pencil aria-hidden="true" />
                 {config.editLink.text}
               </a>
@@ -88,9 +88,9 @@ export function DocPage({ entry }: { entry: RouteEntry }) {
 
 export function NotFound() {
   return (
-    <div className="openmd-shell">
+    <div className="seemore-shell">
       <Header />
-      <main className="openmd-main">
+      <main className="seemore-main">
         <h1>Page not found</h1>
         <p>There is no page at this address.</p>
       </main>

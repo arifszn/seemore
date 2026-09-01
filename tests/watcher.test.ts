@@ -14,7 +14,7 @@ interface SerializedNode {
 /**
  * Names at the top level of the tree, in order — what the sidebar renders.
  *
- * Read from the serialized payload, because that is exactly what `virtual:openmd/tree`
+ * Read from the serialized payload, because that is exactly what `virtual:seemore/tree`
  * hands the browser.
  */
 function names(serialized: SerializedPageTree): string[] {
@@ -28,7 +28,7 @@ describe('watcher / sidebar refresh cycle', () => {
   let messages: unknown[];
 
   async function tree(): Promise<SerializedPageTree> {
-    const loaded = (await dev.server.ssrLoadModule('virtual:openmd/tree')) as {
+    const loaded = (await dev.server.ssrLoadModule('virtual:seemore/tree')) as {
       getTree: () => SerializedPageTree;
     };
     return loaded.getTree();
@@ -47,7 +47,7 @@ describe('watcher / sidebar refresh cycle', () => {
   }
 
   beforeAll(async () => {
-    contentRoot = mkdtempSync(join(tmpdir(), 'openmd-watch-'));
+    contentRoot = mkdtempSync(join(tmpdir(), 'seemore-watch-'));
     writeFileSync(join(contentRoot, 'alpha.md'), '---\ntitle: Alpha\norder: 1\n---\n\n# Alpha\n');
     writeFileSync(join(contentRoot, 'beta.md'), '---\ntitle: Beta\norder: 2\n---\n\n# Beta\n');
 
@@ -59,7 +59,7 @@ describe('watcher / sidebar refresh cycle', () => {
 
     // Pull the virtual modules into the client graph, as a connected browser would. Without
     // a client-side copy there is nothing for an HMR update to be about.
-    for (const id of ['virtual:openmd/tree', 'virtual:openmd/routes']) {
+    for (const id of ['virtual:seemore/tree', 'virtual:seemore/routes']) {
       await dev.server.environments.client.transformRequest(id);
     }
 

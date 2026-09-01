@@ -6,7 +6,7 @@ import { join } from 'node:path';
  *
  * The portable output is everything else: one real `index.html` per route, plus `404.html`,
  * which every static host honours. These files are additive — small, named conventions that
- * particular hosts look for — not a list of hosts openmd supports.
+ * particular hosts look for — not a list of hosts seemore supports.
  */
 export function writeDeployArtifacts(outDir: string, base: string, shell: string): void {
   const prefix = base === '/' ? '' : base.replace(/\/+$/, '');
@@ -20,6 +20,6 @@ export function writeDeployArtifacts(outDir: string, base: string, shell: string
 
   // GitHub Pages runs the output through Jekyll unless this file exists, and Jekyll drops
   // every file and directory whose name starts with `_`. A `docs/_internal/` folder would
-  // build correctly and then 404 once deployed — the exact failure openmd exists to prevent.
+  // build correctly and then 404 once deployed — the exact failure seemore exists to prevent.
   writeFileSync(join(outDir, '.nojekyll'), '', 'utf8');
 }

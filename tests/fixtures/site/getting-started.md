@@ -9,13 +9,13 @@ order: 1
 Install it, point it at a folder, done. See the [guide](./guide/index.md).
 
 ```ts
-import { defineConfig } from '@arifszn/openmd';
+import { defineConfig } from 'seemore';
 
 export default defineConfig({ title: 'My Docs' });
 ```
 
 ```mermaid
 graph TD;
-  A[Markdown] --> B[openmd];
+  A[Markdown] --> B[seemore];
   B --> C[Static site];
 ```

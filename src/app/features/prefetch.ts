@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { config } from 'virtual:openmd/config';
+import { config } from 'virtual:seemore/config';
 import { decodePath, stripBase } from '../../shared/base.js';
 import { findRoute, loadPage } from '../lib/pages.js';
 import { feature } from '../lib/features.js';
