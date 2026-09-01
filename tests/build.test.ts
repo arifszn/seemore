@@ -51,6 +51,7 @@ describe('openmd build', () => {
       '404.html',
       '200.html',
       '_redirects',
+      '.nojekyll',
       'api/search.json',
     ]) {
       expect(existsSync(join(outDir, file)), `missing ${file}`).toBe(true);
@@ -124,9 +125,21 @@ describe('openmd build', () => {
     }
   });
 
-  it('writes host fallbacks for Netlify and Surge', () => {
+  it('writes the fallback conventions each host looks for', () => {
+    // Netlify and Cloudflare Pages.
     expect(read(outDir, '_redirects')).toContain('/*');
+    // Surge.
     expect(read(outDir, '200.html')).toContain('<div id="root">');
+  });
+
+  it('keeps GitHub Pages from running the output through Jekyll', () => {
+    // Jekyll drops every path beginning with `_`, so without this file a page that builds
+    // correctly 404s once deployed.
+    expect(existsSync(join(outDir, '.nojekyll'))).toBe(true);
+    expect(existsSync(join(outDir, '_internal', 'notes', 'index.html'))).toBe(true);
+    expect(load(read(outDir, '_internal/notes/index.html'))('article').text()).toContain(
+      'UNDERSCORE SENTINEL TEXT',
+    );
   });
 
   it('inlines a sibling image as a hashed asset', () => {

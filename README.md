@@ -36,7 +36,8 @@ Dev mode writes nothing into your folder. `openmd build` writes only `dist/`.
   past 1.5 MB gzipped, the build tells you and points at the hosted alternatives.
 - **Base paths that actually work.** Set `base` once and the router, assets, search index,
   links and host fallbacks all agree. A test builds under `/sub/` and asserts nothing leaks.
-- **Netlify and Surge fallbacks** (`_redirects`, `200.html`) written every time.
+- **Works on any static host.** Every route is a real file, so nothing depends on server
+  config. The host-specific fallback conventions are written for you.
 
 ## Content
 
@@ -156,6 +157,22 @@ With no `dir`, openmd looks for `docs/`, then `content/`, then uses the current 
 openmd build
 npx surge dist          # or drop dist/ on Netlify, or push it to gh-pages
 ```
+
+`dist/` is plain static files. Every route is its own `index.html`, so no host needs a
+rewrite rule to serve a deep link, and reloading after a client-side navigation works
+everywhere. Alongside that, openmd writes the conventions individual hosts look for:
+
+| File | Read by |
+| --- | --- |
+| `404.html` | GitHub Pages, Netlify, Cloudflare Pages, Vercel, S3 |
+| `_redirects` | Netlify, Cloudflare Pages |
+| `200.html` | Surge |
+| `.nojekyll` | GitHub Pages — without it, Jekyll drops every path starting with `_` |
+
+Nothing here is required for a host that is not listed. If yours serves a directory of files,
+it serves an openmd build.
+
+For GitHub Pages, remember `base`. That is the one setting no host can infer for you.
 
 ## What openmd is not
 
