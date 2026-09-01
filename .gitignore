@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.openmd/
+*.tsbuildinfo
+.DS_Store
+tests/fixtures/**/dist/
+
+# Design spec: local only, not distributed
+SPEC.md

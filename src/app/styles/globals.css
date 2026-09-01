@@ -1,0 +1,154 @@
+@import 'tailwindcss';
+
+/* openmd:imports — the configured fumadocs theme preset and the paths Tailwind must scan
+   are inserted here by the openmd Vite plugin. They belong above `preset.css`, and above
+   every rule, because `@import` is only valid before the first style rule. */
+
+@import 'fumadocs-ui/css/preset.css';
+
+@layer base {
+  body {
+    @apply flex min-h-screen flex-col bg-fd-background text-fd-foreground;
+  }
+}
+
+@layer components {
+  .openmd-shell {
+    @apply flex min-h-screen flex-col;
+  }
+
+  .openmd-header {
+    @apply sticky top-0 z-30 flex items-center gap-4 border-b border-fd-border bg-fd-background/80 px-4 py-3 backdrop-blur;
+  }
+
+  .openmd-brand {
+    @apply text-base font-semibold;
+  }
+
+  .openmd-nav {
+    @apply flex items-center gap-3 text-sm text-fd-muted-foreground;
+  }
+
+  .openmd-search-trigger {
+    @apply ms-auto inline-flex items-center gap-2 rounded-lg border border-fd-border px-3 py-1.5 text-sm text-fd-muted-foreground;
+  }
+
+  .openmd-search-trigger kbd {
+    @apply rounded border border-fd-border px-1 text-xs;
+  }
+
+  .openmd-search-error {
+    @apply px-4 py-6 text-sm text-fd-muted-foreground;
+  }
+
+  .openmd-search-suggestion {
+    @apply px-4 pb-2 text-sm text-fd-muted-foreground;
+  }
+
+  .openmd-search-suggestion span {
+    @apply opacity-60;
+  }
+
+  .openmd-theme-toggle {
+    @apply rounded-lg border border-fd-border p-2;
+  }
+
+  .openmd-icon-dark {
+    @apply hidden dark:block;
+  }
+
+  .openmd-icon-light {
+    @apply block dark:hidden;
+  }
+
+  .openmd-body {
+    @apply mx-auto flex w-full max-w-7xl flex-1 gap-8 px-4;
+  }
+
+  .openmd-sidebar-column {
+    @apply sticky top-16 hidden h-[calc(100vh-4rem)] w-64 shrink-0 py-6 md:block;
+  }
+
+  .openmd-main {
+    @apply min-w-0 flex-1 py-8;
+  }
+
+  .openmd-toc {
+    @apply sticky top-16 hidden h-[calc(100vh-4rem)] w-56 shrink-0 py-8 text-sm lg:block;
+  }
+
+  .openmd-toc-title {
+    @apply mb-2 font-medium text-fd-muted-foreground;
+  }
+
+  .openmd-toc-integrated {
+    @apply mt-6 border-t border-fd-border pt-4 text-sm;
+  }
+
+  .openmd-breadcrumb {
+    @apply mb-4 flex flex-wrap items-center gap-2 text-sm text-fd-muted-foreground;
+  }
+
+  .openmd-page-footer {
+    @apply mt-10 grid grid-cols-2 gap-4 border-t border-fd-border pt-6 text-sm;
+  }
+
+  .openmd-next {
+    @apply flex items-center justify-end gap-2 text-end;
+  }
+
+  .openmd-prev {
+    @apply flex items-center gap-2;
+  }
+
+  .openmd-edit-link {
+    @apply mt-8 inline-flex items-center gap-2 text-sm text-fd-muted-foreground;
+  }
+
+  .openmd-site-footer {
+    @apply mt-10 flex flex-wrap gap-4 border-t border-fd-border pt-6 text-sm text-fd-muted-foreground;
+  }
+
+  .openmd-back-to-top {
+    @apply fixed bottom-6 end-6 inline-flex items-center gap-2 rounded-full border border-fd-border bg-fd-background px-4 py-2 text-sm shadow;
+  }
+
+  .openmd-preview {
+    @apply pointer-events-none fixed z-50 max-h-80 w-[400px] overflow-hidden rounded-xl border border-fd-border bg-fd-popover p-4 text-sm shadow-lg;
+  }
+
+  .openmd-preview-title {
+    @apply mb-2 font-medium;
+  }
+
+  .openmd-preview-body {
+    @apply line-clamp-6 opacity-80;
+  }
+
+  .openmd-loading {
+    @apply min-h-[50vh];
+  }
+
+  .openmd-broken-wikilink {
+    @apply cursor-help border-b border-dotted border-fd-muted-foreground text-fd-muted-foreground;
+  }
+
+  .openmd-mermaid {
+    @apply my-6 flex justify-center;
+  }
+
+  .openmd-mermaid-source {
+    @apply w-full overflow-x-auto text-xs opacity-60;
+  }
+
+  .openmd-mermaid-error {
+    @apply my-6 rounded-lg border border-fd-border p-4 text-sm text-fd-muted-foreground;
+  }
+
+  .openmd-pdf embed {
+    @apply h-[70vh] w-full rounded-lg border border-fd-border;
+  }
+}
+
+/* openmd:user-css — the stylesheet named by `css` in openmd.config.ts is inlined here, at
+   the very end, so that it wins against everything above it. */
