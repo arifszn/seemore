@@ -4,7 +4,6 @@ Let AI write the Markdown. Let openmd show it better.
 
 [![npm version](https://img.shields.io/npm/v/openmd)](https://www.npmjs.com/package/openmd)
 [![CI](https://github.com/arifszn/openmd/actions/workflows/ci.yml/badge.svg)](https://github.com/arifszn/openmd/actions/workflows/ci.yml)
-[![Node](https://img.shields.io/node/v/openmd)](https://www.npmjs.com/package/openmd)
 [![Licence: MIT](https://img.shields.io/badge/Licence-MIT-informational)](LICENSE)
 
 AI tools write Markdown — specs, notes, guides, READMEs, whole folders of it, faster than
@@ -23,10 +22,9 @@ npx openmd build        # static export to dist/ for any host
 
 ## Getting started
 
-1. Install [Node.js](https://nodejs.org) 20 or newer — a one-time install.
-2. Open a terminal in your folder of Markdown files.
-3. Run `npx openmd`. It prints the address of your preview (something like
-   `http://localhost:5173`) — open it in your browser.
+1. Open a terminal in your folder of Markdown files.
+2. Run `npx openmd`, then open the address it prints — `http://localhost:4040`
+   by default — in your browser.
 
 From there it's live: every file you add, rename, retitle or delete is reflected
 immediately, navigation included. When you're happy, `npx openmd build` produces a folder
@@ -185,7 +183,7 @@ prints the exact line to add.
 openmd [dir]           start the live preview
 openmd build [dir]     static export into dist/
 
-  --port <number>      preview server port
+  --port <number>      preview server port (default 4040)
   --host [host]        expose the preview server on the network
   --open / --no-open   open a browser on start (default: no)
   --config <path>      path to openmd.config.ts

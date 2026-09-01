@@ -11,7 +11,7 @@ ${pc.bold('openmd')} — turn a folder of Markdown into a docs site
   openmd build [dir]     build a static site into dist/
 
 Options
-  --port <number>        dev server port
+  --port <number>        dev server port (default 4040)
   --host [host]          expose the dev server on the network
   --open / --no-open     open a browser on start (default: no)
   --config <path>        path to openmd.config.ts

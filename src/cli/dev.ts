@@ -6,6 +6,8 @@ import { normaliseBase } from '../shared/base.js';
 import { resolveContentRoot } from '../node/paths.js';
 import { createViteConfig } from '../node/vite/config.js';
 
+const DEFAULT_PORT = 4040;
+
 export interface DevOptions {
   cwd: string;
   dir?: string;
@@ -49,7 +51,7 @@ export async function runDev(options: DevOptions): Promise<DevServer> {
     ...base,
     server: {
       ...base.server,
-      port: options.port,
+      port: options.port ?? DEFAULT_PORT,
       host: options.host,
       open: options.open === true ? config.base : false,
     },
@@ -57,7 +59,7 @@ export async function runDev(options: DevOptions): Promise<DevServer> {
 
   await server.listen();
 
-  const resolvedPort = server.config.server.port ?? options.port ?? 5173;
+  const resolvedPort = server.config.server.port ?? DEFAULT_PORT;
   const url = `http://localhost:${resolvedPort}${config.base}`;
 
   ctx.warnings.flush();
