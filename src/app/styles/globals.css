@@ -136,7 +136,7 @@
   }
 
   .seemore-toc {
-    @apply sticky top-16 hidden h-[calc(100vh-4rem)] w-56 shrink-0 py-8 text-sm lg:block;
+    @apply sticky top-16 hidden h-[calc(100vh-4rem)] flex-col w-56 shrink-0 py-8 text-sm lg:flex;
   }
 
   .seemore-toc-title {

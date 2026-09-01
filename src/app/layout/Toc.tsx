@@ -14,7 +14,7 @@ export function Toc() {
   return (
     <nav className="seemore-toc" aria-label="On this page">
       <p className="seemore-toc-title">On this page</p>
-      <TOCScrollArea>
+      <TOCScrollArea className="flex-1">
         <TocBody />
       </TOCScrollArea>
     </nav>

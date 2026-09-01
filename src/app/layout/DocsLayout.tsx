@@ -91,10 +91,18 @@ export function NotFound() {
   return (
     <div className="seemore-shell">
       <Header />
-      <main className="seemore-main">
-        <h1>Page not found</h1>
-        <p>There is no page at this address.</p>
-      </main>
+      <div className="seemore-body">
+        <Sidebar />
+
+        <main className="seemore-main">
+          <article className="seemore-article prose">
+            <h1>Page not found</h1>
+            <p>There is no page at this address.</p>
+          </article>
+
+          <SiteFooter />
+        </main>
+      </div>
     </div>
   );
 }
