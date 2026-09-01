@@ -76,7 +76,9 @@ export function openmdPlugin({ ctx, serveSearch = false }: OpenmdPluginOptions):
     enforce: 'pre',
 
     resolveId(id) {
-      if (id.startsWith(PAGE_PREFIX)) return id.slice(PAGE_PREFIX.length);
+      // Native separators from `page.absPath` would key a second, unloadable module in
+      // Vite's URL-addressed graph — canonical ids are always forward slashes.
+      if (id.startsWith(PAGE_PREFIX)) return id.slice(PAGE_PREFIX.length).replace(/\\/g, '/');
       for (const virtualId of Object.values(VIRTUAL)) {
         if (id === virtualId) return resolvedId(virtualId);
       }
@@ -189,7 +191,8 @@ if (import.meta.hot) {
  */
 function renderRoutesValue(ctx: OpenmdContext): string {
   const entries = ctx.pages().map((page) => {
-    const specifier = `${PAGE_PREFIX}${page.absPath}`;
+    // Backslashes are legal in a Windows path and fatal in an import specifier.
+    const specifier = `${PAGE_PREFIX}${page.absPath.replace(/\\/g, '/')}`;
     return [
       '  {',
       `    url: ${json(page.url)},`,

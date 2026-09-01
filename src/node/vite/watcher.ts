@@ -96,7 +96,8 @@ async function reloadVirtual(server: ViteDevServer, id: string): Promise<void> {
 }
 
 async function reloadFile(server: ViteDevServer, absolutePath: string): Promise<void> {
-  await reloadById(server, absolutePath);
+  // chokidar reports native separators; the module graph is addressed in forward slashes.
+  await reloadById(server, absolutePath.replace(/\\/g, '/'));
 }
 
 /**

@@ -122,7 +122,7 @@ describe('watcher / sidebar refresh cycle', () => {
   });
 
   it('swaps a body edit in place instead of reloading the page', async () => {
-    await dev.server.environments.client.transformRequest(join(contentRoot, 'alpha.md'));
+    await dev.server.environments.client.transformRequest(join(contentRoot, 'alpha.md').replace(/\\/g, '/'));
     messages.length = 0;
 
     writeFileSync(join(contentRoot, 'alpha.md'), '---\ntitle: Alpha\norder: 1\n---\n\n# Alpha\n\nEdited body.\n');
