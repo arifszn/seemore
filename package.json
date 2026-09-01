@@ -1,7 +1,7 @@
 {
   "name": "openmd",
-  "version": "0.1.0",
-  "description": "Turn any folder of Markdown/MDX into a docs site. Zero config dev server, correct static build by default.",
+  "version": "1.0.0",
+  "description": "Let AI write the Markdown. Let openmd show it better — see any folder of Markdown rendered in your browser, zero config.",
   "license": "MIT",
   "type": "module",
   "repository": {
@@ -42,9 +42,17 @@
     "mdx",
     "docs",
     "documentation",
-    "static-site",
-    "fumadocs",
-    "vite"
+    "documentation-generator",
+    "static-site-generator",
+    "docs-generator",
+    "ai",
+    "ai-agents",
+    "llm",
+    "claude",
+    "agent",
+    "vite",
+    "cli",
+    "developer-tools"
   ],
   "dependencies": {
     "@mdx-js/mdx": "3.1.1",

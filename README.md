@@ -1,53 +1,77 @@
 # openmd
 
-Point it at a folder of Markdown. Get a docs site.
+Let AI write the Markdown. Let openmd show it better.
+
+[![npm version](https://img.shields.io/npm/v/openmd)](https://www.npmjs.com/package/openmd)
+[![CI](https://github.com/arifszn/openmd/actions/workflows/ci.yml/badge.svg)](https://github.com/arifszn/openmd/actions/workflows/ci.yml)
+[![Node](https://img.shields.io/node/v/openmd)](https://www.npmjs.com/package/openmd)
+[![Licence: MIT](https://img.shields.io/badge/Licence-MIT-informational)](LICENSE)
+
+AI tools write Markdown — specs, notes, guides, READMEs, whole folders of it, faster than
+anyone can read. A pile of `.md` files is write-only memory: nothing to click, nothing to
+search, no order.
+
+openmd is the other half. Point it at a folder that already exists and read it in your
+browser instead — every file rendered, with navigation, search and a clean reading
+layout. You don't move the files, you don't write any code, and there is nothing to set
+up.
 
 ```bash
-npx openmd              # dev server on the current folder, live reload, zero config
-npx openmd build        # static export to dist/ for Netlify, Surge or GitHub Pages
+npx openmd              # see the current folder in your browser, live, no setup
+npx openmd build        # static export to dist/ for any host
 ```
 
-**Fumadocs, without the app.**
+## Getting started
 
-Fumadocs already runs without Next.js, and already supports static hosting. Neither is the
-gap. The gap is that Fumadocs and VitePress make you scaffold an app, wire routes, configure
-a content source, and get prerender, search and base path right yourself. Get one of them
-wrong and you ship a blank SPA shell that builds fine, deploys fine, and breaks on the first
-click.
+1. Install [Node.js](https://nodejs.org) 20 or newer — a one-time install.
+2. Open a terminal in your folder of Markdown files.
+3. Run `npx openmd`. It prints the address of your preview (something like
+   `http://localhost:5173`) — open it in your browser.
 
-openmd points at a folder that already exists and makes the correct static build the default.
-Dev mode writes nothing into your folder. `openmd build` writes only `dist/`.
+From there it's live: every file you add, rename, retitle or delete is reflected
+immediately, navigation included. When you're happy, `npx openmd build` produces a folder
+of ordinary web files you can put on any host (more on that under
+[Publishing](#publishing)).
+
+With no folder given, openmd looks for `docs/`, then `content/`, then uses the folder you
+are standing in.
 
 ## What you get by default
 
-- **Real HTML, not a shell.** Every route is prerendered to its own `index.html`. Fetch a
-  deep route with JavaScript disabled and the full page text is there. A test asserts it.
-- **A client router after hydration.** Hover prefetch and view transitions, without giving up
-  the static output.
-- **Live reload that includes the sidebar.** Create, rename, retitle, reorder or delete a
-  file and the navigation follows, with no restart and no full page reload.
-- **Search with no server.** A static index, parsed and queried in a web worker. If it grows
-  past 1.5 MB gzipped, the build tells you and points at the hosted alternatives.
-- **Base paths that actually work.** Set `base` once and the router, assets, search index,
-  links and host fallbacks all agree. A test builds under `/sub/` and asserts nothing leaks.
-- **Works on any static host.** Every route is a real file, so nothing depends on server
-  config. The host-specific fallback conventions are written for you.
+- **Real pages in your browser, not a placeholder.** Every page arrives with its full
+  text already in it — nothing waits on JavaScript, and what you see is what a search
+  engine sees. A test asserts it.
+- **Fast, app-like browsing.** Pages start loading when you point at a link, and page
+  changes animate smoothly — without giving up the plain-files output above.
+- **A preview that keeps up.** Add, rename, retitle, reorder or delete a file and the
+  site updates instantly — no restart, no full page reload.
+- **Search built in.** The whole site is searchable out of the box, with no server to run
+  and nothing to pay for. If your site grows past what a no-server search can carry, the
+  build says so and points at the alternatives.
+- **Sub-folder sites that work.** If your site lives at `example.com/my-repo/` instead of
+  the root, set `base` once and links, search and assets all follow. A test builds the
+  site under a sub-folder and asserts nothing leaks.
+- **Publish anywhere.** The build is a folder of ordinary files — no special server
+  setup. The few conventions individual hosts look for are written for you.
 
 ## Content
 
-`.md` and `.mdx` alike, with the format inferred per file, so plain Markdown never needs MDX
-syntax.
+`.md` and `.mdx` alike, with the format inferred per file, so plain Markdown never needs
+MDX syntax.
 
-- GitHub Flavoured Markdown, admonitions, steps, and Shiki highlighting done at build time
-- `[[wikilinks]]`, including `[[Page|label]]` and `[[Page#Heading]]`
-- Relative `.md` links resolved to real routes
+- GitHub Flavoured Markdown, admonitions (note / tip / warning boxes), step-by-step
+  lists, and colour-highlighted code blocks
+- `[[wikilinks]]`, including `[[Page|label]]` and `[[Page#Heading]]` — the easiest way
+  for you or your AI to link pages, with no relative paths to get right
+- Relative `.md` links are resolved to working links automatically
 - Mermaid diagrams, rendered in the browser
-- Sibling images inlined as hashed assets, sibling PDFs in the browser's own viewer
-- Frontmatter validated with zod, with errors that name the file and the field
+- Sibling images inlined as hashed assets, sibling PDFs open in the browser's own viewer
+- Frontmatter (the `key: value` block at the top of a file) is validated, with errors
+  that name the file and the field
 
-### URLs
+### Page addresses
 
-| File | URL |
+| File | Address |
 | --- | --- |
 | `index.md` | `/` |
 | `README.md` (root) | `/` |
@@ -55,9 +79,11 @@ syntax.
 | `guide/index.md` | `/guide` |
 | `guide/Deep Dive.md` | `/guide/deep-dive` |
 
-Directory-style output, so both `/guide` and `/guide/` work on every host.
+Both `/guide` and `/guide/` work on every host.
 
 ### Ordering
+
+Pages are ordered by:
 
 1. `meta.json` in the directory
 2. Frontmatter `order`
@@ -65,7 +91,8 @@ Directory-style output, so both `/guide` and `/guide/` work on every host.
 
 ## Configuration
 
-Optional. A folder with no config file builds correctly.
+Optional. A folder with no config file builds correctly. If you want to adjust things,
+create `openmd.config.ts` next to your content:
 
 ```ts
 // openmd.config.ts
@@ -89,14 +116,15 @@ export default defineConfig({
 
 ### Themes
 
-One of the colour presets fumadocs ships: `neutral` (default), `black`, `catppuccin`,
-`dusk`, `ocean`, `purple`, `ruby`, `solar`, `aspen`, `emerald`, `shadcn`. Anything else goes
-in `css`, which is appended last and wins. Dark and light follow
-`prefers-color-scheme`, with a toggle that remembers your choice.
+Eleven built-in colour presets: `neutral` (default), `black`, `catppuccin`, `dusk`,
+`ocean`, `purple`, `ruby`, `solar`, `aspen`, `emerald`, `shadcn`. For anything else, put
+your own CSS in `css` — it is appended last and wins. Dark and light follow your system
+setting, with a toggle that remembers your choice.
 
 ### Features
 
-A flat list of flags. Prefix one with `!` to switch off something that is on by default.
+A flat list of switches for readers who want fine control. Prefix one with `!` to switch
+off something that is on by default.
 
 | Flag | Default | Effect |
 | --- | --- | --- |
@@ -117,44 +145,19 @@ A flat list of flags. Prefix one with `!` to switch off something that is on by 
 
 Combinations that cannot work are a config error naming both flags and the fix.
 
-## Base paths
-
-GitHub Pages serves project sites from a subpath, and getting this wrong is the classic way
-to ship a broken site. `base` is never guessed:
-
-```ts
-export default defineConfig({ base: '/my-repo/' });
-```
-
-or `openmd build --base /my-repo/`. Under GitHub Actions with no `base` set, the build prints
-the exact line to add.
-
-## CLI
-
-```
-openmd [dir]           start the dev server
-openmd build [dir]     build a static site into dist/
-
-  --port <number>      dev server port
-  --host [host]        expose the dev server on the network
-  --open / --no-open   open a browser on start (default: no)
-  --config <path>      path to openmd.config.ts
-  --out <dir>          build output directory (default: dist)
-  --base <path>        subpath the site is served from
-```
-
-With no `dir`, openmd looks for `docs/`, then `content/`, then uses the current folder.
-
-## Deploying
+## Publishing
 
 ```bash
-openmd build
-npx surge dist          # or drop dist/ on Netlify, or push it to gh-pages
+npx openmd build
 ```
 
-`dist/` is plain static files. Every route is its own `index.html`, so no host needs a
-rewrite rule to serve a deep link, and reloading after a client-side navigation works
-everywhere. Alongside that, openmd writes the conventions individual hosts look for:
+The result is a `dist/` folder of plain web files — drop it on
+[Netlify](https://netlify.com), [Surge](https://surge.sh),
+[Cloudflare Pages](https://pages.cloudflare.com) or
+[GitHub Pages](https://pages.github.com), or hand it to any web host. Every page is its
+own file, so no host needs special rules to serve a deep link, and reloading after moving
+around the site works everywhere. Alongside the pages, openmd writes the few conventions
+individual hosts look for:
 
 | File | Read by |
 | --- | --- |
@@ -163,18 +166,49 @@ everywhere. Alongside that, openmd writes the conventions individual hosts look 
 | `200.html` | Surge |
 | `.nojekyll` | GitHub Pages — without it, Jekyll drops every path starting with `_` |
 
-Nothing here is required for a host that is not listed. If yours serves a directory of files,
-it serves an openmd build.
+None of these are required for a host that is not listed. If yours serves a folder of
+files, it serves an openmd build.
 
-For GitHub Pages, remember `base`. That is the one setting no host can infer for you.
+**GitHub Pages, one thing to know:** project sites live at
+`username.github.io/my-repo/`, not at the root. Tell openmd once:
+
+```ts
+export default defineConfig({ base: '/my-repo/' });
+```
+
+or `openmd build --base /my-repo/`. Under GitHub Actions with no `base` set, the build
+prints the exact line to add.
+
+## Command reference
+
+```
+openmd [dir]           start the live preview
+openmd build [dir]     static export into dist/
+
+  --port <number>      preview server port
+  --host [host]        expose the preview server on the network
+  --open / --no-open   open a browser on start (default: no)
+  --config <path>      path to openmd.config.ts
+  --out <dir>          build output directory (default: dist)
+  --base <path>        subpath the site is served from
+```
 
 ## What openmd is not
 
-Not a React framework, not a CMS, not a general static site generator. Multi-version docs,
-i18n, and `file://` browsing are out of scope. You cannot pass your own React components for
-the shell — the moment you can, you need a build of your own, which is the thing openmd
-exists to avoid.
+openmd shows folders of Markdown in your browser and exports them for hosting — that's
+all it does. It is not a general site builder, not a CMS, and not a place to build
+custom web apps.
+Multi-version docs, translations, and opening the site by double-clicking a file on disk
+are out of scope.
+
+## Under the hood
+
+Built in the open on open tools: [fumadocs](https://fumadocs.vercel.app) provides the
+interface presets, with [Shiki](https://shiki.style), [Mermaid](https://mermaid.js.org),
+[Vite](https://vite.dev) and [React Router](https://reactrouter.com) underneath. Bug
+reports and pull requests are welcome at
+[github.com/arifszn/openmd](https://github.com/arifszn/openmd).
 
 ## Licence
 
-MIT
+[MIT](LICENSE)
