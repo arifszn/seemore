@@ -38,7 +38,8 @@ export function cacheDir(contentRoot: string): string {
 }
 
 /**
- * `seemore [dir]`, else probe `docs/` → `content/` → cwd.
+ * `seemore [dir]`, else the folder the command runs in. Nothing is probed: which Markdown
+ * becomes the site is decided by where the user stands, never by what happens to exist.
  *
  * The result is canonicalised through the filesystem. Every module id seemore derives from
  * the root — import specifiers, watcher lookups — must use the real spelling, because Vite
@@ -47,12 +48,7 @@ export function cacheDir(contentRoot: string): string {
  * carries a short alias on any drive with 8.3 names enabled.
  */
 export function resolveContentRoot(cwd: string, explicit?: string): string {
-  if (explicit !== undefined) return canonicalise(resolve(cwd, explicit));
-  for (const candidate of ['docs', 'content']) {
-    const dir = resolve(cwd, candidate);
-    if (existsSync(dir)) return canonicalise(dir);
-  }
-  return canonicalise(resolve(cwd));
+  return explicit !== undefined ? canonicalise(resolve(cwd, explicit)) : canonicalise(cwd);
 }
 
 function canonicalise(dir: string): string {

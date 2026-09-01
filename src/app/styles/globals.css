@@ -80,7 +80,7 @@
   }
 
   .seemore-body {
-    @apply flex w-full flex-1;
+    @apply mx-auto flex w-full max-w-[1400px] flex-1;
   }
 
   .seemore-sidebar {
@@ -119,7 +119,7 @@
   .seemore-sidebar-column {
     /* `pt-20` clears the sticky header, which sits above the drawer. */
     @apply fixed inset-y-0 start-0 z-40 w-72 -translate-x-full overflow-y-auto border-e border-fd-border bg-fd-background px-4 pt-20 pb-4 transition-transform rtl:translate-x-full;
-    @apply md:sticky md:top-16 md:z-auto md:h-[calc(100vh-4rem)] md:w-64 md:translate-x-0 md:px-4 md:py-6 rtl:md:translate-x-0;
+    @apply md:sticky md:top-16 md:z-auto md:h-[calc(100vh-4rem)] md:w-64 md:translate-x-0 md:px-2 md:py-6 rtl:md:translate-x-0;
   }
 
   .seemore-sidebar-column[data-open='true'] {
@@ -131,7 +131,7 @@
   }
 
   .seemore-main {
-    @apply mx-auto min-w-0 max-w-4xl flex-1 px-4 py-8 md:px-12 lg:px-16;
+    @apply mx-auto min-w-0 max-w-3xl flex-1 px-4 py-8 md:px-8;
   }
 
   .seemore-toc {

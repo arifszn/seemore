@@ -32,8 +32,8 @@ produces a folder
 of ordinary web files you can put on any host (more on that under
 [Publishing](#publishing)).
 
-With no folder given, seemore looks for `docs/`, then `content/`, then uses the folder you
-are standing in.
+With no folder given, seemore serves the folder you are standing in. Point it at a
+subfolder with `npx seemore docs` if that's where your files live.
 
 ## What you get by default
 
