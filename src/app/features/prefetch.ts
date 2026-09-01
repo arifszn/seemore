@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { config } from 'virtual:openmd/config';
-import { stripBase } from '../../shared/base.js';
+import { decodePath, stripBase } from '../../shared/base.js';
 import { findRoute, loadPage } from '../lib/pages.js';
 import { feature } from '../lib/features.js';
 
@@ -45,7 +45,7 @@ export function routeUrlFromAnchor(anchor: HTMLAnchorElement): string | undefine
   try {
     const url = new URL(anchor.href, window.location.href);
     if (url.origin !== window.location.origin) return undefined;
-    pathname = url.pathname;
+    pathname = decodePath(url.pathname);
   } catch {
     return undefined;
   }

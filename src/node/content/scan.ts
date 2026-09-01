@@ -136,7 +136,9 @@ function synthesiseOrderMeta(pages: ContentPage[], metaDirs: Set<string>): Virtu
   const out: VirtualFile[] = [];
   for (const [dir, dirPages] of byDir) {
     if (metaDirs.has(dir)) continue;
-    if (!dirPages.some((p) => typeof p.data.order === 'number')) continue;
+    // Nothing to express unless something wants to move: an explicit `order`, or an index
+    // page that would otherwise sort alphabetically into the middle of its own directory.
+    if (!dirPages.some((p) => typeof p.data.order === 'number' || p.isIndex)) continue;
 
     const ordered = [...dirPages].sort(compareForOrder).map((p) => basename(p.file).replace(/\.mdx?$/i, ''));
 
@@ -150,10 +152,16 @@ function synthesiseOrderMeta(pages: ContentPage[], metaDirs: Set<string>): Virtu
 }
 
 function compareForOrder(a: ContentPage, b: ContentPage): number {
-  const ao = typeof a.data.order === 'number' ? a.data.order : Number.POSITIVE_INFINITY;
-  const bo = typeof b.data.order === 'number' ? b.data.order : Number.POSITIVE_INFINITY;
+  // An index page stands for its directory, so it leads unless it asks not to.
+  const ao = orderOf(a);
+  const bo = orderOf(b);
   if (ao !== bo) return ao - bo;
   return a.data.title.localeCompare(b.data.title);
+}
+
+function orderOf(page: ContentPage): number {
+  if (typeof page.data.order === 'number') return page.data.order;
+  return page.isIndex ? Number.NEGATIVE_INFINITY : Number.POSITIVE_INFINITY;
 }
 
 function titleFor(route: RouteInfo, data: FrontmatterData, siteTitle: string | undefined): string {

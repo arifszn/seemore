@@ -18,7 +18,15 @@
   }
 
   .openmd-header {
-    @apply sticky top-0 z-30 flex items-center gap-4 border-b border-fd-border bg-fd-background/80 px-4 py-3 backdrop-blur;
+    @apply sticky top-0 z-50 flex items-center gap-2 border-b border-fd-border bg-fd-background/80 px-4 py-3 backdrop-blur md:gap-4;
+  }
+
+  .openmd-brand {
+    @apply truncate;
+  }
+
+  .openmd-sidebar-trigger {
+    @apply shrink-0 md:hidden;
   }
 
   .openmd-brand {
@@ -30,11 +38,21 @@
   }
 
   .openmd-search-trigger {
-    @apply ms-auto inline-flex items-center gap-2 rounded-lg border border-fd-border px-3 py-1.5 text-sm text-fd-muted-foreground;
+    @apply ms-auto inline-flex shrink-0 items-center gap-2 rounded-lg border border-fd-border p-2 text-sm text-fd-muted-foreground sm:px-3 sm:py-1.5;
+  }
+
+  /* Icon only where there is no room for the label. */
+  .openmd-search-trigger span,
+  .openmd-search-trigger kbd {
+    @apply hidden sm:inline;
   }
 
   .openmd-search-trigger kbd {
     @apply rounded border border-fd-border px-1 text-xs;
+  }
+
+  .openmd-theme-toggle {
+    @apply shrink-0;
   }
 
   .openmd-search-error {
@@ -65,8 +83,52 @@
     @apply mx-auto flex w-full max-w-7xl flex-1 gap-8 px-4;
   }
 
+  .openmd-sidebar {
+    @apply h-full;
+  }
+
+  .openmd-sidebar-link {
+    @apply flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-sm text-fd-muted-foreground transition-colors;
+  }
+
+  .openmd-sidebar-link:hover {
+    @apply bg-fd-accent text-fd-accent-foreground;
+  }
+
+  .openmd-sidebar-link[data-active='true'] {
+    @apply bg-fd-primary/10 font-medium text-fd-primary;
+  }
+
+  .openmd-sidebar-folder-label {
+    @apply text-fd-foreground;
+  }
+
+  /* The rule the nesting reads from: one guide line per level, indented from its parent. */
+  .openmd-sidebar-folder-content {
+    @apply ms-4 flex flex-col border-s border-fd-border ps-1;
+  }
+
+  .openmd-sidebar-folder {
+    @apply flex flex-col;
+  }
+
+  .openmd-sidebar-separator {
+    @apply mt-4 mb-1 px-3 text-xs font-medium text-fd-muted-foreground uppercase;
+  }
+
+  /* A sticky column on wide screens; a drawer below `md`, driven by the sidebar state. */
   .openmd-sidebar-column {
-    @apply sticky top-16 hidden h-[calc(100vh-4rem)] w-64 shrink-0 py-6 md:block;
+    /* `pt-20` clears the sticky header, which sits above the drawer. */
+    @apply fixed inset-y-0 start-0 z-40 w-72 -translate-x-full overflow-y-auto border-e border-fd-border bg-fd-background px-4 pt-20 pb-4 transition-transform rtl:translate-x-full;
+    @apply md:sticky md:top-16 md:z-auto md:h-[calc(100vh-4rem)] md:w-64 md:translate-x-0 md:border-0 md:bg-transparent md:px-0 md:py-6 rtl:md:translate-x-0;
+  }
+
+  .openmd-sidebar-column[data-open='true'] {
+    @apply translate-x-0 rtl:translate-x-0;
+  }
+
+  .openmd-sidebar-backdrop {
+    @apply fixed inset-0 z-30 bg-black/40 md:hidden;
   }
 
   .openmd-main {
@@ -145,8 +207,16 @@
     @apply my-6 rounded-lg border border-fd-border p-4 text-sm text-fd-muted-foreground;
   }
 
+  .openmd-pdf {
+    @apply my-6 block;
+  }
+
   .openmd-pdf embed {
-    @apply h-[70vh] w-full rounded-lg border border-fd-border;
+    @apply block h-[70vh] w-full rounded-lg border border-fd-border;
+  }
+
+  .openmd-pdf a {
+    @apply mt-2 block text-sm text-fd-muted-foreground;
   }
 }
 

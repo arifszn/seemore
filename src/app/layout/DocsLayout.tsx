@@ -1,5 +1,4 @@
 import { use } from 'react';
-import { RootProvider } from 'fumadocs-ui/provider/react-router';
 import { TreeContextProvider } from 'fumadocs-ui/contexts/tree';
 import { SidebarProvider } from 'fumadocs-ui/components/sidebar/base';
 import { Pencil } from 'lucide-react';
@@ -10,11 +9,11 @@ import { useRouteUrl } from '../router.js';
 import { feature } from '../lib/features.js';
 import { pruneTree, usePageTree } from '../lib/tree.js';
 import { mdxComponents } from '../mdx/components.js';
-import { SearchDialog } from '../search/SearchDialog.js';
 import { usePrefetch } from '../features/prefetch.js';
 import { PagePreview } from '../features/preview.js';
 import { useSearchHighlight } from '../features/highlight.js';
 import { useHashScroll } from '../features/anchors.js';
+import { OpenmdProvider } from './Provider.js';
 import { Header } from './Header.js';
 import { Sidebar } from './Sidebar.js';
 import { Breadcrumb } from './Breadcrumb.js';
@@ -29,14 +28,11 @@ export function DocsLayout({ children }: { children: React.ReactNode }) {
   const tree = usePageTree();
 
   return (
-    <RootProvider
-      search={{ enabled: true, SearchDialog }}
-      theme={{ attribute: 'class', defaultTheme: 'system', enableSystem: true }}
-    >
+    <OpenmdProvider>
       <TreeContextProvider tree={tree}>
         <SidebarProvider>{children}</SidebarProvider>
       </TreeContextProvider>
-    </RootProvider>
+    </OpenmdProvider>
   );
 }
 
@@ -61,10 +57,7 @@ export function DocPage({ entry }: { entry: RouteEntry }) {
       <div className="openmd-shell">
         <Header />
         <div className="openmd-body">
-          <div className="openmd-sidebar-column">
-            <Sidebar />
-            {integrated ? <IntegratedToc /> : undefined}
-          </div>
+          <Sidebar>{integrated ? <IntegratedToc /> : undefined}</Sidebar>
 
           <main className="openmd-main">
             {feature('navigation.path') ? <Breadcrumb /> : undefined}

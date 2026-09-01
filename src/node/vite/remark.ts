@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 import { dirname, relative, resolve } from 'node:path';
 import { visit } from 'unist-util-visit';
-import type { Image, PhrasingContent, Root, Text } from 'mdast';
+import type { Blockquote, Image, Paragraph, PhrasingContent, Root, Text } from 'mdast';
 import type { Transformer } from 'unified';
 import type { VFile } from 'vfile';
 import type { LinkResolver } from '../content/links.js';
@@ -15,6 +15,67 @@ export interface OpenmdRemarkOptions {
 }
 
 const WIKILINK = /\[\[([^\]\n]+)\]\]/g;
+
+/** GitHub's alert syntax, and the fumadocs callout each kind maps onto. */
+const ALERTS: Record<string, { type: string; title: string }> = {
+  NOTE: { type: 'info', title: 'Note' },
+  TIP: { type: 'idea', title: 'Tip' },
+  IMPORTANT: { type: 'info', title: 'Important' },
+  WARNING: { type: 'warn', title: 'Warning' },
+  CAUTION: { type: 'error', title: 'Caution' },
+};
+
+const ALERT_MARKER = /^\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*/;
+
+/**
+ * GitHub alerts — `> [!NOTE]` — become fumadocs callouts.
+ *
+ * fumadocs ships `:::note` and directive admonitions, neither of which is what people
+ * actually have in their repositories. openmd points at folders that already exist, so the
+ * syntax GitHub renders is the syntax that has to work.
+ */
+export function remarkOpenmdAlerts(): Transformer<Root, Root> {
+  return (tree) => {
+    visit(tree, 'blockquote', (node: Blockquote, index, parent) => {
+      if (parent === undefined || index === undefined) return;
+
+      const first = node.children[0];
+      if (first === undefined || first.type !== 'paragraph') return;
+
+      const marker = ALERT_MARKER.exec(textOf(first));
+      const alert = marker === null ? undefined : ALERTS[marker[1] ?? ''];
+      if (marker === undefined || marker === null || alert === undefined) return;
+
+      stripMarker(first, marker[0]);
+
+      parent.children[index] = {
+        type: 'mdxJsxFlowElement',
+        name: 'Callout',
+        attributes: [
+          { type: 'mdxJsxAttribute', name: 'type', value: alert.type },
+          { type: 'mdxJsxAttribute', name: 'title', value: alert.title },
+        ],
+        children: node.children,
+      } as unknown as Blockquote;
+    });
+  };
+}
+
+/** The paragraph's leading text, which is where the marker lives. */
+function textOf(paragraph: Paragraph): string {
+  const first = paragraph.children[0];
+  return first !== undefined && first.type === 'text' ? first.value.trimStart() : '';
+}
+
+/** Remove the `[!NOTE]` marker, and the line break that followed it. */
+function stripMarker(paragraph: Paragraph, marker: string): void {
+  const first = paragraph.children[0];
+  if (first === undefined || first.type !== 'text') return;
+
+  first.value = first.value.trimStart().slice(marker.length).replace(/^\n/, '');
+  if (first.value === '') paragraph.children.shift();
+  if (paragraph.children[0]?.type === 'break') paragraph.children.shift();
+}
 
 /**
  * `[[Page]]`, `[[Page|label]]`, `[[Page#Heading]]`. fumadocs has no equivalent.

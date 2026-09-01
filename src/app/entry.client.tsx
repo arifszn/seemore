@@ -2,7 +2,7 @@ import { StrictMode } from 'react';
 import { hydrateRoot } from 'react-dom/client';
 import { RouterProvider, createBrowserRouter } from 'react-router';
 import { config } from 'virtual:openmd/config';
-import { stripBase, toBasename } from '../shared/base.js';
+import { decodePath, stripBase, toBasename } from '../shared/base.js';
 import { createRouteObjects } from './router.js';
 import { preloadPage } from './lib/pages.js';
 import './styles/globals.css';
@@ -23,7 +23,7 @@ function mount(target: HTMLElement) {
 
 // Hydrating against prerendered HTML needs the current page's module in hand, or React would
 // hydrate a Suspense fallback over real markup.
-const current = stripBase(config.base, window.location.pathname).replace(/\/$/, '') || '/';
+const current = stripBase(config.base, decodePath(window.location.pathname)).replace(/\/$/, '') || '/';
 void preloadPage(current).then(
   () => mount(container),
   () => mount(container),

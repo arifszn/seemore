@@ -7,3 +7,6 @@ tests/fixtures/**/dist/
 
 # Design spec: local only, not distributed
 SPEC.md
+
+# playwright-cli session artifacts
+.playwright-cli/

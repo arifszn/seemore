@@ -48,3 +48,20 @@ export function toBasename(base: string): string {
   const b = normaliseBase(base);
   return b === '/' ? '/' : b.slice(0, -1);
 }
+
+/**
+ * Browser pathnames are percent-encoded; route URLs are not.
+ *
+ * `/guía/página-uno` arrives from `location.pathname` as `/gu%C3%ADa/p%C3%A1gina-uno`, and a
+ * lookup against the route map misses — so a correctly prerendered page hydrates into "Page
+ * not found". `decodeURI`, not `decodeURIComponent`: a literal `%2F` in a filename must stay
+ * encoded or it would split into two path segments.
+ */
+export function decodePath(pathname: string): string {
+  try {
+    return decodeURI(pathname);
+  } catch {
+    // Malformed escapes are the browser's problem, not ours; match on what we were given.
+    return pathname;
+  }
+}

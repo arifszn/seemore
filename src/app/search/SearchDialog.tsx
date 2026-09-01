@@ -22,6 +22,21 @@ import { createSearchClient } from './client.js';
  * to a search *route*; openmd has no server, so the client is a static index read in a
  * worker.
  */
+/**
+ * Add the highlight query to a result URL.
+ *
+ * A content match points at a heading, so the URL already has a fragment — and a query
+ * appended after one is part of the fragment, not a search param.
+ */
+function withHighlight(url: string, query: string): string {
+  if (!feature('search.highlight') || query === '') return url;
+
+  const hashAt = url.indexOf('#');
+  const path = hashAt === -1 ? url : url.slice(0, hashAt);
+  const hash = hashAt === -1 ? '' : url.slice(hashAt);
+  return `${path}?h=${encodeURIComponent(query)}${hash}`;
+}
+
 export function SearchDialog(props: SharedProps) {
   const navigate = useNavigate();
 
@@ -46,12 +61,10 @@ export function SearchDialog(props: SharedProps) {
       isLoading={query.isLoading}
       onSelect={(item) => {
         if (item.type === 'action') return;
-        const url = stripBase(config.base, item.url);
+        props.onOpenChange(false);
         // `search.highlight`: the query travels with the link, so a shared result highlights
         // too — which is why there is no separate `search.share`.
-        const to = feature('search.highlight') ? `${url}?h=${encodeURIComponent(search)}` : url;
-        props.onOpenChange(false);
-        void navigate(to, { viewTransition: true });
+        void navigate(withHighlight(stripBase(config.base, item.url), search), { viewTransition: true });
       }}
     >
       <SearchDialogOverlay />

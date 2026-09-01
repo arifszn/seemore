@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { ArrowLeft, ArrowRight, ArrowUp } from 'lucide-react';
 import { findNeighbour } from 'fumadocs-core/page-tree';
@@ -45,8 +46,19 @@ export function SiteFooter() {
   );
 }
 
-/** `navigation.top`. */
+/** `navigation.top`. Hidden until the page has actually been scrolled. */
 export function BackToTop() {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setVisible(window.scrollY > 400);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  if (!visible) return null;
+
   return (
     <button
       type="button"

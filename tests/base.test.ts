@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { normaliseBase, stripBase, withBase } from '../src/node/base.js';
+import { decodePath, normaliseBase, stripBase, withBase } from '../src/node/base.js';
 
 describe('normaliseBase', () => {
   it.each([
@@ -52,5 +52,24 @@ describe('stripBase', () => {
 
   it('leaves unrelated paths alone', () => {
     expect(stripBase('/sub/', '/other')).toBe('/other');
+  });
+});
+
+describe('decodePath', () => {
+  it('decodes a percent-encoded pathname back to its route URL', () => {
+    // What `location.pathname` reports for `/guía/página-uno`.
+    expect(decodePath('/gu%C3%ADa/p%C3%A1gina-uno')).toBe('/guía/página-uno');
+  });
+
+  it('leaves an already-decoded path alone', () => {
+    expect(decodePath('/guide/deep-dive')).toBe('/guide/deep-dive');
+  });
+
+  it('keeps an encoded slash encoded, so a path never gains a segment', () => {
+    expect(decodePath('/a%2Fb')).toBe('/a%2Fb');
+  });
+
+  it('returns malformed input unchanged rather than throwing', () => {
+    expect(decodePath('/%E0%A4%A')).toBe('/%E0%A4%A');
   });
 });

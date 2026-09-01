@@ -1,6 +1,6 @@
 import { realpathSync } from 'node:fs';
 import { join } from 'node:path';
-import type { InlineConfig } from 'vite';
+import type { InlineConfig, Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import mdx from '@mdx-js/rollup';
@@ -58,6 +58,12 @@ export function createViteConfig({ ctx, mode, outDir, ssrOutDir }: ViteConfigOpt
       tailwindcss(),
       ...(mode === 'dev' ? [openmdWatcherPlugin(ctx)] : []),
     ],
+
+    // Vite bundles workers with the browser export condition, but a worker has no `document`.
+    // `decode-named-character-reference` — pulled in through fumadocs' search client, via
+    // remark — calls `document.createElement` at module scope in its browser build, so the
+    // search worker threw on load. The package ships a DOM-free `worker` entry; use it.
+    worker: { plugins: () => [workerConditionPlugin()] },
 
     resolve: {
       // The app is compiled from openmd's own sources, so its dependencies must resolve
@@ -125,3 +131,33 @@ function withRealPaths(paths: string[]): string[] {
   }
   return [...out];
 }
+
+/**
+ * Point worker bundles at the DOM-free build of packages that ship two.
+ *
+ * Resolution goes through Vite so pnpm's layout is respected — these packages are deep
+ * transitive dependencies and are not resolvable from openmd's own directory — and only the
+ * final `index.dom.js` is swapped for its sibling.
+ */
+function workerConditionPlugin(): Plugin {
+  return {
+    name: 'openmd:worker-conditions',
+    enforce: 'pre',
+    async resolveId(source, importer, options) {
+      if (!WORKER_SAFE_ENTRIES.has(source)) return undefined;
+
+      const resolved = await this.resolve(source, importer, options);
+      if (resolved === null) return undefined;
+
+      const domFree = resolved.id.replace(/index\.dom\.js$/, 'index.js');
+      return domFree === resolved.id ? resolved : { ...resolved, id: domFree };
+    },
+  };
+}
+
+/**
+ * Packages whose browser build touches the DOM at module scope and whose default build does
+ * not. `decode-named-character-reference` reaches the worker through remark, by way of
+ * fumadocs' search client.
+ */
+const WORKER_SAFE_ENTRIES = new Set(['decode-named-character-reference']);

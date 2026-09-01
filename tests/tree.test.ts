@@ -149,3 +149,24 @@ describe('refresh', () => {
     expect(names((await source.getPageTree()).children)).toEqual(['After']);
   });
 });
+
+describe('index ordering', () => {
+  it('puts a directory index ahead of its siblings', async () => {
+    const dir = fixture({
+      'guide/index.md': '---\ntitle: Guide overview\n---\n',
+      'guide/alpha.md': '---\ntitle: Alpha\n---\n',
+      'guide/zulu.md': '---\ntitle: Zulu\n---\n',
+    });
+    const tree = await createSource({ contentRoot: dir }).getPageTree();
+    expect(names(folder(tree, 'Guide').children)).toEqual(['Guide overview', 'Alpha', 'Zulu']);
+  });
+
+  it('lets an explicit order override the index', async () => {
+    const dir = fixture({
+      'guide/index.md': '---\ntitle: Overview\norder: 2\n---\n',
+      'guide/alpha.md': '---\ntitle: Alpha\norder: 1\n---\n',
+    });
+    const tree = await createSource({ contentRoot: dir }).getPageTree();
+    expect(names(folder(tree, 'Guide').children)).toEqual(['Alpha', 'Overview']);
+  });
+});

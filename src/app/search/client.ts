@@ -21,16 +21,40 @@ export function createSearchClient(config: ClientSearchConfig): SearchClientLike
  * Material moved theirs into a worker for the same reason.
  */
 function createStaticClient(from: string): SearchClientLike {
-  if (typeof Worker === 'undefined') {
+  const onMainThread = (): SearchClientLike => {
     const direct = staticClient({ from });
     return { search: async (query) => await direct.search(query) };
-  }
+  };
 
-  const worker = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' });
-  worker.postMessage({ type: 'init', from });
+  if (typeof Worker === 'undefined') return onMainThread();
+
+  let worker: Worker;
+  try {
+    worker = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' });
+  } catch {
+    return onMainThread();
+  }
 
   const pending = new Map<number, { resolve: (r: SortedResult[]) => void; reject: (e: Error) => void }>();
   let nextId = 0;
+  let fallback: SearchClientLike | undefined;
+
+  /**
+   * A worker that fails to start must not take search down with it. Anything the worker
+   * cannot do, the main thread does — more slowly, and still correctly.
+   */
+  const degrade = (): SearchClientLike => {
+    fallback ??= onMainThread();
+    for (const [id, handlers] of pending) {
+      pending.delete(id);
+      handlers.reject(new Error('openmd: the search worker stopped; retrying on the main thread.'));
+    }
+    return fallback;
+  };
+
+  worker.addEventListener('error', () => {
+    degrade();
+  });
 
   worker.addEventListener('message', (event: MessageEvent) => {
     const data = event.data as { type: string; id?: number; results?: SortedResult[]; message?: string };
@@ -42,13 +66,22 @@ function createStaticClient(from: string): SearchClientLike {
     else handlers.reject(new Error(data.message ?? 'Search failed.'));
   });
 
+  worker.postMessage({ type: 'init', from });
+
   return {
-    search: (query) =>
-      new Promise<SortedResult[]>((resolve, reject) => {
-        const id = nextId++;
-        pending.set(id, { resolve, reject });
-        worker.postMessage({ type: 'query', id, query });
-      }),
+    async search(query) {
+      if (fallback !== undefined) return await fallback.search(query);
+
+      try {
+        return await new Promise<SortedResult[]>((resolve, reject) => {
+          const id = nextId++;
+          pending.set(id, { resolve, reject });
+          worker.postMessage({ type: 'query', id, query });
+        });
+      } catch {
+        return await degrade().search(query);
+      }
+    },
   };
 }
 

@@ -1,12 +1,13 @@
 import { Suspense } from 'react';
 import { useLocation, type RouteObject } from 'react-router';
+import { decodePath } from '../shared/base.js';
 import { DocPage, DocsLayout, NotFound } from './layout/DocsLayout.js';
 import { useRouteEntry } from './lib/pages.js';
 
 /** The current route URL: React Router has already removed the basename. */
 export function useRouteUrl(): string {
   const { pathname } = useLocation();
-  const trimmed = pathname.replace(/\/+$/, '');
+  const trimmed = decodePath(pathname).replace(/\/+$/, '');
   return trimmed === '' ? '/' : trimmed;
 }
 

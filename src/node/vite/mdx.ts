@@ -12,6 +12,7 @@ import {
   remarkSteps,
 } from 'fumadocs-core/mdx-plugins';
 import {
+  remarkOpenmdAlerts,
   remarkOpenmdAssets,
   remarkOpenmdLinks,
   remarkOpenmdWikilinks,
@@ -37,6 +38,9 @@ export function createRemarkPlugins(options: OpenmdRemarkOptions): PluggableList
     remarkHeading,
     remarkAdmonition,
     remarkDirectiveAdmonition,
+    // After the fumadocs admonition plugins, which handle `:::note`, and before anything that
+    // rewrites link or text nodes inside the quote.
+    remarkOpenmdAlerts,
     remarkSteps,
     // Before `remark-image`: a reference to a file that is not there becomes a warning and a
     // visibly broken image, rather than a failed build.

@@ -87,10 +87,16 @@ describe('openmd build', () => {
     expect(hrefs).toContain('/guide/deep-dive');
   });
 
-  it('renders GFM tables and admonitions', () => {
-    const html = read(outDir, 'guide/deep-dive/index.html');
-    expect(load(html)('article table').length).toBe(1);
-    expect(html).toContain('An admonition');
+  it('renders GFM tables', () => {
+    expect(load(read(outDir, 'guide/deep-dive/index.html'))('article table').length).toBe(1);
+  });
+
+  it("renders GitHub's alert syntax as a callout, not a blockquote", () => {
+    // `> [!NOTE]` is what repositories actually contain; fumadocs ships `:::note`.
+    const $ = load(read(outDir, 'guide/deep-dive/index.html'));
+    expect($('article').text()).not.toContain('[!NOTE]');
+    expect($('article').text()).toContain('An admonition');
+    expect($('article blockquote').length).toBe(0);
   });
 
   it('highlights code at build time, shipping no highlighter to the browser', () => {
