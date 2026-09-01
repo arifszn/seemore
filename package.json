@@ -4,6 +4,10 @@
   "description": "Turn any folder of Markdown/MDX into a docs site. Zero config dev server, correct static build by default.",
   "license": "MIT",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/arifszn/openmd.git"
+  },
   "bin": {
     "openmd": "./dist/cli/index.js"
   },
