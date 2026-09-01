@@ -138,6 +138,24 @@
     @apply mx-auto min-w-0 max-w-3xl flex-1 px-4 py-8 md:px-8;
   }
 
+  /* Docs are full of long identifiers — `EmbeddedPaymentsController`,
+     `Service::createIntent()` — and each is one unbreakable word. On a phone a single such
+     word is wider than the column, and an overflowing heading or inline code drags a
+     horizontal scrollbar onto the whole page. Fenced blocks are exempt: they get their own
+     scroller from fumadocs, and breaking code mid-line there would be a lie. */
+  .seemore-article :is(h1, h2, h3, h4, h5, h6),
+  .seemore-article :not(pre) > code {
+    @apply break-words;
+  }
+
+  /* fumadocs renders a heading as a flex row — the link, then the copy-anchor button — and a
+     flex item defaults to `min-width: auto`, so the link floors at the width of its longest
+     word and `break-words` above never gets to act. `min-w-0` lets it shrink so the break
+     can happen. */
+  .seemore-article :is(h1, h2, h3, h4, h5, h6) > * {
+    @apply min-w-0;
+  }
+
   .seemore-toc {
     @apply sticky top-16 hidden h-[calc(100vh-4rem)] flex-col w-56 shrink-0 py-8 pe-4 text-sm lg:flex xl:pe-8;
   }
