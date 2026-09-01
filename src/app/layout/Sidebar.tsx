@@ -81,9 +81,14 @@ export function Sidebar({ children }: { children?: ReactNode }) {
 
       <div className="seemore-sidebar-column" data-open={open}>
         <aside className="seemore-sidebar" aria-label="Documentation navigation">
-          <SidebarViewport>{rendered}</SidebarViewport>
+          {/* `toc.integrate` passes the table of contents as children: it belongs inside the
+              viewport, so nav and TOC scroll together rather than the TOC sitting below a
+              scroll container that has already claimed the column's whole height. */}
+          <SidebarViewport>
+            {rendered}
+            {children}
+          </SidebarViewport>
         </aside>
-        {children}
       </div>
     </>
   );

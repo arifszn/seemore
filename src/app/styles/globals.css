@@ -83,8 +83,10 @@
     @apply mx-auto flex w-full max-w-[1400px] flex-1;
   }
 
+  /* The scroll container is the viewport `SidebarViewport` renders, which sizes itself with
+     `flex-1 min-h-0` — so this has to be the flex column that gives it a bounded height. */
   .seemore-sidebar {
-    @apply h-full;
+    @apply flex min-h-0 flex-1 flex-col;
   }
 
   .seemore-sidebar-link {
@@ -117,8 +119,10 @@
   }
 
   .seemore-sidebar-column {
-    /* `pt-20` clears the sticky header, which sits above the drawer. */
-    @apply fixed inset-y-0 start-0 z-40 w-72 -translate-x-full overflow-y-auto border-e border-fd-border bg-fd-background px-4 pt-20 pb-4 transition-transform rtl:translate-x-full;
+    /* `pt-20` clears the sticky header, which sits above the drawer. Height is definite in both
+       modes — the drawer via `inset-y-0`, the rail via `md:h-[calc(100vh-4rem)]` — so the nav
+       scrolls inside itself rather than overflowing a column that cannot scroll. */
+    @apply fixed inset-y-0 start-0 z-40 flex w-72 -translate-x-full flex-col border-e border-fd-border bg-fd-background px-4 pt-20 pb-4 transition-transform rtl:translate-x-full;
     @apply md:sticky md:top-16 md:z-auto md:h-[calc(100vh-4rem)] md:w-64 md:translate-x-0 md:px-2 md:py-6 rtl:md:translate-x-0;
   }
 
