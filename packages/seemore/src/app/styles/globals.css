@@ -92,12 +92,15 @@
 
   /* Item labels come from filenames/headings as a bare text node next to the icon — no wrapper
      span we can target — so long unbroken identifiers (`Cartalyst_stripe_migration_plan`) need
-     to break, or they overflow the fixed-width rail. `break-words` (overflow-wrap) is not enough
-     here: per spec it's excluded from min-content sizing, so a flex item using it still refuses
-     to shrink below the full word width. `break-all` (word-break) does shrink the min-content
-     size, which is what lets this flex item wrap instead of overflowing. */
+     to break, or they overflow the fixed-width rail. `break-words` (overflow-wrap: break-word) is
+     not enough: per spec it's excluded from min-content sizing, so the flex item still refuses to
+     shrink below the full word width. `break-all` (word-break: break-all) does shrink it, but
+     breaks every word regardless of whether it already fits on its own line ("Wallet Withdraw Api
+     Chang es"). `wrap-anywhere` (overflow-wrap: anywhere) is the one that does both: it counts
+     toward min-content sizing like break-all, but only breaks mid-word when a word doesn't fit on
+     its own line, same as break-words otherwise. */
   .seemore-sidebar-link {
-    @apply flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-sm break-all text-fd-muted-foreground transition-colors;
+    @apply flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-sm wrap-anywhere text-fd-muted-foreground transition-colors;
   }
 
   .seemore-sidebar-link:hover {
