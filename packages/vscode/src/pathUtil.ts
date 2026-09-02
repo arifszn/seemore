@@ -3,7 +3,7 @@
  * every comparison goes through `node:path`, never a hand-rolled separator.
  */
 import { existsSync, realpathSync } from 'node:fs';
-import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 
 /**
  * Resolve through the filesystem, the same way `seemore`'s own `resolveContentRoot` does —
@@ -18,34 +18,6 @@ export function canonicalise(dir: string): string {
     // Does not exist yet, or not readable: keep the literal spelling rather than throw.
     return dir;
   }
-}
-
-/** Is `child` `parent` itself, or nested inside it? Both are resolved before comparing. */
-export function isInside(parent: string, child: string): boolean {
-  const p = resolve(parent);
-  const c = resolve(child);
-  if (p === c) return true;
-  const rel = relative(p, c);
-  return rel !== '' && !rel.startsWith('..') && !isAbsolute(rel);
-}
-
-/**
- * The deepest directory that contains both `a` and `b`.
- *
- * Walks up from `a` rather than splitting and comparing path segments — segment-splitting
- * has to special-case POSIX's empty root segment and Windows drive letters; walking with
- * {@link isInside} does not, because it is built on the same primitive this module already
- * has to get right.
- */
-export function commonAncestor(a: string, b: string): string {
-  let current = resolve(a);
-  const target = resolve(b);
-  while (!isInside(current, target)) {
-    const parent = dirname(current);
-    if (parent === current) return current; // filesystem root, or unrelated drives on Windows
-    current = parent;
-  }
-  return current;
 }
 
 /**

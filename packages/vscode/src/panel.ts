@@ -27,13 +27,15 @@ export class SeemorePanel {
   ) {}
 
   /**
-   * Create the panel the first time; every later call reuses and reveals it.
+   * Create the panel the first time; every later call reuses it, replacing its content —
+   * there is exactly one `WebviewPanel`, ever, and every click resolves a fresh server and
+   * shows it here rather than trying to patch the existing page in place.
    *
-   * `preserveFocus: true` everywhere the panel takes or regains focus (here and in
-   * {@link navigate}): without it, opening or revealing the panel makes its column the
-   * active one, and VS Code opens the *next* file the reader clicks in the explorer there
-   * too — so clicking a plain markdown file, not the seemore icon, would land it beside the
-   * site instead of in the editor group the reader was actually working in.
+   * `preserveFocus: true` on both the initial creation and the reveal: without it, showing
+   * or revealing the panel makes its column the active one, and VS Code opens the *next*
+   * file the reader clicks in the explorer there too — so clicking a plain markdown file,
+   * not the seemore icon, would land it beside the site instead of in the editor group the
+   * reader was actually working in.
    */
   async show(url: string): Promise<void> {
     const external = await vscode.env.asExternalUri(vscode.Uri.parse(url));
@@ -57,20 +59,6 @@ export class SeemorePanel {
     }
 
     this.setHtml(external.toString(true));
-  }
-
-  /**
-   * Navigate in place: post the new src to the existing iframe rather than replacing the
-   * panel's HTML, so a click that stays inside the live root is a plain in-page navigation.
-   */
-  async navigate(url: string): Promise<void> {
-    if (this.panel === undefined) {
-      await this.show(url);
-      return;
-    }
-    const external = await vscode.env.asExternalUri(vscode.Uri.parse(url));
-    this.panel.reveal(this.panel.viewColumn, true);
-    void this.panel.webview.postMessage({ type: 'seemore:navigate', url: external.toString(true) });
   }
 
   private setHtml(iframeSrc: string): void {

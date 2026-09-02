@@ -29,8 +29,9 @@ export interface RenderPanelHtmlOptions {
  * The iframe origin is the dev server's own ephemeral-port origin, not `cspSource` — a
  * webview's `cspSource` covers `vscode-webview:` resources, and the dev server is loaded
  * cross-origin through `asExternalUri`. `frame-src` is intentionally wide (`https: http:`)
- * because that origin is only known at runtime and changes on every widen; nothing else
- * this page does needs a broad `frame-src`, so the rest of the policy stays locked down.
+ * because that origin is only known at runtime and changes on every click (a fresh server,
+ * a fresh ephemeral port); nothing else this page does needs a broad `frame-src`, so the
+ * rest of the policy stays locked down.
  */
 function contentSecurityPolicy(cspSource: string): string {
   return [
@@ -61,24 +62,12 @@ export function renderPanelHtml(options: RenderPanelHtmlOptions): string {
   const vscode = acquireVsCodeApi();
   const iframe = document.getElementById('site');
 
+  // Requires the seemore site to post { type: '${BRIDGE_EVENT}', file: '<posix-relative-path>' }
+  // from inside the iframe — its own origin, so this cannot be spoofed by an unrelated page.
   window.addEventListener('message', (event) => {
+    if (event.source !== iframe.contentWindow) return;
     const data = event.data;
-    if (!data) return;
-
-    // Requires the seemore site to post { type: '${BRIDGE_EVENT}', file: '<posix-relative-path>' }
-    // from inside the iframe — its own origin, so this cannot be spoofed by an unrelated page.
-    if (event.source === iframe.contentWindow && data.type === '${BRIDGE_EVENT}') {
-      vscode.postMessage(data);
-      return;
-    }
-
-    // The extension host's own messages arrive through VS Code's webview bridge, not a real
-    // same-window postMessage — event.source is not this window, so this cannot be gated the
-    // same way. There is nothing to spoof it with: only the extension host can call
-    // panel.webview.postMessage in the first place.
-    if (data.type === 'seemore:navigate') {
-      iframe.src = data.url;
-    }
+    if (data && data.type === '${BRIDGE_EVENT}') vscode.postMessage(data);
   });
 </script>
 </body>

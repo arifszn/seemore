@@ -1,7 +1,14 @@
 /**
  * Orchestrates root resolution (`root.ts`), the CLI child process (`devProcess.ts`) and the
- * singleton panel (`panel.ts`) into the flows the extension supports: click a file, click a
- * folder in the explorer, widen, close-then-reopen.
+ * singleton panel (`panel.ts`).
+ *
+ * Every "Open in seemore" click kills whatever server is currently running and starts a
+ * fresh one for the freshly resolved root — no sticky root, no navigate-vs-widen decision,
+ * no in-place postMessage navigation. That flow existed to make same-folder clicks free
+ * (skip the respawn), but the two real bugs found by actually clicking through the
+ * extension both lived in it: a message the webview bridge silently dropped, and a focus
+ * handoff that worked in some layouts and not others. One path, always taken, is easier to
+ * get right than two, and is the one this file has actually been proven correct on.
  *
  * One `SeemoreSession` per extension host — there is only ever one webview panel — so all
  * of this is one small piece of mutable state, not a registry.
@@ -14,13 +21,10 @@ import { SeemorePanel } from './panel.js';
 import { canonicalise, hasSeemoreConfig, resolveRelativePosix } from './pathUtil.js';
 import { createPinnedRootStore, type PinnedRootStore } from './pinnedRoot.js';
 import { fetchRoute } from './route.js';
-import { decideNavigation, resolveInitialRoot } from './root.js';
+import { resolveInitialRoot } from './root.js';
 
 /** Close-and-reopen inside this window skips the boot cost of spawning a new server. */
 const CLOSE_GRACE_MS = 30_000;
-
-/** Three fast clicks landing on different roots cause one respawn, not three. */
-const WIDEN_DEBOUNCE_MS = 250;
 
 export class SeemoreSession {
   private readonly pinned: PinnedRootStore;
@@ -30,8 +34,8 @@ export class SeemoreSession {
   private liveRoot: string | undefined;
   private devServer: SpawnedDevServer | undefined;
   private closeTimer: NodeJS.Timeout | undefined;
-  private widenTimer: NodeJS.Timeout | undefined;
-  private pendingWiden: { root: string; file: string; uri: vscode.Uri; viewColumn: vscode.ViewColumn | undefined } | undefined;
+  /** Serializes openFile/openFolder so two quick clicks respawn once each, in order, rather than racing and orphaning a process. */
+  private queue: Promise<void> = Promise.resolve();
 
   constructor(private readonly context: vscode.ExtensionContext) {
     this.pinned = createPinnedRootStore(context.workspaceState);
@@ -42,52 +46,40 @@ export class SeemoreSession {
     this.statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
   }
 
-  /** Editor-title icon: `resourceLangId == markdown`. */
+  /** Editor-title icon: `resourceLangId == markdown`. Always kills and restarts fresh. */
   async openFile(uri: vscode.Uri): Promise<void> {
-    this.cancelCloseTimer();
-    const file = canonicalise(uri.fsPath);
-    const viewColumn = vscode.window.activeTextEditor?.viewColumn;
+    return this.enqueue(async () => {
+      this.cancelCloseTimer();
+      const file = canonicalise(uri.fsPath);
+      const viewColumn = vscode.window.activeTextEditor?.viewColumn;
 
-    if (this.liveRoot !== undefined && this.devServer !== undefined) {
-      const decision = decideNavigation({
-        liveRoot: this.liveRoot,
+      const root = resolveInitialRoot({
         file,
-        workspaceFolder: this.workspaceFolderPath(uri),
+        pinned: this.pinned.get(),
+        hasConfig: hasSeemoreConfig,
+        searchBoundary: this.workspaceFolderPath(uri),
       });
-      if (decision.action === 'navigate') {
-        await this.goto(file);
-        await this.restoreFocus(uri, viewColumn);
-        return;
-      }
-      this.scheduleWiden(decision.root, file, uri, viewColumn);
-      return;
-    }
 
-    const root = resolveInitialRoot({
-      file,
-      pinned: this.pinned.get(),
-      hasConfig: hasSeemoreConfig,
-      searchBoundary: this.workspaceFolderPath(uri),
+      this.stopServer();
+      await this.start(root, file);
+      await this.restoreFocus(uri, viewColumn);
     });
-    await this.start(root, file);
-    await this.restoreFocus(uri, viewColumn);
   }
 
   /** Explorer folder context menu: pins the folder as the root and opens it. */
   async openFolder(uri: vscode.Uri): Promise<void> {
-    this.cancelCloseTimer();
-    const root = canonicalise(uri.fsPath);
-    await this.pinned.set(root);
-    this.stopServer();
-    await this.start(root, undefined);
+    return this.enqueue(async () => {
+      this.cancelCloseTimer();
+      const root = canonicalise(uri.fsPath);
+      await this.pinned.set(root);
+      this.stopServer();
+      await this.start(root, undefined);
+    });
   }
 
   /**
-   * The status bar item's click action. A widen is visible (the status bar names the live
-   * root) and reversible in one click: rather than trying to reconstruct "the folder before
-   * the widen" — which the click that caused the widen may have made meaningless anyway —
-   * this pins the *current* live root, so it stops being re-derived on the next cold start
-   * and stops widening further on its own.
+   * The status bar item's click action. Pins the live root so it stops being re-derived on
+   * the next cold start — the closest thing to an "undo" now that there is no widen to undo.
    */
   async pinLiveRoot(): Promise<void> {
     if (this.liveRoot === undefined) return;
@@ -97,7 +89,6 @@ export class SeemoreSession {
 
   dispose(): void {
     this.cancelCloseTimer();
-    if (this.widenTimer) clearTimeout(this.widenTimer);
     this.statusBarItem.dispose();
     this.panel.dispose();
     this.stopServer();
@@ -107,27 +98,22 @@ export class SeemoreSession {
     return vscode.workspace.getWorkspaceFolder(uri)?.uri.fsPath;
   }
 
-  /** Debounced so rapid clicks across roots respawn once, not once per click. */
-  private scheduleWiden(root: string, file: string, uri: vscode.Uri, viewColumn: vscode.ViewColumn | undefined): void {
-    this.pendingWiden = { root, file, uri, viewColumn };
-    if (this.widenTimer) clearTimeout(this.widenTimer);
-    this.widenTimer = setTimeout(() => {
-      this.widenTimer = undefined;
-      const pending = this.pendingWiden;
-      this.pendingWiden = undefined;
-      if (pending === undefined) return;
-      this.stopServer();
-      void this.start(pending.root, pending.file).then(() => this.restoreFocus(pending.uri, pending.viewColumn));
-    }, WIDEN_DEBOUNCE_MS);
+  /** Runs `task`s one at a time, in call order, regardless of whether an earlier one threw. */
+  private enqueue(task: () => Promise<void>): Promise<void> {
+    const run = this.queue.then(task, task);
+    this.queue = run.then(
+      () => undefined,
+      () => undefined,
+    );
+    return run;
   }
 
   /**
-   * Reclaims focus for the editor the reader was actually in after our own panel work
-   * (`show`/`navigate`/`reveal`) runs. `preserveFocus: true` on those calls stops the panel
-   * from taking literal keyboard focus, but a widen replaces the panel's HTML outright
-   * (`setHtml`, not just a `postMessage`) and that update alone is enough to nudge VS
-   * Code's own "where does the next click open" bookkeeping toward the panel's group —
-   * `preserveFocus` doesn't cover that. Explicitly reopening the original document, in its
+   * Reclaims focus for the editor the reader was actually in. `preserveFocus: true` on the
+   * panel's own create/reveal calls stops it taking literal keyboard focus, but replacing
+   * its HTML outright (`setHtml`, on every click now) is still enough to nudge VS Code's
+   * "where does the next explorer click open" bookkeeping toward the panel's group in a way
+   * `preserveFocus` alone doesn't cover. Explicitly reopening the original document, in its
    * original column, overrides whatever drifted.
    */
   private async restoreFocus(uri: vscode.Uri, viewColumn: vscode.ViewColumn | undefined): Promise<void> {
@@ -157,12 +143,6 @@ export class SeemoreSession {
       const message = error instanceof Error ? error.message : String(error);
       void vscode.window.showErrorMessage(`seemore: ${message}`);
     }
-  }
-
-  private async goto(file: string): Promise<void> {
-    if (this.devServer === undefined) return;
-    const target = await this.resolveTargetUrl(this.devServer.ready.url, file);
-    await this.panel.navigate(target);
   }
 
   /**
