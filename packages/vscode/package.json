@@ -1,0 +1,11 @@
+{
+  "name": "seemore-vscode",
+  "displayName": "seemore",
+  "description": "Read a folder of Markdown as a rendered site, inside VS Code.",
+  "version": "0.0.0",
+  "private": true,
+  "engines": {
+    "vscode": "^1.90.0",
+    "node": ">=20"
+  }
+}
