@@ -1,0 +1,13 @@
+{
+  "name": "site",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "seemore",
+    "build": "seemore build"
+  },
+  "devDependencies": {
+    "seemore": "workspace:*"
+  }
+}

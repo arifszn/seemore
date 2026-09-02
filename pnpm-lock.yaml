@@ -123,6 +123,12 @@ importers:
         specifier: 4.1.11
         version: 4.1.11(@types/node@26.4.0)(vite@8.2.2(@types/node@26.4.0)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.0))
 
+  packages/site:
+    devDependencies:
+      seemore:
+        specifier: workspace:*
+        version: link:../seemore
+
   packages/vscode:
     dependencies:
       seemore:
