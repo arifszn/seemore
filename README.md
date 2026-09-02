@@ -194,7 +194,7 @@ Combinations that can't work together raise a config error naming both flags and
 - GitHub Flavoured Markdown, admonitions (note / tip / warning boxes), step-by-step lists, and colour-highlighted code blocks
 - `[[wikilinks]]`, including `[[Page|label]]` and `[[Page#Heading]]`, the easiest way for you or your AI to link pages without relative paths to get right
 - Relative `.md` links are resolved to working links automatically
-- Mermaid diagrams, rendered in the browser
+- **[Mermaid](https://mermaid.js.org)** and **[D2](https://d2lang.com)** diagrams, both rendered live in the browser straight from a ` ```mermaid ` or ` ```d2 ` code fence
 - Sibling images inlined as hashed assets, sibling PDFs open in the browser's own viewer
 - Frontmatter (the `key: value` block at the top of a file) is validated, with errors that name the file and the field
 
@@ -238,7 +238,7 @@ Options
 
 ## Under the hood
 
-[fumadocs](https://fumadocs.vercel.app) provides the interface presets, with [Shiki](https://shiki.style), [Mermaid](https://mermaid.js.org), [Vite](https://vite.dev) and [React Router](https://reactrouter.com) underneath. The VS Code extension runs the same CLI as a child process it manages. Bug reports and pull requests are welcome at [github.com/arifszn/seemore](https://github.com/arifszn/seemore).
+[fumadocs](https://fumadocs.vercel.app) provides the interface presets, with [Shiki](https://shiki.style), [Mermaid](https://mermaid.js.org), [D2](https://d2lang.com), [Vite](https://vite.dev) and [React Router](https://reactrouter.com) underneath. The VS Code extension runs the same CLI as a child process it manages. Bug reports and pull requests are welcome at [github.com/arifszn/seemore](https://github.com/arifszn/seemore).
 
 ## Licence
 

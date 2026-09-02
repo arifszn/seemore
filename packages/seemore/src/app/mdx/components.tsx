@@ -5,6 +5,7 @@ import { ImageZoom } from 'fumadocs-ui/components/image-zoom';
 import { config } from 'virtual:seemore/config';
 import { isExternalHref, stripBase } from '../../shared/base.js';
 import { feature } from '../lib/features.js';
+import { D2 } from './D2.js';
 import { Mermaid } from './Mermaid.js';
 import { Pdf } from './Pdf.js';
 
@@ -58,5 +59,7 @@ export const mdxComponents = {
   // `remark-mdx-mermaid` rewrites ```mermaid fences to <Mermaid chart="…" />, but supplies no
   // component of its own — this is ours.
   Mermaid,
+  // Our own `remarkSeemoreD2` does the same for ```d2 fences.
+  D2,
   Pdf,
 };

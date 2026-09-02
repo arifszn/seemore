@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 import { dirname, relative, resolve } from 'node:path';
 import { visit } from 'unist-util-visit';
-import type { Blockquote, Image, Paragraph, PhrasingContent, Root, Text } from 'mdast';
+import type { Blockquote, Code, Image, Paragraph, PhrasingContent, Root, Text } from 'mdast';
 import type { Transformer } from 'unified';
 import type { VFile } from 'vfile';
 import type { LinkResolver } from '../content/links.js';
@@ -132,6 +132,25 @@ export function remarkSeemoreWikilinks(options: SeemoreRemarkOptions): Transform
 
       parent.children.splice(index, 1, ...replacement);
       return index + replacement.length;
+    });
+  };
+}
+
+/**
+ * ```d2 fences become `<D2 chart="…" />` — the sibling of `remark-mdx-mermaid`'s rewrite for
+ * ```mermaid, but D2 has no fumadocs-shipped equivalent, so this one is ours.
+ */
+export function remarkSeemoreD2(): Transformer<Root, Root> {
+  return (tree) => {
+    visit(tree, 'code', (node: Code, index, parent) => {
+      if (node.lang !== 'd2' || index === undefined || parent === undefined) return;
+
+      parent.children[index] = {
+        type: 'mdxJsxFlowElement',
+        name: 'D2',
+        attributes: [{ type: 'mdxJsxAttribute', name: 'chart', value: node.value.trim() }],
+        children: [],
+      } as unknown as Code;
     });
   };
 }

@@ -294,10 +294,10 @@ describe('failure policy', () => {
     const outDir = join(contentRoot, 'dist');
     writeFileSync(
       join(contentRoot, 'index.md'),
-      '---\ntitle: Home\n---\n\n# Home\n\n```d2\nx -> y: depends\n```\n',
+      '---\ntitle: Home\n---\n\n# Home\n\n```made-up-lang\nx -> y: depends\n```\n',
     );
 
-    // Without the fallback this throws `Language 'd2' not found` and the page never renders.
+    // Without the fallback this throws `Language 'made-up-lang' not found` and the page never renders.
     await expect(runBuild({ cwd: contentRoot, outDir })).resolves.toMatchObject({ routes: 1 });
     expect(load(readFileSync(join(outDir, 'index.html'), 'utf8'))('article pre code').text()).toContain(
       'x -> y: depends',
