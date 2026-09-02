@@ -35,6 +35,13 @@ jobs:
 
       - run: pnpm --filter seemore build
 
+      # pnpm links a workspace package's `bin` into its dependents' node_modules/.bin only
+      # at install time, and only if the target file already exists then. `seemore`'s dist
+      # doesn't exist until the build above, so the first install above left `site`'s
+      # `seemore` bin unlinked (a warning, not a failure) — reinstalling now, with dist/
+      # in place, relinks it.
+      - run: pnpm install --frozen-lockfile
+
       - run: pnpm --filter site build
 
       - uses: actions/configure-pages@v5
