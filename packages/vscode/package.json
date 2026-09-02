@@ -22,7 +22,7 @@
       {
         "command": "seemore.open",
         "title": "Open in seemore",
-        "icon": "$(open-preview)",
+        "icon": "$(eye)",
         "category": "seemore"
       },
       {
