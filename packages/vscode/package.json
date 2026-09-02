@@ -1,0 +1,86 @@
+{
+  "name": "seemore-vscode",
+  "displayName": "seemore",
+  "description": "Read a folder of Markdown as a rendered site — without leaving VS Code.",
+  "version": "1.0.0",
+  "license": "MIT",
+  "publisher": "arifszn",
+  "icon": "assets/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/arifszn/seemore.git",
+    "directory": "packages/vscode"
+  },
+  "engines": {
+    "vscode": "^1.90.0",
+    "node": ">=20"
+  },
+  "categories": ["Other"],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "seemore.open",
+        "title": "Open in seemore",
+        "icon": "$(open-preview)",
+        "category": "seemore"
+      },
+      {
+        "command": "seemore.openFolder",
+        "title": "Open Folder in seemore",
+        "category": "seemore"
+      },
+      {
+        "command": "seemore.pinLiveRoot",
+        "title": "Pin Current Root",
+        "category": "seemore"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "seemore.open",
+          "when": "resourceLangId == markdown",
+          "group": "navigation@0"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "seemore.openFolder",
+          "when": "explorerResourceIsFolder",
+          "group": "navigation@0"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "seemore",
+      "properties": {
+        "seemore.path": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Path to a `seemore` CLI entry point (`cli/index.js`) to use instead of the copy bundled with the extension. For developing seemore itself — leave empty otherwise."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "oxlint --deny-warnings src tests",
+    "package": "node scripts/package.mjs"
+  },
+  "dependencies": {
+    "seemore": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^26.4.0",
+    "@types/vscode": "^1.90.0",
+    "@vscode/vsce": "^3.2.1",
+    "oxlint": "^1.80.0",
+    "tsup": "8.5.1",
+    "typescript": "5.9.3",
+    "vitest": "4.1.11"
+  }
+}

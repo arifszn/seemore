@@ -1,0 +1,4 @@
+**/*.md
+**/CHANGELOG*
+**/.github/**
+**/*.map

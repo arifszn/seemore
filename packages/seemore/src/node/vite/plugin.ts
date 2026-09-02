@@ -6,6 +6,7 @@ import { withBase } from '../base.js';
 import type { SeemoreContext } from '../context.js';
 import { buildSearchIndex } from '../search/build.js';
 import { toPosix } from '../content/slug.js';
+import { canonicalise } from '../paths.js';
 
 export const VIRTUAL = {
   tree: 'virtual:seemore/tree',
@@ -130,6 +131,37 @@ export function seemorePlugin({ ctx, serveSearch = false }: SeemorePluginOptions
         } catch (error) {
           next(error);
         }
+      });
+
+      // Lets a caller that only knows an absolute file path — an editor extension, say —
+      // ask the running server what URL that file resolved to, rather than reimplementing
+      // `resolveRoutes`. Dev-only: the answer depends on a live corpus scan.
+      devServer.middlewares.use((req, res, next) => {
+        const [path = '', query = ''] = (req.url ?? '').split('?');
+        if (path !== '/__seemore/route') return next();
+
+        const file = new URLSearchParams(query).get('file');
+        if (file === null) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json');
+          res.end(JSON.stringify({ error: 'Missing "file" query parameter.' }));
+          return;
+        }
+
+        // `page.absPath` is built on the canonicalised content root; a caller outside
+        // seemore (an editor's `document.uri.fsPath`) has no reason to have canonicalised
+        // its side, so the comparison must go through the filesystem, not just `resolve`.
+        const absFile = canonicalise(file);
+        const page = ctx.pages().find((p) => p.absPath === absFile);
+        if (page === undefined) {
+          res.statusCode = 404;
+          res.setHeader('Content-Type', 'application/json');
+          res.end(JSON.stringify({ error: `${file} is not part of this site — excluded, or lost a duplicate slug.` }));
+          return;
+        }
+
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify({ url: withBase(ctx.config.base, page.url) }));
       });
     },
 

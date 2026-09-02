@@ -3,10 +3,17 @@ dist/
 .openmd/
 *.tsbuildinfo
 .DS_Store
-tests/fixtures/**/dist/
+**/tests/fixtures/**/dist/
 
 # Design spec: local only, not distributed
 SPEC.md
 
 # playwright-cli session artifacts
 .playwright-cli/
+
+# Generated from the root copies at pack time
+packages/seemore/README.md
+packages/seemore/LICENSE
+
+# Output of packages/vscode/scripts/package.mjs
+*.vsix

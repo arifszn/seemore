@@ -1,0 +1,52 @@
+name: Publish VS Code extension
+
+on:
+  push:
+    tags: ['vscode-v*']
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm --filter seemore-vscode lint
+
+      - run: pnpm --filter seemore-vscode typecheck
+
+      - run: pnpm --filter seemore-vscode test
+
+      - name: Check the tag matches the version in packages/vscode/package.json
+        id: version
+        shell: bash
+        run: |
+          tag="${GITHUB_REF_NAME#vscode-v}"
+          version="$(node -p "require('./packages/vscode/package.json').version")"
+          if [ "$tag" != "$version" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match packages/vscode/package.json version $version." >&2
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      # Produces packages/vscode/seemore-vscode-<version>.vsix — see scripts/package.mjs for
+      # why this can't just be `vsce package` run in place (workspace symlinks, pnpm-managed
+      # node_modules vsce won't accept).
+      - run: pnpm --filter seemore-vscode package
+
+      - name: Publish to the Visual Studio Marketplace
+        working-directory: packages/vscode
+        run: npx vsce publish --packagePath "seemore-vscode-${{ steps.version.outputs.version }}.vsix" -p "$VSCE_PAT"
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
