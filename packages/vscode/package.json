@@ -5,6 +5,7 @@
   "version": "1.0.0",
   "license": "MIT",
   "publisher": "arifszn",
+  "icon": "assets/icon.png",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/arifszn/seemore.git",

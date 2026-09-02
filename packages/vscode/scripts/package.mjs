@@ -52,6 +52,7 @@ try {
   cpSync(join(vscodeDir, 'dist'), join(stagingDir, 'dist'), { recursive: true });
   cpSync(join(vscodeDir, '.vscodeignore'), join(stagingDir, '.vscodeignore'));
   cpSync(join(vscodeDir, 'README.md'), join(stagingDir, 'README.md'));
+  cpSync(join(vscodeDir, 'assets'), join(stagingDir, 'assets'), { recursive: true });
   cpSync(join(repoRoot, 'LICENSE'), join(stagingDir, 'LICENSE'));
   writeFileSync(
     join(stagingDir, 'package.json'),
