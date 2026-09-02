@@ -166,7 +166,19 @@ Twelve built-in colour presets: `neutral` (default), `black`, `catppuccin`, `dus
 
 ### Features
 
-A flat list of switches for readers who want fine control. Prefix one with `!` to switch off something that's on by default.
+A flat list of switches for readers who want fine control, set as an array on the `features` key in `seemore.config.ts`. To turn on something that's off by default, add its flag name. To turn off something that's on by default, add its flag name prefixed with `!`.
+
+```ts
+// seemore.config.ts
+export default defineConfig({
+  features: [
+    'navigation.path',              // off by default → this turns it on
+    '!navigation.instant.prefetch', // on by default → this turns it off
+  ],
+});
+```
+
+Flags you don't mention are left at their default, so you only ever list the ones you're changing.
 
 | Flag | Default | Effect |
 | --- | --- | --- |
