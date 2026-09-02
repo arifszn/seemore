@@ -1,13 +1,43 @@
-<img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/vscode/assets/icon.png" alt="seemore" width="96" height="96">
+<br/>
 
-# seemore
-
-Let AI write the Markdown. Let seemore show it better.
-
-[![npm version](https://img.shields.io/npm/v/seemore)](https://www.npmjs.com/package/seemore)
-[![VS Code Marketplace](https://img.shields.io/badge/VS_Code-Marketplace-007ACC?logo=visualstudiocode&logoColor=white)](https://marketplace.visualstudio.com/items?itemName=arifszn.seemore-vscode)
-[![CI](https://github.com/arifszn/seemore/actions/workflows/ci.yml/badge.svg)](https://github.com/arifszn/seemore/actions/workflows/ci.yml)
-[![Licence: MIT](https://img.shields.io/badge/Licence-MIT-informational)](LICENSE)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/vscode/assets/icon.png" alt="seemore" width="96" height="96">
+  <h1 align="center">seemore</h1>
+  <h4 align="center">Let AI write the Markdown. Let seemore show it better.</h4>
+  <p align="center">
+    <a href="https://www.npmjs.com/package/seemore">
+      <img src="https://img.shields.io/npm/v/seemore"/>
+    </a>
+    <a href="https://marketplace.visualstudio.com/items?itemName=arifszn.seemore-vscode">
+      <img src="https://img.shields.io/badge/VS_Code-Marketplace-007ACC?logo=visualstudiocode&logoColor=white"/>
+    </a>
+    <a href="https://github.com/arifszn/seemore/actions/workflows/ci.yml">
+      <img src="https://github.com/arifszn/seemore/actions/workflows/ci.yml/badge.svg"/>
+    </a>
+    <a href="https://github.com/arifszn/seemore/issues">
+      <img src="https://img.shields.io/github/issues/arifszn/seemore"/>
+    </a>
+    <a href="https://github.com/arifszn/seemore/stargazers">
+      <img src="https://img.shields.io/github/stars/arifszn/seemore"/>
+    </a>
+    <a href="https://github.com/arifszn/seemore">
+      <img src="https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat"/>
+    </a>
+    <a href="https://github.com/arifszn/seemore/blob/main/LICENSE">
+      <img src="https://img.shields.io/github/license/arifszn/seemore"/>
+    </a>
+    <a href="https://twitter.com/intent/tweet?url=https://github.com/arifszn/seemore&hashtags=markdown,docs,webdev,opensource">
+      <img src="https://img.shields.io/twitter/url?style=social&url=https%3A%2F%2Fgithub.com%2Farifszn%2Fseemore"/>
+    </a>
+  </p>
+  <p align="center">
+    <a href="https://arifszn.github.io/seemore">Website</a>
+    ·
+    <a href="https://github.com/arifszn/seemore/issues">Report Bug</a>
+    ·
+    <a href="https://github.com/arifszn/seemore/issues/new?labels=enhancement">Request Feature</a>
+  </p>
+</p>
 
 AI tools write Markdown — specs, notes, guides, READMEs, whole folders of it, faster than
 anyone can read. A pile of `.md` files is write-only memory: nothing to click, nothing to
@@ -20,6 +50,10 @@ Three ways to use it:
 - **[In your browser](#view-in-your-browser)**: `npx seemore` serves the folder you're standing in and updates live as you edit.
 - **[In VS Code](#view-in-vs-code)**: an extension puts the same site in a panel next to the file you're editing.
 - **[As a static site](#publish-it-to-the-web)**: `npx seemore build` exports plain HTML you can host anywhere, so it doubles as a docs framework, not just a preview tool.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/neutral.png" alt="seemore rendering a folder of Markdown in the browser, neutral theme" width="100%"/>
+</p>
 
 ## View in your browser
 
