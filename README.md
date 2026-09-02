@@ -8,7 +8,6 @@ Let AI write the Markdown. Let seemore show it better.
 [![VS Code Marketplace](https://img.shields.io/badge/VS_Code-Marketplace-007ACC?logo=visualstudiocode&logoColor=white)](https://marketplace.visualstudio.com/items?itemName=arifszn.seemore-vscode)
 [![CI](https://github.com/arifszn/seemore/actions/workflows/ci.yml/badge.svg)](https://github.com/arifszn/seemore/actions/workflows/ci.yml)
 [![Licence: MIT](https://img.shields.io/badge/Licence-MIT-informational)](LICENSE)
-[![Website](https://img.shields.io/badge/Website-arifszn.github.io%2Fseemore-blue)](https://arifszn.github.io/seemore/)
 
 AI tools write Markdown — specs, notes, guides, READMEs, whole folders of it, faster than
 anyone can read. A pile of `.md` files is write-only memory: nothing to click, nothing to
@@ -142,7 +141,31 @@ export default defineConfig({
 
 ### Themes
 
-Twelve built-in colour presets: `neutral` (default), `black`, `catppuccin`, `dusk`, `ocean`, `purple`, `ruby`, `solar`, `aspen`, `emerald`, `vitepress`, `shadcn`. For anything else, put your own CSS in `css`; it's appended last, so it wins. Dark and light follow your system setting, with a toggle that remembers your choice.
+Twelve built-in colour presets: `neutral` (default), `black`, `catppuccin`, `dusk`, `ocean`, `purple`, `ruby`, `solar`, `aspen`, `emerald`, `vitepress`, `shadcn`. For anything else, put your own CSS in `css`; it's appended last, so it wins. Dark and light follow your system setting, with a toggle that remembers your choice — `black` is built for dark mode, shown below with the toggle on.
+
+| `neutral` (default) | `black` |
+| :--- | :--- |
+| ![neutral theme](https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/neutral.png) | ![black theme](https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/black.png) |
+
+| `catppuccin` | `dusk` |
+| :--- | :--- |
+| ![catppuccin theme](https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/catppuccin.png) | ![dusk theme](https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/dusk.png) |
+
+| `ocean` | `purple` |
+| :--- | :--- |
+| ![ocean theme](https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/ocean.png) | ![purple theme](https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/purple.png) |
+
+| `ruby` | `solar` |
+| :--- | :--- |
+| ![ruby theme](https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/ruby.png) | ![solar theme](https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/solar.png) |
+
+| `aspen` | `emerald` |
+| :--- | :--- |
+| ![aspen theme](https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/aspen.png) | ![emerald theme](https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/emerald.png) |
+
+| `vitepress` | `shadcn` |
+| :--- | :--- |
+| ![vitepress theme](https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/vitepress.png) | ![shadcn theme](https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/shadcn.png) |
 
 ### Features
 

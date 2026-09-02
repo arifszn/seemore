@@ -8,6 +8,10 @@ export default defineConfig({
   nav: [
     { text: 'GitHub', link: 'https://github.com/arifszn/seemore' },
     { text: 'npm', link: 'https://www.npmjs.com/package/seemore' },
+    {
+      text: 'VS Code',
+      link: 'https://marketplace.visualstudio.com/items?itemName=arifszn.seemore-vscode',
+    },
   ],
   footer: { text: '© 2026 seemore. MIT Licensed.' },
   editLink: {

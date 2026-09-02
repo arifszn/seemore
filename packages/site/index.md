@@ -4,16 +4,9 @@ description: Let AI write the Markdown. Let seemore show it better.
 order: 1
 ---
 
-<img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/vscode/assets/icon.png" alt="seemore" width="96" height="96">
-
 # seemore
 
 Let AI write the Markdown. Let seemore show it better.
-
-[![npm version](https://img.shields.io/npm/v/seemore)](https://www.npmjs.com/package/seemore)
-[![VS Code Marketplace](https://img.shields.io/badge/VS_Code-Marketplace-007ACC?logo=visualstudiocode&logoColor=white)](https://marketplace.visualstudio.com/items?itemName=arifszn.seemore-vscode)
-[![CI](https://github.com/arifszn/seemore/actions/workflows/ci.yml/badge.svg)](https://github.com/arifszn/seemore/actions/workflows/ci.yml)
-[![Licence: MIT](https://img.shields.io/badge/Licence-MIT-informational)](https://github.com/arifszn/seemore/blob/main/LICENSE)
 
 AI tools write Markdown — specs, notes, guides, READMEs, whole folders of it, faster than
 anyone can read. A pile of `.md` files is write-only memory: nothing to click, nothing to
