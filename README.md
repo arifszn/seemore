@@ -8,6 +8,7 @@ Let AI write the Markdown. Let seemore show it better.
 [![VS Code Marketplace](https://img.shields.io/badge/VS_Code-Marketplace-007ACC?logo=visualstudiocode&logoColor=white)](https://marketplace.visualstudio.com/items?itemName=arifszn.seemore-vscode)
 [![CI](https://github.com/arifszn/seemore/actions/workflows/ci.yml/badge.svg)](https://github.com/arifszn/seemore/actions/workflows/ci.yml)
 [![Licence: MIT](https://img.shields.io/badge/Licence-MIT-informational)](LICENSE)
+[![Website](https://img.shields.io/badge/Website-arifszn.github.io%2Fseemore-blue)](https://arifszn.github.io/seemore/)
 
 AI tools write Markdown — specs, notes, guides, READMEs, whole folders of it, faster than
 anyone can read. A pile of `.md` files is write-only memory: nothing to click, nothing to
@@ -141,7 +142,7 @@ export default defineConfig({
 
 ### Themes
 
-Eleven built-in colour presets: `neutral` (default), `black`, `catppuccin`, `dusk`, `ocean`, `purple`, `ruby`, `solar`, `aspen`, `emerald`, `shadcn`. For anything else, put your own CSS in `css`; it's appended last, so it wins. Dark and light follow your system setting, with a toggle that remembers your choice.
+Twelve built-in colour presets: `neutral` (default), `black`, `catppuccin`, `dusk`, `ocean`, `purple`, `ruby`, `solar`, `aspen`, `emerald`, `vitepress`, `shadcn`. For anything else, put your own CSS in `css`; it's appended last, so it wins. Dark and light follow your system setting, with a toggle that remembers your choice.
 
 ### Features
 
@@ -169,15 +170,19 @@ Combinations that can't work together raise a config error naming both flags and
 ## CLI reference
 
 ```
-seemore [dir]           start the live preview
-seemore build [dir]     static export into dist/
+seemore [dir]           start the dev server
+seemore build [dir]     build a static site into dist/
 
-  --port <number>      preview server port (default 4040)
-  --host [host]        expose the preview server on the network
-  --open / --no-open   open a browser on start (default: no)
-  --config <path>      path to seemore.config.ts
-  --out <dir>          build output directory (default: dist)
-  --base <path>        subpath the site is served from
+Options
+  --port <number>        dev server port (default 4040)
+  --host [host]          expose the dev server on the network
+  --open / --no-open     open a browser on start (default: no)
+  --json                 print one machine-readable JSON line instead of the summary (dev only)
+  --config <path>        path to seemore.config.ts
+  --out <dir>            build output directory (default: dist)
+  --base <path>          subpath the site is served from, e.g. /my-repo/
+  -h, --help             show this message
+  -v, --version          show the version
 ```
 
 ## Under the hood
