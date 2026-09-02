@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -94,6 +94,32 @@ describe('dev-only route endpoint', () => {
 
     expect(res.status).toBe(404);
     expect((await res.json()) as { error: string }).toMatchObject({ error: expect.any(String) });
+  });
+
+  it('resolves a file addressed through a symlinked, non-canonical spelling of the same path', async () => {
+    // The real bug this guards: an editor hands over `document.uri.fsPath`, which has no
+    // reason to be the canonical spelling (macOS's /tmp -> /private/tmp is the everyday
+    // case). `resolve()` alone doesn't fix that; only a real filesystem lookup does.
+    const real = mkdtempSync(join(tmpdir(), 'seemore-route-real-'));
+    writeFileSync(join(real, 'a.md'), '# A\n');
+    const aliasParent = mkdtempSync(join(tmpdir(), 'seemore-route-alias-'));
+    const alias = join(aliasParent, 'alias');
+    symlinkSync(real, alias, 'dir');
+
+    try {
+      dev = await runDev({ cwd: alias, port: 0 });
+      contentRoot = dev.ctx.contentRoot;
+
+      const res = await fetch(
+        `${new URL(dev.url).origin}/__seemore/route?file=${encodeURIComponent(join(alias, 'a.md'))}`,
+      );
+
+      expect(res.status).toBe(200);
+      expect(await res.json()).toEqual({ url: '/a' });
+    } finally {
+      rmSync(aliasParent, { recursive: true, force: true });
+      rmSync(real, { recursive: true, force: true });
+    }
   });
 
   it('400s when the file query parameter is missing', async () => {

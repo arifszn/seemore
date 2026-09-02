@@ -1,11 +1,12 @@
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
-import { dirname, resolve } from 'node:path';
+import { dirname } from 'node:path';
 import type { Plugin, ViteDevServer } from 'vite';
 import { withBase } from '../base.js';
 import type { SeemoreContext } from '../context.js';
 import { buildSearchIndex } from '../search/build.js';
 import { toPosix } from '../content/slug.js';
+import { canonicalise } from '../paths.js';
 
 export const VIRTUAL = {
   tree: 'virtual:seemore/tree',
@@ -147,7 +148,10 @@ export function seemorePlugin({ ctx, serveSearch = false }: SeemorePluginOptions
           return;
         }
 
-        const absFile = resolve(file);
+        // `page.absPath` is built on the canonicalised content root; a caller outside
+        // seemore (an editor's `document.uri.fsPath`) has no reason to have canonicalised
+        // its side, so the comparison must go through the filesystem, not just `resolve`.
+        const absFile = canonicalise(file);
         const page = ctx.pages().find((p) => p.absPath === absFile);
         if (page === undefined) {
           res.statusCode = 404;

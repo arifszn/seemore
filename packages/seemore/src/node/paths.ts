@@ -51,11 +51,18 @@ export function resolveContentRoot(cwd: string, explicit?: string): string {
   return explicit !== undefined ? canonicalise(resolve(cwd, explicit)) : canonicalise(cwd);
 }
 
-function canonicalise(dir: string): string {
+/**
+ * Resolve a path through the filesystem to its real spelling — the same treatment
+ * {@link resolveContentRoot} gives the content root, needed anywhere else a path arriving
+ * from outside seemore (an editor's `document.uri.fsPath`, say) has to be compared against
+ * one of its own, which are already canonicalised. A symlinked ancestor (`/tmp` on macOS)
+ * or a Windows 8.3 short name would otherwise make the same file compare unequal to itself.
+ */
+export function canonicalise(dir: string): string {
   try {
     return realpathSync.native(dir);
   } catch {
-    // A root that does not exist yet keeps its literal spelling; dev reports the empty corpus.
+    // Does not exist, or not readable: keep the literal spelling rather than throw.
     return dir;
   }
 }
