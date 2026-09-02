@@ -19,3 +19,7 @@ graph TD;
   A[Markdown] --> B[seemore];
   B --> C[Static site];
 ```
+
+```d2
+Markdown -> seemore -> Static site
+```

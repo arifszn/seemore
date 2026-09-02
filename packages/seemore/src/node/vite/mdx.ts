@@ -14,6 +14,7 @@ import {
 import {
   remarkSeemoreAlerts,
   remarkSeemoreAssets,
+  remarkSeemoreD2,
   remarkSeemoreLinks,
   remarkSeemoreWikilinks,
   type SeemoreRemarkOptions,
@@ -55,6 +56,8 @@ export function createRemarkPlugins(options: SeemoreRemarkOptions): PluggableLis
     ],
     // Rewrites ```mermaid fences to <Mermaid chart="…" />. We supply the component.
     remarkMdxMermaid,
+    // Rewrites ```d2 fences to <D2 chart="…" />, mermaid's sibling for D2 diagrams.
+    remarkSeemoreD2,
     () => remarkSeemoreWikilinks(options),
     () => remarkSeemoreLinks(options),
   ];
@@ -62,9 +65,9 @@ export function createRemarkPlugins(options: SeemoreRemarkOptions): PluggableLis
 
 export function createRehypePlugins(): PluggableList {
   return [
-    // A fence in a language Shiki has no grammar for (` ```d2 `, anything an AI dreamt up) is
-    // plain code on the page, not a dead one: `plaintext` is special-cased by Shiki and
-    // never needs loading.
+    // A fence in a language Shiki has no grammar for (anything an AI dreamt up) is plain code
+    // on the page, not a dead one: `plaintext` is special-cased by Shiki and never needs
+    // loading.
     [rehypeCode, { fallbackLanguage: 'plaintext' }],
     rehypeToc,
   ];

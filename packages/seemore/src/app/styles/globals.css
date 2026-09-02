@@ -273,6 +273,18 @@
     @apply my-6 rounded-lg border border-fd-border p-4 text-sm text-fd-muted-foreground;
   }
 
+  .seemore-d2 {
+    @apply my-6 flex justify-center;
+  }
+
+  .seemore-d2-source {
+    @apply w-full overflow-x-auto text-xs opacity-60;
+  }
+
+  .seemore-d2-error {
+    @apply my-6 rounded-lg border border-fd-border p-4 text-sm text-fd-muted-foreground;
+  }
+
   .seemore-pdf {
     @apply my-6 block;
   }

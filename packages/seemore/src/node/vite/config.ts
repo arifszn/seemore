@@ -74,8 +74,12 @@ export function createViteConfig({ ctx, mode, outDir, ssrOutDir }: ViteConfigOpt
       // build of `decode-named-character-reference` is inlined into the prebundle and the
       // worker throws on load. Adding the package's own `worker` condition graph-wide flips
       // the whole dev graph (main thread included) to its DOM-free build, which behaves the
-      // same; production keeps the targeted worker-bundle swap above.
-      conditions: mode === 'dev' ? ['worker'] : [],
+      // same; production doesn't need it — its worker chunk is a real Rollup build of its own,
+      // where the targeted swap above runs. Leaving this unset in production keeps Vite's own
+      // default conditions, which is what packages with a real browser/node split (D2's WASM
+      // bundle among them) need in order to resolve their browser build rather than the
+      // Node one.
+      conditions: mode === 'dev' ? ['worker'] : undefined,
     },
 
     server: {

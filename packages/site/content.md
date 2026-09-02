@@ -11,7 +11,7 @@ order: 5
 - GitHub Flavoured Markdown, admonitions (note / tip / warning boxes), step-by-step lists, and colour-highlighted code blocks
 - `[[wikilinks]]`, including `[[Page|label]]` and `[[Page#Heading]]`, the easiest way for you or your AI to link pages without relative paths to get right
 - Relative `.md` links are resolved to working links automatically
-- Mermaid diagrams, rendered in the browser
+- **[Mermaid](https://mermaid.js.org)** and **[D2](https://d2lang.com)** diagrams, both rendered live in the browser straight from a ` ```mermaid ` or ` ```d2 ` code fence
 - Sibling images inlined as hashed assets, sibling PDFs open in the browser's own viewer
 - Frontmatter (the `key: value` block at the top of a file) is validated, with errors that name the file and the field
 
