@@ -2,7 +2,7 @@ name: Publish
 
 on:
   push:
-    tags: ['v*']
+    tags: ['seemore-v*']
 
 jobs:
   publish:
@@ -33,16 +33,16 @@ jobs:
 
       - run: pnpm build
 
-      - name: Check the tag matches the version in package.json
+      - name: Check the tag matches the version in packages/seemore/package.json
         shell: bash
         run: |
-          tag="${GITHUB_REF_NAME#v}"
-          version="$(node -p "require('./package.json').version")"
+          tag="${GITHUB_REF_NAME#seemore-v}"
+          version="$(node -p "require('./packages/seemore/package.json').version")"
           if [ "$tag" != "$version" ]; then
-            echo "Tag $GITHUB_REF_NAME does not match package.json version $version." >&2
+            echo "Tag $GITHUB_REF_NAME does not match packages/seemore/package.json version $version." >&2
             exit 1
           fi
 
-      - run: pnpm publish --provenance --access public --no-git-checks
+      - run: pnpm --filter seemore publish --provenance --access public --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
