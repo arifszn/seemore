@@ -61,20 +61,24 @@ export function renderPanelHtml(options: RenderPanelHtmlOptions): string {
   const vscode = acquireVsCodeApi();
   const iframe = document.getElementById('site');
 
-  // Requires the seemore site to post { type: '${BRIDGE_EVENT}', file: '<posix-relative-path>' }
-  // from inside the iframe — its own origin, so this cannot be spoofed by an unrelated page.
   window.addEventListener('message', (event) => {
-    if (event.source !== iframe.contentWindow) return;
     const data = event.data;
-    if (!data || data.type !== '${BRIDGE_EVENT}') return;
-    vscode.postMessage(data);
-  });
+    if (!data) return;
 
-  window.addEventListener('message', (event) => {
-    if (event.source !== window) return;
-    const data = event.data;
-    if (!data || data.type !== 'seemore:navigate') return;
-    iframe.src = data.url;
+    // Requires the seemore site to post { type: '${BRIDGE_EVENT}', file: '<posix-relative-path>' }
+    // from inside the iframe — its own origin, so this cannot be spoofed by an unrelated page.
+    if (event.source === iframe.contentWindow && data.type === '${BRIDGE_EVENT}') {
+      vscode.postMessage(data);
+      return;
+    }
+
+    // The extension host's own messages arrive through VS Code's webview bridge, not a real
+    // same-window postMessage — event.source is not this window, so this cannot be gated the
+    // same way. There is nothing to spoof it with: only the extension host can call
+    // panel.webview.postMessage in the first place.
+    if (data.type === 'seemore:navigate') {
+      iframe.src = data.url;
+    }
   });
 </script>
 </body>

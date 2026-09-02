@@ -41,14 +41,14 @@
         {
           "command": "seemore.open",
           "when": "resourceLangId == markdown",
-          "group": "navigation"
+          "group": "navigation@0"
         }
       ],
       "explorer/context": [
         {
           "command": "seemore.openFolder",
           "when": "explorerResourceIsFolder",
-          "group": "navigation"
+          "group": "navigation@0"
         }
       ]
     },

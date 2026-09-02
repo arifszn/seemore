@@ -31,7 +31,7 @@ export class SeemoreSession {
   private devServer: SpawnedDevServer | undefined;
   private closeTimer: NodeJS.Timeout | undefined;
   private widenTimer: NodeJS.Timeout | undefined;
-  private pendingWiden: { root: string; file: string } | undefined;
+  private pendingWiden: { root: string; file: string; uri: vscode.Uri; viewColumn: vscode.ViewColumn | undefined } | undefined;
 
   constructor(private readonly context: vscode.ExtensionContext) {
     this.pinned = createPinnedRootStore(context.workspaceState);
@@ -46,6 +46,7 @@ export class SeemoreSession {
   async openFile(uri: vscode.Uri): Promise<void> {
     this.cancelCloseTimer();
     const file = canonicalise(uri.fsPath);
+    const viewColumn = vscode.window.activeTextEditor?.viewColumn;
 
     if (this.liveRoot !== undefined && this.devServer !== undefined) {
       const decision = decideNavigation({
@@ -55,9 +56,10 @@ export class SeemoreSession {
       });
       if (decision.action === 'navigate') {
         await this.goto(file);
+        await this.restoreFocus(uri, viewColumn);
         return;
       }
-      this.scheduleWiden(decision.root, file);
+      this.scheduleWiden(decision.root, file, uri, viewColumn);
       return;
     }
 
@@ -68,6 +70,7 @@ export class SeemoreSession {
       searchBoundary: this.workspaceFolderPath(uri),
     });
     await this.start(root, file);
+    await this.restoreFocus(uri, viewColumn);
   }
 
   /** Explorer folder context menu: pins the folder as the root and opens it. */
@@ -105,8 +108,8 @@ export class SeemoreSession {
   }
 
   /** Debounced so rapid clicks across roots respawn once, not once per click. */
-  private scheduleWiden(root: string, file: string): void {
-    this.pendingWiden = { root, file };
+  private scheduleWiden(root: string, file: string, uri: vscode.Uri, viewColumn: vscode.ViewColumn | undefined): void {
+    this.pendingWiden = { root, file, uri, viewColumn };
     if (this.widenTimer) clearTimeout(this.widenTimer);
     this.widenTimer = setTimeout(() => {
       this.widenTimer = undefined;
@@ -114,8 +117,25 @@ export class SeemoreSession {
       this.pendingWiden = undefined;
       if (pending === undefined) return;
       this.stopServer();
-      void this.start(pending.root, pending.file);
+      void this.start(pending.root, pending.file).then(() => this.restoreFocus(pending.uri, pending.viewColumn));
     }, WIDEN_DEBOUNCE_MS);
+  }
+
+  /**
+   * Reclaims focus for the editor the reader was actually in after our own panel work
+   * (`show`/`navigate`/`reveal`) runs. `preserveFocus: true` on those calls stops the panel
+   * from taking literal keyboard focus, but a widen replaces the panel's HTML outright
+   * (`setHtml`, not just a `postMessage`) and that update alone is enough to nudge VS
+   * Code's own "where does the next click open" bookkeeping toward the panel's group —
+   * `preserveFocus` doesn't cover that. Explicitly reopening the original document, in its
+   * original column, overrides whatever drifted.
+   */
+  private async restoreFocus(uri: vscode.Uri, viewColumn: vscode.ViewColumn | undefined): Promise<void> {
+    try {
+      await vscode.window.showTextDocument(uri, { viewColumn, preserveFocus: false, preview: false });
+    } catch {
+      // The document may have closed since; nothing to restore focus to.
+    }
   }
 
   private async start(root: string, file: string | undefined): Promise<void> {

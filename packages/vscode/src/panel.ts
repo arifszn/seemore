@@ -26,15 +26,25 @@ export class SeemorePanel {
     private readonly onClosed: () => void,
   ) {}
 
-  /** Create the panel the first time; every later call reuses and reveals it. */
+  /**
+   * Create the panel the first time; every later call reuses and reveals it.
+   *
+   * `preserveFocus: true` everywhere the panel takes or regains focus (here and in
+   * {@link navigate}): without it, opening or revealing the panel makes its column the
+   * active one, and VS Code opens the *next* file the reader clicks in the explorer there
+   * too — so clicking a plain markdown file, not the seemore icon, would land it beside the
+   * site instead of in the editor group the reader was actually working in.
+   */
   async show(url: string): Promise<void> {
     const external = await vscode.env.asExternalUri(vscode.Uri.parse(url));
 
     if (this.panel === undefined) {
-      this.panel = vscode.window.createWebviewPanel('seemore', 'seemore', vscode.ViewColumn.Beside, {
-        enableScripts: true,
-        retainContextWhenHidden: true,
-      });
+      this.panel = vscode.window.createWebviewPanel(
+        'seemore',
+        'seemore',
+        { viewColumn: vscode.ViewColumn.Beside, preserveFocus: true },
+        { enableScripts: true, retainContextWhenHidden: true },
+      );
       this.panel.onDidDispose(() => {
         this.panel = undefined;
         this.onClosed();
@@ -43,7 +53,7 @@ export class SeemorePanel {
         if (isOpenSourceMessage(message)) this.onOpenSource(message.file);
       });
     } else {
-      this.panel.reveal(this.panel.viewColumn);
+      this.panel.reveal(this.panel.viewColumn, true);
     }
 
     this.setHtml(external.toString(true));
@@ -59,7 +69,7 @@ export class SeemorePanel {
       return;
     }
     const external = await vscode.env.asExternalUri(vscode.Uri.parse(url));
-    this.panel.reveal(this.panel.viewColumn);
+    this.panel.reveal(this.panel.viewColumn, true);
     void this.panel.webview.postMessage({ type: 'seemore:navigate', url: external.toString(true) });
   }
 
