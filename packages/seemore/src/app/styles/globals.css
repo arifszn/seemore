@@ -90,8 +90,14 @@
     @apply flex min-h-0 flex-1 flex-col;
   }
 
+  /* Item labels come from filenames/headings as a bare text node next to the icon — no wrapper
+     span we can target — so long unbroken identifiers (`Cartalyst_stripe_migration_plan`) need
+     to break, or they overflow the fixed-width rail. `break-words` (overflow-wrap) is not enough
+     here: per spec it's excluded from min-content sizing, so a flex item using it still refuses
+     to shrink below the full word width. `break-all` (word-break) does shrink the min-content
+     size, which is what lets this flex item wrap instead of overflowing. */
   .seemore-sidebar-link {
-    @apply flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-sm text-fd-muted-foreground transition-colors;
+    @apply flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-sm break-all text-fd-muted-foreground transition-colors;
   }
 
   .seemore-sidebar-link:hover {
