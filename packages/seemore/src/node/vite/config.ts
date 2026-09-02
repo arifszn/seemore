@@ -69,6 +69,13 @@ export function createViteConfig({ ctx, mode, outDir, ssrOutDir }: ViteConfigOpt
       // The app is compiled from seemore's own sources, so its dependencies must resolve
       // from seemore's directory rather than from the user's project.
       dedupe: ['react', 'react-dom', 'react-router', 'fumadocs-core', 'fumadocs-ui'],
+      // In dev the module worker is served through the shared module graph and its fumadocs
+      // chunk comes from the dep optimizer, where `worker.plugins` never runs — the browser
+      // build of `decode-named-character-reference` is inlined into the prebundle and the
+      // worker throws on load. Adding the package's own `worker` condition graph-wide flips
+      // the whole dev graph (main thread included) to its DOM-free build, which behaves the
+      // same; production keeps the targeted worker-bundle swap above.
+      conditions: mode === 'dev' ? ['worker'] : [],
     },
 
     server: {

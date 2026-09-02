@@ -10,6 +10,20 @@ import type { SeemoreContext } from '../context.js';
 export const SIZE_WARNING_BYTES = 1_500_000;
 
 /**
+ * `structure()` indexes plain text, so seemore's own authoring syntax would reach search
+ * results as raw markers. Wikilinks collapse to their label, or to the linked file's name
+ * when there is no label, and admonition markers drop while the quoted content stays.
+ */
+export function toSearchableText(body: string): string {
+  return body
+    .replace(/^>\s*\[!\w+\]\s*$/gm, '>')
+    .replace(
+      /\[\[([^\]|#]*)(?:#[^\]|]*)?(?:\|([^\]]*))?\]\]/g,
+      (_match, target: string, label?: string) => (label || target.split('/').pop() || '').trim(),
+    );
+}
+
+/**
  * Build the static search index.
  *
  * The index is produced node-side from the raw markdown rather than from the compiled MDX
@@ -37,7 +51,7 @@ export async function buildSearchIndex(ctx: SeemoreContext): Promise<string> {
         url: withBase(ctx.config.base, page.url),
         title: typeof page.data.title === 'string' ? page.data.title : page.url,
         description: typeof page.data.description === 'string' ? page.data.description : undefined,
-        structuredData: structure(body),
+        structuredData: structure(toSearchableText(body)),
       };
     },
   });

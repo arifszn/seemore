@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { resolveConfig } from '../src/node/config/load.js';
 import { createContext } from '../src/node/context.js';
-import { SIZE_WARNING_BYTES, buildSearchIndex, formatBytes, measureIndex } from '../src/node/search/build.js';
+import { SIZE_WARNING_BYTES, buildSearchIndex, formatBytes, measureIndex, toSearchableText } from '../src/node/search/build.js';
 
 const dirs: string[] = [];
 
@@ -89,5 +89,23 @@ describe('formatBytes', () => {
     [1_572_864, '1.50 MB'],
   ])('%i → %s', (bytes, expected) => {
     expect(formatBytes(bytes)).toBe(expected);
+  });
+});
+
+describe('toSearchableText', () => {
+  it('collapses wikilinks to their label, or the linked file name', () => {
+    expect(toSearchableText('See [[specs/auth-spec|the auth spec]] first.')).toBe('See the auth spec first.');
+    expect(toSearchableText('What changed in [[adr/0001-static-export]]?')).toBe('What changed in 0001-static-export?');
+    expect(toSearchableText('Anchor target [[Page#Heading]] here.')).toBe('Anchor target Page here.');
+  });
+
+  it('drops admonition markers but keeps the quoted content', () => {
+    const body = '> [!WARNING]\n> The old cookie pair stays alive.';
+    expect(toSearchableText(body)).toBe('>\n> The old cookie pair stays alive.');
+  });
+
+  it('leaves ordinary markdown alone', () => {
+    const body = '# Title\n\nA [link](https://example.com) and `code`.';
+    expect(toSearchableText(body)).toBe(body);
   });
 });
