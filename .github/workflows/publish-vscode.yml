@@ -92,6 +92,9 @@ jobs:
         shell: bash
         run: |
           vsix="seemore-vscode-${{ matrix.target }}-${{ needs.verify.outputs.version }}.vsix"
-          npx vsce publish --target ${{ matrix.target }} --packagePath "$vsix" -p "$VSCE_PAT"
+          # A target-specific VSIX already carries its target in the manifest — vsce publish
+          # refuses --target and --packagePath together ("Both options not supported
+          # simultaneously"), so --packagePath alone is enough here.
+          npx vsce publish --packagePath "$vsix" -p "$VSCE_PAT"
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
