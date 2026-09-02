@@ -2,7 +2,7 @@ import { defineConfig } from 'seemore';
 
 export default defineConfig({
   title: 'seemore',
-  description: 'Let AI write the Markdown. Let seemore show it better.',
+  description: 'Let AI write the Markdown. Let seemore show it better — zero config documentation framework.',
   base: '/seemore/',
   theme: 'neutral',
   nav: [

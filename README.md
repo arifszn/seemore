@@ -3,7 +3,7 @@
 <p align="center">
   <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/vscode/assets/icon.png" alt="seemore" width="40" height="40">
   <h1 align="center">seemore</h1>
-  <h4 align="center">Let AI write the Markdown. Let seemore show it better.</h4>
+  <h4 align="center">Let AI write the Markdown. Let seemore show it better — zero config documentation framework.</h4>
   <p align="center">
     <a href="https://www.npmjs.com/package/seemore">
       <img src="https://img.shields.io/npm/v/seemore"/>

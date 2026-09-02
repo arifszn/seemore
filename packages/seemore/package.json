@@ -1,7 +1,7 @@
 {
   "name": "seemore",
   "version": "1.0.6",
-  "description": "Let AI write the Markdown. Let seemore show it better — see any folder of Markdown rendered in your browser, zero config.",
+  "description": "Let AI write the Markdown. Let seemore show it better — zero config documentation framework.",
   "license": "MIT",
   "type": "module",
   "repository": {
