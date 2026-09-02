@@ -1,6 +1,4 @@
 **/*.md
 **/CHANGELOG*
 **/.github/**
-**/test/**
-**/tests/**
 **/*.map

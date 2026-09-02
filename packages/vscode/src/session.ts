@@ -128,6 +128,7 @@ export class SeemoreSession {
       this.devServer = spawned;
       this.liveRoot = spawned.ready.contentRoot;
       this.updateStatusBar();
+      spawned.process.once('exit', (code, signal) => this.onServerCrashed(spawned, code, signal));
 
       const target = file === undefined ? spawned.ready.url : await this.resolveTargetUrl(spawned.ready.url, file);
       await this.panel.show(target);
@@ -189,6 +190,26 @@ export class SeemoreSession {
     this.liveRoot = undefined;
     this.cancelCloseTimer();
     this.updateStatusBar();
+  }
+
+  /**
+   * The dev server can die after its ready line — Vite's dependency optimizer, for one,
+   * only actually runs once the first page loads, so a crash there lands well after
+   * `spawnDevServer` already resolved successfully. Without this, that death was
+   * indistinguishable from the iframe just being slow: nothing killed the panel, nothing
+   * told the user, the page stayed blank forever.
+   */
+  private onServerCrashed(spawned: SpawnedDevServer, code: number | null, signal: NodeJS.Signals | null): void {
+    if (this.devServer !== spawned) return; // already stopped/replaced deliberately
+    this.devServer = undefined;
+    this.liveRoot = undefined;
+    this.cancelCloseTimer();
+    this.updateStatusBar();
+    void vscode.window.showErrorMessage(
+      `seemore stopped unexpectedly while serving ${spawned.ready.contentRoot} ` +
+        `(exit code ${code ?? 'unknown'}${signal !== null ? `, signal ${signal}` : ''}). ` +
+        `Click "Open in seemore" again to restart it.`,
+    );
   }
 
   private updateStatusBar(): void {
