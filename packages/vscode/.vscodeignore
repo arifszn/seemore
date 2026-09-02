@@ -2,3 +2,19 @@
 **/CHANGELOG*
 **/.github/**
 **/*.map
+**/*.d.ts
+
+# `@terrastruct/d2`'s browser entry (dist/browser) is the only build seemore ever loads — the
+# app aliases straight to it, and the CLI process itself never imports the package directly.
+# The Node builds are dead weight here (~50MB) but stay in the tarball we ship on npm, where
+# a consumer may run seemore outside a bundler and need them.
+node_modules/@terrastruct/d2/dist/node-esm/**
+node_modules/@terrastruct/d2/dist/node-cjs/**
+
+# mermaid's `exports` map only ever resolves to dist/mermaid.core.mjs (plus its on-demand
+# dist/chunks/*). These are its `<script>`-tag UMD/IIFE bundles, unreachable through the
+# package's own module resolution, and only add weight here.
+node_modules/mermaid/dist/mermaid.js
+node_modules/mermaid/dist/mermaid.min.js
+node_modules/mermaid/dist/mermaid.esm.mjs
+node_modules/mermaid/dist/mermaid.esm.min.mjs
