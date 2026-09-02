@@ -18,8 +18,28 @@ function isOpenSourceMessage(value: unknown): value is OpenSourceMessage {
   return candidate.type === 'seemore:open-source' && typeof candidate.file === 'string';
 }
 
+interface CopyResponseMessage {
+  type: 'seemore:copy-response';
+  requestId: string;
+  text: string;
+}
+
+function isCopyResponseMessage(value: unknown): value is CopyResponseMessage {
+  if (typeof value !== 'object' || value === null) return false;
+  const candidate = value as Record<string, unknown>;
+  return (
+    candidate.type === 'seemore:copy-response' &&
+    typeof candidate.requestId === 'string' &&
+    typeof candidate.text === 'string'
+  );
+}
+
+/** A response the panel gave up waiting for shouldn't resolve a later, unrelated request. */
+const COPY_TIMEOUT_MS = 1_000;
+
 export class SeemorePanel {
   private panel: vscode.WebviewPanel | undefined;
+  private pendingCopy: { requestId: string; resolve: (text: string) => void } | undefined;
 
   constructor(
     private readonly onOpenSource: (relativeFile: string) => void,
@@ -56,6 +76,10 @@ export class SeemorePanel {
       });
       this.panel.webview.onDidReceiveMessage((message: unknown) => {
         if (isOpenSourceMessage(message)) this.onOpenSource(message.file);
+        if (isCopyResponseMessage(message) && this.pendingCopy?.requestId === message.requestId) {
+          this.pendingCopy.resolve(message.text);
+          this.pendingCopy = undefined;
+        }
       });
       await this.lockGroup();
     } else {
@@ -84,7 +108,35 @@ export class SeemorePanel {
     this.panel.webview.html = renderPanelHtml({ iframeSrc, cspSource: this.panel.webview.cspSource, nonce });
   }
 
+  /**
+   * Ctrl+C/Cmd+C never reaches the rendered page directly: it runs in a nested,
+   * cross-origin iframe (`panelHtml.ts`), and VS Code's own keybinding dispatch is what
+   * decides whether the keystroke goes anywhere near that iframe's native selection-copy
+   * at all — it doesn't. So `seemore.copy` (bound to Ctrl+C/Cmd+C while this panel has
+   * focus) asks the page for its current selection over the same postMessage bridge
+   * instead, and writes the answer to the clipboard here, in the extension host, since the
+   * iframe's page can't reach `vscode.env.clipboard` itself.
+   */
+  async copySelection(): Promise<void> {
+    if (this.panel === undefined) return;
+    const requestId = randomBytes(8).toString('hex');
+
+    const text = await new Promise<string>((resolve) => {
+      this.pendingCopy = { requestId, resolve };
+      this.panel?.webview.postMessage({ type: 'seemore:copy-request', requestId });
+      setTimeout(() => {
+        if (this.pendingCopy?.requestId === requestId) {
+          this.pendingCopy = undefined;
+          resolve('');
+        }
+      }, COPY_TIMEOUT_MS);
+    });
+
+    if (text !== '') await vscode.env.clipboard.writeText(text);
+  }
+
   dispose(): void {
+    this.pendingCopy = undefined;
     this.panel?.dispose();
     this.panel = undefined;
   }

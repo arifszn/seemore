@@ -87,6 +87,11 @@ export class SeemoreSession {
     void vscode.window.showInformationMessage(`seemore: pinned "${this.liveRoot}" as the root for this workspace.`);
   }
 
+  /** The `seemore.copy` keybinding's action — see `panel.ts` for why this can't just be Ctrl+C. */
+  async copySelection(): Promise<void> {
+    await this.panel.copySelection();
+  }
+
   dispose(): void {
     this.cancelCloseTimer();
     this.statusBarItem.dispose();

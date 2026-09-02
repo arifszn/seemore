@@ -4,8 +4,11 @@ import { RouterProvider, createBrowserRouter } from 'react-router';
 import { config } from 'virtual:seemore/config';
 import { decodePath, stripBase, toBasename } from '../shared/base.js';
 import { createRouteObjects } from './router.js';
+import { installCopyBridge } from './lib/copyBridge.js';
 import { preloadPage } from './lib/pages.js';
 import './styles/globals.css';
+
+installCopyBridge();
 
 const container = document.getElementById('root');
 if (container === null) throw new Error('seemore: #root is missing from the page shell.');

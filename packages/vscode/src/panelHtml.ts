@@ -7,6 +7,10 @@
  */
 
 const BRIDGE_EVENT = 'seemore:open-source';
+/** Answers to a clipboard-copy request the extension host posted; see `panel.ts`. */
+const COPY_RESPONSE_EVENT = 'seemore:copy-response';
+/** The request itself, forwarded on into the iframe's page. */
+const COPY_REQUEST_EVENT = 'seemore:copy-request';
 
 function escapeHtmlAttribute(value: string): string {
   return value
@@ -61,13 +65,22 @@ export function renderPanelHtml(options: RenderPanelHtmlOptions): string {
 <script nonce="${options.nonce}">
   const vscode = acquireVsCodeApi();
   const iframe = document.getElementById('site');
+  const FROM_IFRAME = new Set(['${BRIDGE_EVENT}', '${COPY_RESPONSE_EVENT}']);
 
-  // Requires the seemore site to post { type: '${BRIDGE_EVENT}', file: '<posix-relative-path>' }
-  // from inside the iframe — its own origin, so this cannot be spoofed by an unrelated page.
+  // Two directions share this one listener: the iframe posting up to the extension host
+  // (its own origin, so this cannot be spoofed by an unrelated page), and the extension
+  // host posting down into the iframe to ask for its current selection (nothing else in
+  // this webview's window can be the source of that message).
   window.addEventListener('message', (event) => {
-    if (event.source !== iframe.contentWindow) return;
     const data = event.data;
-    if (data && data.type === '${BRIDGE_EVENT}') vscode.postMessage(data);
+    if (!data || typeof data.type !== 'string') return;
+
+    if (event.source === iframe.contentWindow) {
+      if (FROM_IFRAME.has(data.type)) vscode.postMessage(data);
+      return;
+    }
+
+    if (data.type === '${COPY_REQUEST_EVENT}') iframe.contentWindow.postMessage(data, '*');
   });
 </script>
 </body>
