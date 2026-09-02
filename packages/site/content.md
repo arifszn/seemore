@@ -6,7 +6,7 @@ order: 5
 
 # Content
 
-`.md` and `.mdx` alike, with the format inferred per file, so plain Markdown never needs MDX syntax.
+Supports `.md` and `.mdx` both.
 
 - GitHub Flavoured Markdown, admonitions (note / tip / warning boxes), step-by-step lists, and colour-highlighted code blocks
 - `[[wikilinks]]`, including `[[Page|label]]` and `[[Page#Heading]]`, the easiest way for you or your AI to link pages without relative paths to get right
@@ -31,6 +31,20 @@ Both `/guide` and `/guide/` work on every host.
 
 Pages are ordered by:
 
-1. `meta.json` in the directory
-2. Frontmatter `order`
-3. Alphabetical by title
+1. `meta.json` in the directory — an explicit list, with `...` standing in for anything you didn't name:
+
+   ```json
+   // guide/meta.json
+   { "pages": ["getting-started", "installation", "..."] }
+   ```
+
+2. Frontmatter `order` — lower numbers first:
+
+   ```md
+   ---
+   title: Getting Started
+   order: 1
+   ---
+   ```
+
+3. Alphabetical by title, for anything left unordered by the two above

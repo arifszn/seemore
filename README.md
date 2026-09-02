@@ -93,24 +93,15 @@ Install [seemore for VS Code](https://marketplace.visualstudio.com/items?itemNam
 npx seemore build  # static export to dist/ for any host
 ```
 
-The result is a `dist/` folder of plain web files: drop it on [Netlify](https://netlify.com), [Surge](https://surge.sh), [Cloudflare Pages](https://pages.cloudflare.com) or [GitHub Pages](https://pages.github.com), or hand it to any web host. Every page is its own file, so deep links and reloads work everywhere without special host rules. seemore also writes the handful of files individual hosts look for:
+The result is a `dist/` folder of plain web files: drop it on [Netlify](https://netlify.com), [Surge](https://surge.sh), [Cloudflare Pages](https://pages.cloudflare.com) or [GitHub Pages](https://pages.github.com), or hand it to any web host.
 
-| File | Read by |
-| --- | --- |
-| `404.html` | GitHub Pages, Netlify, Cloudflare Pages, Vercel, S3 |
-| `_redirects` | Netlify, Cloudflare Pages |
-| `200.html` | Surge |
-| `.nojekyll` | GitHub Pages, so Jekyll doesn't drop every path starting with `_` |
-
-None of these are required for a host that isn't listed above. If your host serves a folder of files, it serves a seemore build.
-
-**GitHub Pages, one thing to know:** project sites live at `username.github.io/my-repo/`, not at the root. Tell seemore once:
+**On GitHub Pages:** project sites live under `username.github.io/my-repo/`, not the root, so set `base` once:
 
 ```ts
 export default defineConfig({ base: '/my-repo/' });
 ```
 
-or `seemore build --base /my-repo/`. Under GitHub Actions with no `base` set, the build prints the exact line to add.
+(or `--base /my-repo/` on the CLI). Building under GitHub Actions without it set prints the exact line to add.
 
 ## Configuration
 
@@ -201,7 +192,7 @@ Combinations that can't work together raise a config error naming both flags and
 
 ## Content
 
-`.md` and `.mdx` alike, with the format inferred per file, so plain Markdown never needs MDX syntax.
+Supports `.md` and `.mdx` both.
 
 - GitHub Flavoured Markdown, admonitions (note / tip / warning boxes), step-by-step lists, and colour-highlighted code blocks
 - `[[wikilinks]]`, including `[[Page|label]]` and `[[Page#Heading]]`, the easiest way for you or your AI to link pages without relative paths to get right
@@ -226,9 +217,23 @@ Both `/guide` and `/guide/` work on every host.
 
 Pages are ordered by:
 
-1. `meta.json` in the directory
-2. Frontmatter `order`
-3. Alphabetical by title
+1. `meta.json` in the directory — an explicit list, with `...` standing in for anything you didn't name:
+
+   ```json
+   // guide/meta.json
+   { "pages": ["getting-started", "installation", "..."] }
+   ```
+
+2. Frontmatter `order` — lower numbers first:
+
+   ```md
+   ---
+   title: Getting Started
+   order: 1
+   ---
+   ```
+
+3. Alphabetical by title, for anything left unordered by the two above
 
 ## CLI reference
 
