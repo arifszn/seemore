@@ -1,6 +1,6 @@
 ---
 title: Configuration
-description: seemore.config.ts, and the twelve built-in themes.
+description: seemore.config.ts, and every option it takes.
 order: 6
 ---
 
@@ -28,32 +28,6 @@ export default defineConfig({
 });
 ```
 
-## Themes
-
-Twelve built-in colour presets: `neutral` (default), `black`, `catppuccin`, `dusk`, `ocean`, `purple`, `ruby`, `solar`, `aspen`, `emerald`, `vitepress`, `shadcn`. For anything else, put your own CSS in `css`; it's appended last, so it wins. Dark and light follow your system setting, with a toggle that remembers your choice — `black` is built for dark mode, shown below with the toggle on.
-
-| `neutral` (default) | `black` |
-| :--- | :--- |
-| ![neutral theme](./assets/themes/neutral.png) | ![black theme](./assets/themes/black.png) |
-
-| `catppuccin` | `dusk` |
-| :--- | :--- |
-| ![catppuccin theme](./assets/themes/catppuccin.png) | ![dusk theme](./assets/themes/dusk.png) |
-
-| `ocean` | `purple` |
-| :--- | :--- |
-| ![ocean theme](./assets/themes/ocean.png) | ![purple theme](./assets/themes/purple.png) |
-
-| `ruby` | `solar` |
-| :--- | :--- |
-| ![ruby theme](./assets/themes/ruby.png) | ![solar theme](./assets/themes/solar.png) |
-
-| `aspen` | `emerald` |
-| :--- | :--- |
-| ![aspen theme](./assets/themes/aspen.png) | ![emerald theme](./assets/themes/emerald.png) |
-
-| `vitepress` | `shadcn` |
-| :--- | :--- |
-| ![vitepress theme](./assets/themes/vitepress.png) | ![shadcn theme](./assets/themes/shadcn.png) |
+`theme` picks one of the twelve built-in colour presets — see the [Themes](./themes.md) page for screenshots of each. For anything else, put your own CSS in `css`; it's appended last, so it wins.
 
 See the [features](./features.md) page for the full list of feature flags.

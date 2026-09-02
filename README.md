@@ -1,7 +1,7 @@
 <br/>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/vscode/assets/icon.png" alt="seemore" width="96" height="96">
+  <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/vscode/assets/icon.png" alt="seemore" width="40" height="40">
   <h1 align="center">seemore</h1>
   <h4 align="center">Let AI write the Markdown. Let seemore show it better.</h4>
   <p align="center">
@@ -52,7 +52,7 @@ Three ways to use it:
 - **[As a static site](#publish-it-to-the-web)**: `npx seemore build` exports plain HTML you can host anywhere, so it doubles as a docs framework, not just a preview tool.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/neutral.png" alt="seemore rendering a folder of Markdown in the browser, neutral theme" width="100%"/>
+  <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/neutral.png" alt="seemore rendering a folder of Markdown in the browser, neutral theme" width="640"/>
 </p>
 
 ## View in your browser
@@ -112,11 +112,80 @@ export default defineConfig({ base: '/my-repo/' });
 
 or `seemore build --base /my-repo/`. Under GitHub Actions with no `base` set, the build prints the exact line to add.
 
-## What you get by default
+## Configuration
 
-Every page arrives with its full text already in it, no placeholder or loading skeleton. Pages start loading as soon as you point at a link, and page transitions animate, without giving up the plain-files output above. Add, rename, retitle, reorder or delete a file and the running preview updates immediately: no restart, no full reload.
+Optional. A folder with no config file builds correctly in the browser, in VS Code, and when built for publishing. If you want to adjust things, create `seemore.config.ts` next to your content:
 
-Search works out of the box with no server to run and nothing to pay for; if your site grows past what a no-server search index can carry, the build tells you and points at alternatives. If your site lives under a path like `example.com/my-repo/` rather than the root, set `base` once and links, search and assets all follow (a test builds the site under a sub-folder and checks nothing leaks). Since the build is just ordinary files, publishing means dropping that folder on any host; the few conventions individual hosts look for are written for you automatically.
+```ts
+// seemore.config.ts
+import { defineConfig } from 'seemore';
+
+export default defineConfig({
+  title: 'My Docs',
+  description: 'Everything about the thing.',
+  favicon: './favicon.svg',
+  base: '/my-repo/',
+  theme: 'ocean',
+  css: './custom.css',
+  features: ['navigation.path', 'navigation.instant.preview'],
+  nav: [{ text: 'GitHub', link: 'https://github.com/you/repo' }],
+  footer: { text: '© 2026' },
+  editLink: { base: 'https://github.com/you/repo/edit/main/docs' },
+  search: 'static',
+  exclude: ['drafts/**'],
+});
+```
+
+### Themes
+
+Twelve built-in colour presets: `neutral` (default), `black`, `catppuccin`, `dusk`, `ocean`, `purple`, `ruby`, `solar`, `aspen`, `emerald`, `vitepress`, `shadcn`. For anything else, put your own CSS in `css`; it's appended last, so it wins. Dark and light follow your system setting, with a toggle that remembers your choice — `black` is built for dark mode, shown below with the toggle on.
+
+| `neutral` (default) | `black` |
+| :--- | :--- |
+| <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/neutral.png" alt="neutral theme" width="100%"> | <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/black.png" alt="black theme" width="100%"> |
+
+| `catppuccin` | `dusk` |
+| :--- | :--- |
+| <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/catppuccin.png" alt="catppuccin theme" width="100%"> | <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/dusk.png" alt="dusk theme" width="100%"> |
+
+| `ocean` | `purple` |
+| :--- | :--- |
+| <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/ocean.png" alt="ocean theme" width="100%"> | <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/purple.png" alt="purple theme" width="100%"> |
+
+| `ruby` | `solar` |
+| :--- | :--- |
+| <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/ruby.png" alt="ruby theme" width="100%"> | <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/solar.png" alt="solar theme" width="100%"> |
+
+| `aspen` | `emerald` |
+| :--- | :--- |
+| <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/aspen.png" alt="aspen theme" width="100%"> | <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/emerald.png" alt="emerald theme" width="100%"> |
+
+| `vitepress` | `shadcn` |
+| :--- | :--- |
+| <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/vitepress.png" alt="vitepress theme" width="100%"> | <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/shadcn.png" alt="shadcn theme" width="100%"> |
+
+### Features
+
+A flat list of switches for readers who want fine control. Prefix one with `!` to switch off something that's on by default.
+
+| Flag | Default | Effect |
+| --- | --- | --- |
+| `navigation.instant.prefetch` | on | Load the target page on hover |
+| `navigation.instant.preview` | off | Hover popover showing the target page |
+| `navigation.footer` | on | Previous and next links |
+| `navigation.top` | on | Back-to-top button |
+| `navigation.path` | off | Breadcrumbs |
+| `navigation.sections` | off | Top-level entries as sidebar groups |
+| `navigation.prune` | off | Render only the visible subtree |
+| `toc.follow` | on | Keep the active heading visible |
+| `toc.integrate` | off | Merge the table of contents into the sidebar |
+| `content.code.copy` | on | Copy button on code blocks |
+| `content.action.edit` | on with `editLink` | Edit-this-page link |
+| `search.suggest` | on | Inline query completion |
+| `search.highlight` | on | Highlight the query on the page you land on |
+| `social.cards` | off | Per-page OG images (needs `takumi-js`) |
+
+Combinations that can't work together raise a config error naming both flags and the fix.
 
 ## Content
 
@@ -148,81 +217,6 @@ Pages are ordered by:
 1. `meta.json` in the directory
 2. Frontmatter `order`
 3. Alphabetical by title
-
-## Configuration
-
-Optional. A folder with no config file builds correctly in the browser, in VS Code, and when built for publishing. If you want to adjust things, create `seemore.config.ts` next to your content:
-
-```ts
-// seemore.config.ts
-import { defineConfig } from 'seemore';
-
-export default defineConfig({
-  title: 'My Docs',
-  description: 'Everything about the thing.',
-  favicon: './favicon.svg',
-  base: '/my-repo/',
-  theme: 'ocean',
-  css: './custom.css',
-  features: ['navigation.path', 'navigation.instant.preview'],
-  nav: [{ text: 'GitHub', link: 'https://github.com/you/repo' }],
-  footer: { text: '© 2026' },
-  editLink: { base: 'https://github.com/you/repo/edit/main/docs' },
-  search: 'static',
-  exclude: ['drafts/**'],
-});
-```
-
-### Themes
-
-Twelve built-in colour presets: `neutral` (default), `black`, `catppuccin`, `dusk`, `ocean`, `purple`, `ruby`, `solar`, `aspen`, `emerald`, `vitepress`, `shadcn`. For anything else, put your own CSS in `css`; it's appended last, so it wins. Dark and light follow your system setting, with a toggle that remembers your choice — `black` is built for dark mode, shown below with the toggle on.
-
-| `neutral` (default) | `black` |
-| :--- | :--- |
-| ![neutral theme](https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/neutral.png) | ![black theme](https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/black.png) |
-
-| `catppuccin` | `dusk` |
-| :--- | :--- |
-| ![catppuccin theme](https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/catppuccin.png) | ![dusk theme](https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/dusk.png) |
-
-| `ocean` | `purple` |
-| :--- | :--- |
-| ![ocean theme](https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/ocean.png) | ![purple theme](https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/purple.png) |
-
-| `ruby` | `solar` |
-| :--- | :--- |
-| ![ruby theme](https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/ruby.png) | ![solar theme](https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/solar.png) |
-
-| `aspen` | `emerald` |
-| :--- | :--- |
-| ![aspen theme](https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/aspen.png) | ![emerald theme](https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/emerald.png) |
-
-| `vitepress` | `shadcn` |
-| :--- | :--- |
-| ![vitepress theme](https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/vitepress.png) | ![shadcn theme](https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/shadcn.png) |
-
-### Features
-
-A flat list of switches for readers who want fine control. Prefix one with `!` to switch off something that's on by default.
-
-| Flag | Default | Effect |
-| --- | --- | --- |
-| `navigation.instant.prefetch` | on | Load the target page on hover |
-| `navigation.instant.preview` | off | Hover popover showing the target page |
-| `navigation.footer` | on | Previous and next links |
-| `navigation.top` | on | Back-to-top button |
-| `navigation.path` | off | Breadcrumbs |
-| `navigation.sections` | off | Top-level entries as sidebar groups |
-| `navigation.prune` | off | Render only the visible subtree |
-| `toc.follow` | on | Keep the active heading visible |
-| `toc.integrate` | off | Merge the table of contents into the sidebar |
-| `content.code.copy` | on | Copy button on code blocks |
-| `content.action.edit` | on with `editLink` | Edit-this-page link |
-| `search.suggest` | on | Inline query completion |
-| `search.highlight` | on | Highlight the query on the page you land on |
-| `social.cards` | off | Per-page OG images (needs `takumi-js`) |
-
-Combinations that can't work together raise a config error naming both flags and the fix.
 
 ## CLI reference
 
