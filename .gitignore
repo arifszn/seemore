@@ -14,3 +14,6 @@ SPEC.md
 # Generated from the root copies at pack time
 packages/seemore/README.md
 packages/seemore/LICENSE
+
+# Output of packages/vscode/scripts/package.mjs
+*.vsix
