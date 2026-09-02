@@ -14,6 +14,7 @@ Options
   --port <number>        dev server port (default 4040)
   --host [host]          expose the dev server on the network
   --open / --no-open     open a browser on start (default: no)
+  --json                 print one machine-readable JSON line instead of the summary (dev only)
   --config <path>        path to seemore.config.ts
   --out <dir>            build output directory (default: dist)
   --base <path>          subpath the site is served from, e.g. /my-repo/
@@ -42,6 +43,7 @@ export async function main(argv: string[] = process.argv.slice(2)): Promise<void
       host: { type: 'string' },
       open: { type: 'boolean' },
       'no-open': { type: 'boolean' },
+      json: { type: 'boolean' },
       config: { type: 'string' },
       out: { type: 'string' },
       base: { type: 'string' },
@@ -80,6 +82,7 @@ export async function main(argv: string[] = process.argv.slice(2)): Promise<void
     port: values.port === undefined ? undefined : Number(values.port),
     host: values.host === undefined ? undefined : values.host === '' ? true : values.host,
     open: values.open === true && values['no-open'] !== true,
+    json: values.json === true,
   });
 }
 

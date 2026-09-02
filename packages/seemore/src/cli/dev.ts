@@ -16,6 +16,20 @@ export interface DevOptions {
   port?: number;
   host?: string | boolean;
   open?: boolean;
+  /**
+   * Print one JSON line on stdout at startup instead of the human summary — a stable
+   * contract for a caller that spawns this as a child process, so it never has to
+   * screen-scrape colored text.
+   */
+  json?: boolean;
+}
+
+/** The single line a `json: true` caller parses to learn where the server ended up. */
+export interface DevReady {
+  url: string;
+  port: number;
+  contentRoot: string;
+  pageCount: number;
 }
 
 export interface DevServer {
@@ -63,8 +77,13 @@ export async function runDev(options: DevOptions): Promise<DevServer> {
   const url = `http://localhost:${resolvedPort}${config.base}`;
 
   ctx.warnings.flush();
-  console.log(`\n  ${pc.green('seemore')}  ${pc.bold(url)}`);
-  console.log(`  ${pc.dim(`${scan.pages.length} pages from ${contentRoot}`)}\n`);
+  if (options.json === true) {
+    const ready: DevReady = { url, port: resolvedPort, contentRoot, pageCount: scan.pages.length };
+    console.log(JSON.stringify(ready));
+  } else {
+    console.log(`\n  ${pc.green('seemore')}  ${pc.bold(url)}`);
+    console.log(`  ${pc.dim(`${scan.pages.length} pages from ${contentRoot}`)}\n`);
+  }
 
   return {
     server,
