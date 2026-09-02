@@ -27,7 +27,9 @@ const repoRoot = resolve(vscodeDir, '..', '..');
 const seemoreDir = join(repoRoot, 'packages', 'seemore');
 
 function run(command, args, cwd) {
-  execFileSync(command, args, { cwd, stdio: 'inherit' });
+  // npm/pnpm/vsce all resolve to .cmd/.ps1 shims on Windows, which execFileSync can't launch
+  // directly — route through the shell there, same as npm scripts do, so PATHEXT resolves them.
+  execFileSync(command, args, { cwd, stdio: 'inherit', shell: process.platform === 'win32' });
 }
 
 const seemorePkg = JSON.parse(readFileSync(join(seemoreDir, 'package.json'), 'utf8'));

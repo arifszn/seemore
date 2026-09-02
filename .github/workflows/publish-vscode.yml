@@ -5,10 +5,12 @@ on:
     tags: ['vscode-v*']
 
 jobs:
-  publish:
+  verify:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    outputs:
+      version: ${{ steps.version.outputs.version }}
 
     steps:
       - uses: actions/checkout@v5
@@ -40,13 +42,56 @@ jobs:
           fi
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
-      # Produces packages/vscode/seemore-vscode-<version>.vsix — see scripts/package.mjs for
-      # why this can't just be `vsce package` run in place (workspace symlinks, pnpm-managed
+  package:
+    needs: verify
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # seemore bundles vite, which bundles rolldown, which ships its bundler as a
+          # platform-native addon (no pure-JS fallback). `scripts/package.mjs` does a real
+          # `npm install` of seemore's dependency tree into the VSIX, so whatever platform
+          # that install runs on is the only platform the resulting VSIX works on — there's
+          # no way to cross-install a different OS/arch's native binding from here. Each
+          # target below is therefore built on a runner that actually is that platform, and
+          # `vsce package --target` tags the VSIX so the Marketplace serves the right one to
+          # each user automatically.
+          - target: darwin-arm64
+            os: macos-latest
+          - target: darwin-x64
+            os: macos-15-intel
+          - target: linux-x64
+            os: ubuntu-latest
+          - target: linux-arm64
+            os: ubuntu-24.04-arm
+          - target: win32-x64
+            os: windows-latest
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Produces packages/vscode/seemore-vscode-<target>-<version>.vsix — see scripts/package.mjs
+      # for why this can't just be `vsce package` run in place (workspace symlinks, pnpm-managed
       # node_modules vsce won't accept).
-      - run: pnpm --filter seemore-vscode package
+      - run: pnpm --filter seemore-vscode run package --target ${{ matrix.target }}
 
       - name: Publish to the Visual Studio Marketplace
         working-directory: packages/vscode
-        run: npx vsce publish --packagePath "seemore-vscode-${{ steps.version.outputs.version }}.vsix" -p "$VSCE_PAT"
+        shell: bash
+        run: |
+          vsix="seemore-vscode-${{ matrix.target }}-${{ needs.verify.outputs.version }}.vsix"
+          npx vsce publish --target ${{ matrix.target }} --packagePath "$vsix" -p "$VSCE_PAT"
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
