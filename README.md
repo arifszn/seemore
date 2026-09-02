@@ -52,7 +52,7 @@ Three ways to use it:
 - **[As a static site](#publish-it-to-the-web)**: `npx seemore build` exports plain HTML you can host anywhere, so it doubles as a docs framework, not just a preview tool.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/hero.png" alt="seemore rendering a folder of Markdown as a docs site, with a Mermaid sequence diagram and a D2 architecture diagram rendered live from code fences" width="640"/>
+  <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/neutral.png" alt="seemore rendering a folder of Markdown in the browser, neutral theme" width="640"/>
 </p>
 
 ## View in your browser
