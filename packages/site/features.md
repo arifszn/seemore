@@ -10,6 +10,30 @@ Every page arrives with its full text already in it, no placeholder or loading s
 
 Search works out of the box with no server to run and nothing to pay for; if your site grows past what a no-server search index can carry, the build tells you and points at alternatives. If your site lives under a path like `example.com/my-repo/` rather than the root, set `base` once and links, search and assets all follow. Since the build is just ordinary files, publishing means dropping that folder on any host; the few conventions individual hosts look for are written for you automatically.
 
+## Diagrams
+
+A ` ```mermaid ` or ` ```d2 ` code fence renders live in the browser, no build step or external service.
+
+**Mermaid**
+
+```mermaid
+graph TD;
+  A[Markdown] --> B[seemore];
+  B --> C[Static site];
+```
+
+**D2**
+
+```d2
+Markdown -> seemore -> Static site
+```
+
+## Image zoom
+
+Click any content image to zoom in, on by default. Turn it off with `!content.image.zoom`.
+
+![placeholder](https://dummyimage.com/1600x4:3/)
+
 ## Feature flags
 
 A flat list of switches for readers who want fine control, set as an array on the `features` key in `seemore.config.ts`. To turn on something that's off by default, add its flag name. To turn off something that's on by default, add its flag name prefixed with `!`.
