@@ -1,7 +1,7 @@
 ---
 title: Features
 description: What you get by default, and the switches to change it.
-order: 7
+order: 8
 ---
 
 # Features
@@ -27,6 +27,7 @@ A flat list of switches for readers who want fine control. Prefix one with `!` t
 | `toc.integrate` | off | Merge the table of contents into the sidebar |
 | `content.code.copy` | on | Copy button on code blocks |
 | `content.action.edit` | on with `editLink` | Edit-this-page link |
+| `content.image.zoom` | on | Click-to-zoom on content images |
 | `search.suggest` | on | Inline query completion |
 | `search.highlight` | on | Highlight the query on the page you land on |
 | `social.cards` | off | Per-page OG images (needs `takumi-js`) |

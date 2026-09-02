@@ -5,6 +5,7 @@
    every rule, because `@import` is only valid before the first style rule. */
 
 @import 'fumadocs-ui/css/preset.css';
+@import 'fumadocs-ui/components/image-zoom2.css';
 
 @layer base {
   body {

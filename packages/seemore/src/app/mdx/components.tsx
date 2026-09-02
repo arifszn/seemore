@@ -1,8 +1,10 @@
 import type { AnchorHTMLAttributes, ComponentProps } from 'react';
 import { Link } from 'react-router';
 import defaultMdxComponents from 'fumadocs-ui/mdx';
+import { ImageZoom } from 'fumadocs-ui/components/image-zoom';
 import { config } from 'virtual:seemore/config';
 import { isExternalHref, stripBase } from '../../shared/base.js';
+import { feature } from '../lib/features.js';
 import { Mermaid } from './Mermaid.js';
 import { Pdf } from './Pdf.js';
 
@@ -36,11 +38,14 @@ function isPdf(src: string | undefined): src is string {
   return /\.pdf(?:[?#].*)?$/i.test(src) || src.startsWith('data:application/pdf');
 }
 
-/** Sibling assets: images inline, PDFs in a viewer. */
+/** Sibling assets: images inline (click-to-zoom, unless switched off), PDFs in a viewer. */
 function MdxImage({ src, alt, ...props }: ComponentProps<'img'>) {
   const source = typeof src === 'string' ? src : undefined;
   if (isPdf(source)) {
     return <Pdf src={source} title={alt} />;
+  }
+  if (feature('content.image.zoom')) {
+    return <ImageZoom src={src} alt={alt} {...props} />;
   }
   const Image = defaultMdxComponents.img;
   return <Image src={src} alt={alt} {...props} />;

@@ -24,6 +24,7 @@ export const FEATURE_DEFAULTS: Record<Feature, boolean> = {
   'content.code.copy': true,
   // Implicitly on when `editLink` is configured; there is nothing to link to otherwise.
   'content.action.edit': false,
+  'content.image.zoom': true,
   'search.suggest': true,
   'search.highlight': true,
   'social.cards': false,
