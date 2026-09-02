@@ -52,7 +52,12 @@ const searchSchema = z.union([
 ]);
 
 export const configSchema = z.object({
-  title: z.string().default('Documentation'),
+  /**
+   * Optional here, but required whenever a config file exists — load.ts enforces that,
+   * since it knows whether the config came from a file or from the no-config quickstart,
+   * where the fallback is the only sensible name.
+   */
+  title: z.string().optional(),
   description: z.string().optional(),
   favicon: z.string().optional(),
   /** Subpath the site is served from, e.g. `/my-repo/`. Never inferred. */

@@ -12,7 +12,7 @@ function tmp(): string {
 describe('resolveConfig defaults', () => {
   it('produces a usable config from nothing at all', () => {
     const config = resolveConfig({}, { root: '/tmp/x' });
-    expect(config.title).toBe('Documentation');
+    expect(config.title).toBe('Docs');
     expect(config.base).toBe('/');
     expect(config.theme).toBe('neutral');
     expect(config.search).toEqual({ provider: 'static' });
@@ -87,7 +87,7 @@ describe('loadConfig', () => {
     const dir = tmp();
     const { config, file } = await loadConfig({ root: dir });
     expect(file).toBeUndefined();
-    expect(config.title).toBe('Documentation');
+    expect(config.title).toBe('Docs');
   });
 
   it('loads a TypeScript config through jiti', async () => {
@@ -122,5 +122,15 @@ describe('loadConfig', () => {
     const dir = tmp();
     writeFileSync(join(dir, 'seemore.config.ts'), `export default { theme: 'not-a-theme' };`);
     await expect(loadConfig({ root: dir })).rejects.toThrow(/seemore\.config\.ts/);
+  });
+
+  it('requires a title when a config file exists, but defaults one when it does not', async () => {
+    const dir = tmp();
+    writeFileSync(join(dir, 'seemore.config.ts'), `export default { base: '/sub' };`);
+    await expect(loadConfig({ root: dir })).rejects.toThrow(/title.*required/s);
+
+    const empty = tmp();
+    const { config } = await loadConfig({ root: empty });
+    expect(config.title).toBe('Docs');
   });
 });

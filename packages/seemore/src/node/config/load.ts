@@ -30,7 +30,8 @@ export function resolveConfig(
   });
 
   return {
-    title: parsed.title,
+    // Only reached without a config file (see parseOrThrow): 'Docs' is the best name we can know.
+    title: parsed.title ?? 'Docs',
     description: parsed.description,
     favicon: parsed.favicon,
     base: normaliseBase(parsed.base),
@@ -106,7 +107,17 @@ function resolveFrom(root: string, path: string): string {
 
 function parseOrThrow(input: SeemoreConfig, file: string | undefined): z.output<typeof configSchema> {
   const result = configSchema.safeParse(input);
-  if (result.success) return result.data;
+  if (result.success) {
+    // A written config is an intentional site, so it must name itself; the no-config
+    // quickstart is a preview, and falls back to 'Docs' instead.
+    if (file !== undefined && result.data.title === undefined) {
+      throw new Error(
+        `Invalid ${file}:\n` +
+          `  - title: required when a config file exists — it names the site in the header, tab, and social cards. Add: title: 'My Site'`,
+      );
+    }
+    return result.data;
+  }
 
   const where = file === undefined ? 'seemore config' : file;
   const issues = result.error.issues.map((issue) => {
