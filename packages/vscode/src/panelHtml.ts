@@ -7,10 +7,8 @@
  */
 
 const BRIDGE_EVENT = 'seemore:open-source';
-/** Answers to a clipboard-copy request the extension host posted; see `panel.ts`. */
-const COPY_RESPONSE_EVENT = 'seemore:copy-response';
-/** The request itself, forwarded on into the iframe's page. */
-const COPY_REQUEST_EVENT = 'seemore:copy-request';
+/** Posted with the current selection text; see `panel.ts` for why the write happens there. */
+const COPY_EVENT = 'seemore:copy';
 
 function escapeHtmlAttribute(value: string): string {
   return value
@@ -61,26 +59,19 @@ export function renderPanelHtml(options: RenderPanelHtmlOptions): string {
 </style>
 </head>
 <body>
-<iframe id="site" src="${src}" allow="clipboard-read; clipboard-write"></iframe>
+<iframe id="site" src="${src}"></iframe>
 <script nonce="${options.nonce}">
   const vscode = acquireVsCodeApi();
   const iframe = document.getElementById('site');
-  const FROM_IFRAME = new Set(['${BRIDGE_EVENT}', '${COPY_RESPONSE_EVENT}']);
+  const FROM_IFRAME = new Set(['${BRIDGE_EVENT}', '${COPY_EVENT}']);
 
-  // Two directions share this one listener: the iframe posting up to the extension host
-  // (its own origin, so this cannot be spoofed by an unrelated page), and the extension
-  // host posting down into the iframe to ask for its current selection (nothing else in
-  // this webview's window can be the source of that message).
+  // The iframe posts these from its own origin, so this cannot be spoofed by an unrelated
+  // page: { type: '${BRIDGE_EVENT}', file: '<posix-relative-path>' } and
+  // { type: '${COPY_EVENT}', text: '<selection>' }.
   window.addEventListener('message', (event) => {
+    if (event.source !== iframe.contentWindow) return;
     const data = event.data;
-    if (!data || typeof data.type !== 'string') return;
-
-    if (event.source === iframe.contentWindow) {
-      if (FROM_IFRAME.has(data.type)) vscode.postMessage(data);
-      return;
-    }
-
-    if (data.type === '${COPY_REQUEST_EVENT}') iframe.contentWindow.postMessage(data, '*');
+    if (data && FROM_IFRAME.has(data.type)) vscode.postMessage(data);
   });
 </script>
 </body>

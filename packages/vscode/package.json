@@ -34,19 +34,6 @@
         "command": "seemore.pinLiveRoot",
         "title": "Pin Current Root",
         "category": "seemore"
-      },
-      {
-        "command": "seemore.copy",
-        "title": "Copy Selection",
-        "category": "seemore"
-      }
-    ],
-    "keybindings": [
-      {
-        "command": "seemore.copy",
-        "key": "ctrl+c",
-        "mac": "cmd+c",
-        "when": "activeWebviewPanelId == 'seemore'"
       }
     ],
     "menus": {

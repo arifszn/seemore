@@ -15,7 +15,6 @@ export function activate(context: vscode.ExtensionContext): void {
       void session.openFolder(uri);
     }),
     vscode.commands.registerCommand('seemore.pinLiveRoot', () => void session.pinLiveRoot()),
-    vscode.commands.registerCommand('seemore.copy', () => void session.copySelection()),
   );
 }
 

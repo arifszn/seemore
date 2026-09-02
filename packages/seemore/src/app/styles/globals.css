@@ -244,6 +244,10 @@
     @apply fixed bottom-6 end-6 inline-flex items-center gap-2 rounded-full border border-fd-border bg-fd-background px-4 py-2 text-sm shadow;
   }
 
+  .seemore-selection-copy {
+    @apply fixed z-50 rounded-md border border-fd-border bg-fd-popover px-2 py-1 text-xs font-medium shadow-lg;
+  }
+
   .seemore-preview {
     @apply pointer-events-none fixed z-50 max-h-80 w-[400px] overflow-hidden rounded-xl border border-fd-border bg-fd-popover p-4 text-sm shadow-lg;
   }

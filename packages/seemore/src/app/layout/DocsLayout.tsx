@@ -19,6 +19,7 @@ import { Header } from './Header.js';
 import { Sidebar } from './Sidebar.js';
 import { Breadcrumb } from './Breadcrumb.js';
 import { BackToTop, PageFooter, SiteFooter } from './Footer.js';
+import { SelectionCopyButton } from './SelectionCopyButton.js';
 import { IntegratedToc, Toc, TocProvider } from './Toc.js';
 
 /**
@@ -82,6 +83,7 @@ export function DocPage({ entry }: { entry: RouteEntry }) {
 
         {feature('navigation.top') ? <BackToTop /> : undefined}
         <PagePreview />
+        <SelectionCopyButton />
       </div>
     </TocProvider>
   );
