@@ -1,14 +1,29 @@
 import { realpathSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import type { InlineConfig, Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import mdx from '@mdx-js/rollup';
 import type { SeemoreContext } from '../context.js';
-import { appRoot, cacheDir, packageRoot } from '../paths.js';
+import { appRoot, cacheDir, packageDirOf, packageRoot } from '../paths.js';
 import { createRehypePlugins, createRemarkPlugins } from './mdx.js';
 import { seemorePlugin } from './plugin.js';
 import { seemoreWatcherPlugin } from './watcher.js';
+
+const require_ = createRequire(import.meta.url);
+
+/**
+ * `@terrastruct/d2`'s `exports` map only picks its browser bundle when a `browser`
+ * condition is present. Dev's `worker`-only condition set below deliberately excludes it
+ * (see the comment there), and even build's own defaults are one more custom `conditions`
+ * tweak away from excluding it by accident again — so this resolves it directly rather than
+ * leaning on whatever the shared condition set happens to be.
+ */
+function d2BrowserEntry(): string {
+  const entry = require_.resolve('@terrastruct/d2');
+  return join(packageDirOf('@terrastruct/d2', entry), 'dist', 'browser', 'index.js');
+}
 
 export interface ViteConfigOptions {
   ctx: SeemoreContext;
@@ -69,6 +84,11 @@ export function createViteConfig({ ctx, mode, outDir, ssrOutDir }: ViteConfigOpt
       // The app is compiled from seemore's own sources, so its dependencies must resolve
       // from seemore's directory rather than from the user's project.
       dedupe: ['react', 'react-dom', 'react-router', 'fumadocs-core', 'fumadocs-ui'],
+      // Not needed for the SSR bundle: the dynamic `import('@terrastruct/d2')` inside `D2`'s
+      // effect never actually runs there (effects don't run during prerendering), but Rollup
+      // still bundles it as a reachable chunk, and Vite's own server conditions already point
+      // that at the Node build — which is what actually running in Node would want anyway.
+      alias: isSsr ? undefined : [{ find: '@terrastruct/d2', replacement: d2BrowserEntry() }],
       // In dev the module worker is served through the shared module graph and its fumadocs
       // chunk comes from the dep optimizer, where `worker.plugins` never runs — the browser
       // build of `decode-named-character-reference` is inlined into the prebundle and the
@@ -76,9 +96,7 @@ export function createViteConfig({ ctx, mode, outDir, ssrOutDir }: ViteConfigOpt
       // the whole dev graph (main thread included) to its DOM-free build, which behaves the
       // same; production doesn't need it — its worker chunk is a real Rollup build of its own,
       // where the targeted swap above runs. Leaving this unset in production keeps Vite's own
-      // default conditions, which is what packages with a real browser/node split (D2's WASM
-      // bundle among them) need in order to resolve their browser build rather than the
-      // Node one.
+      // default conditions.
       conditions: mode === 'dev' ? ['worker'] : undefined,
     },
 

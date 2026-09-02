@@ -1,4 +1,4 @@
-import { existsSync, realpathSync } from 'node:fs';
+import { existsSync, readFileSync, realpathSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
@@ -24,6 +24,28 @@ export function packageRoot(): string {
 /** The browser layer, which ships as source and is compiled in-process. */
 export function appRoot(): string {
   return join(packageRoot(), 'src', 'app');
+}
+
+/**
+ * Walks up from a resolved file to the `package.json` that names it.
+ *
+ * For a dependency subpath its own `exports` map doesn't list — `dist/browser/index.js`
+ * inside `@terrastruct/d2`, say — there's no portable `require.resolve` for it; only the
+ * package's declared entry point is guaranteed reachable. This finds the package's own
+ * directory from that entry point, so a caller can build the rest of the path itself.
+ */
+export function packageDirOf(name: string, fromFile: string): string {
+  let dir = dirname(fromFile);
+  for (let depth = 0; depth < 10; depth++) {
+    const manifest = join(dir, 'package.json');
+    if (existsSync(manifest) && (JSON.parse(readFileSync(manifest, 'utf8')) as { name?: string }).name === name) {
+      return dir;
+    }
+    const parent = dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  throw new Error(`seemore: could not locate the "${name}" package directory.`);
 }
 
 /**
