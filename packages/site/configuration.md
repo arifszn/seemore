@@ -23,7 +23,7 @@ export default defineConfig({
   nav: [{ text: 'GitHub', link: 'https://github.com/you/repo' }],
   footer: { text: '© 2026' },
   editLink: { base: 'https://github.com/you/repo/edit/main/docs' },
-  search: 'static',
+  search: 'static', // or { provider: 'orama-cloud', endpoint, apiKey } / { provider: 'algolia', appId, apiKey, indexName }
   exclude: ['drafts/**'],
 });
 ```
