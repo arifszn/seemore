@@ -83,6 +83,10 @@ Run it in your folder of Markdown files (Node.js 20 or newer) and open the addre
 
 Install **seemore** from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=arifszn.seemore-vscode) or [Open VSX](https://open-vsx.org/extension/arifszn/seemore-vscode) to get the same rendered site as a panel beside your editor — no terminal, no `npx`, no browser tab to manage. The extension bundles the CLI, so nothing is downloaded or put on your PATH. Open VSX also covers VS Code-compatible editors — Cursor, Antigravity, and others.
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/vscode-extension.png" alt="VS Code with a Markdown file open in the editor and the seemore panel rendering the same folder as a site beside it" width="640"/>
+</p>
+
 1. Open any Markdown file.
 2. Click the **seemore** icon in the editor's title bar, or right-click a folder in the explorer and choose **Open Folder in seemore**.
 3. The rendered site opens beside your editor, scoped to that file's folder.
