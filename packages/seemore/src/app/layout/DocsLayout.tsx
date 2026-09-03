@@ -110,6 +110,34 @@ export function NotFound() {
 }
 
 /**
+ * A page whose own markup threw — an `.mdx` file reaching for a component seemore does not
+ * provide, most often. `seemore build` refuses to write such a page at all; here, in the dev
+ * server and on client-side navigation, the reason replaces the article, because React
+ * unmounts the whole app when nothing catches the error and a blank screen says nothing.
+ */
+export function PageError({ message }: { message: string }) {
+  return (
+    <div className="seemore-shell">
+      <Header />
+      <div className="seemore-body">
+        <Sidebar />
+
+        <main className="seemore-main">
+          <article className="seemore-article prose">
+            <h1>This page failed to render</h1>
+            <pre>
+              <code>{message}</code>
+            </pre>
+          </article>
+
+          <SiteFooter />
+        </main>
+      </div>
+    </div>
+  );
+}
+
+/**
  * The generated index: when no `index.md` or root `README.md` claims `/`, the home address
  * lists every page instead of apologising.
  *
