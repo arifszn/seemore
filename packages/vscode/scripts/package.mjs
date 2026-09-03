@@ -59,9 +59,18 @@ try {
   // "icon" field points.
   cpSync(join(repoRoot, 'assets'), join(stagingDir, 'assets'), { recursive: true });
   cpSync(join(repoRoot, 'LICENSE'), join(stagingDir, 'LICENSE'));
+  // `devDependencies` is dropped rather than carried over with the spread. npm resolves a
+  // tree for the whole staged manifest, and doing that here — in a directory whose only
+  // real input is the local tarball installed below — makes npm 10.9 crash outright with
+  // "Cannot read properties of null (reading 'edgesOut')". Reproduced with the staged
+  // `seemore` version both published and unpublished, so it is the devDependencies
+  // themselves, not the version, that npm chokes on. They were never wanted here anyway:
+  // vsce ships production dependencies only, so installing tsup, vitest and vsce into the
+  // staging directory was pure cost that never reached the VSIX.
+  const { devDependencies: _ignored, ...manifest } = vscodePkg;
   writeFileSync(
     join(stagingDir, 'package.json'),
-    JSON.stringify({ ...vscodePkg, dependencies: { seemore: seemorePkg.version } }, null, 2),
+    JSON.stringify({ ...manifest, dependencies: { seemore: seemorePkg.version } }, null, 2),
   );
 
   console.log('seemore-vscode: installing seemore and its real dependency tree...');
