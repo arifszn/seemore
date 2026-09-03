@@ -1,7 +1,7 @@
-import { Suspense } from 'react';
+import { Component, Suspense, type ReactNode } from 'react';
 import { useLocation, type RouteObject } from 'react-router';
 import { decodePath } from '../shared/base.js';
-import { DocPage, DocsLayout, NotFound, Overview } from './layout/DocsLayout.js';
+import { DocPage, DocsLayout, NotFound, Overview, PageError } from './layout/DocsLayout.js';
 import { useRouteEntry } from './lib/pages.js';
 
 /** The current route URL: React Router has already removed the basename. */
@@ -13,11 +13,38 @@ export function useRouteUrl(): string {
 
 function Page() {
   const url = useRouteUrl();
+  // Keyed by address, so navigating away from a page that threw starts clean rather than
+  // carrying its error to every page after it.
+  return (
+    <PageErrorBoundary key={url}>
+      <PageContent url={url} />
+    </PageErrorBoundary>
+  );
+}
+
+function PageContent({ url }: { url: string }) {
   const entry = useRouteEntry(url);
   if (entry !== undefined) return <DocPage entry={entry} />;
   // A folder with no `index.md` or root `README.md` still gets a home address: a generated
   // list of every page, not an apology.
   return url === '/' ? <Overview /> : <NotFound />;
+}
+
+/**
+ * The only error boundary in the app. Render errors come from page content — the rest of the
+ * tree is seemore's own — so this sits around the page and nothing else.
+ */
+class PageErrorBoundary extends Component<{ children: ReactNode }, { message: string | undefined }> {
+  override state: { message: string | undefined } = { message: undefined };
+
+  static getDerivedStateFromError(error: unknown): { message: string } {
+    return { message: error instanceof Error ? error.message : String(error) };
+  }
+
+  override render() {
+    if (this.state.message !== undefined) return <PageError message={this.state.message} />;
+    return this.props.children;
+  }
 }
 
 /**

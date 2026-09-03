@@ -289,6 +289,19 @@ describe('failure policy', () => {
     rmSync(contentRoot, { recursive: true, force: true });
   });
 
+  it('fails the build on a page that throws, naming the file and the component', async () => {
+    const contentRoot = mkdtempSync(join(tmpdir(), 'seemore-render-'));
+    writeFileSync(join(contentRoot, 'index.md'), '---\ntitle: Home\n---\n\n# Home\n');
+    writeFileSync(join(contentRoot, 'bad.mdx'), '---\ntitle: Bad\n---\n\n# Bad\n\n<Nope />\n');
+
+    // React replaces a subtree that throws with its Suspense fallback and carries on, so
+    // without the prerender check this shipped an empty page and reported success.
+    await expect(runBuild({ cwd: contentRoot, outDir: join(contentRoot, 'dist') })).rejects.toThrow(
+      /bad\.mdx failed to render[\s\S]*`<Nope>` is not one of the components seemore provides/,
+    );
+    rmSync(contentRoot, { recursive: true, force: true });
+  });
+
   it('renders a fence in a language Shiki has no grammar for as plain code', async () => {
     const contentRoot = mkdtempSync(join(tmpdir(), 'seemore-lang-'));
     const outDir = join(contentRoot, 'dist');
