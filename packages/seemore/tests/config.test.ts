@@ -94,10 +94,9 @@ describe('loadConfig', () => {
     const dir = tmp();
     writeFileSync(
       join(dir, 'seemore.config.ts'),
-      `import { defineConfig } from ${JSON.stringify(new URL('../src/index.ts', import.meta.url).pathname)};
-       type Extra = { n: number };
+      `type Extra = { n: number };
        const extra: Extra = { n: 1 };
-       export default defineConfig({ title: 'Typed' + String(extra.n), base: '/sub' });`,
+       export default { title: 'Typed' + String(extra.n), base: '/sub' };`,
     );
     const { config, file } = await loadConfig({ root: dir });
     expect(file).toBe(join(dir, 'seemore.config.ts'));

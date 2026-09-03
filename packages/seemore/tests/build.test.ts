@@ -105,7 +105,7 @@ describe('seemore build', () => {
     expect(code.length).toBeGreaterThan(0);
     // Shiki emits per-token spans with inline colours; an unhighlighted block has none.
     expect(code.find('span[style]').length).toBeGreaterThan(0);
-    expect(code.text()).toContain('defineConfig');
+    expect(code.text()).toContain('export default');
   });
 
   it('resolves relative markdown links to routes', () => {

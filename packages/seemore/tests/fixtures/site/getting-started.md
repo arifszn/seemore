@@ -9,9 +9,7 @@ order: 1
 Install it, point it at a folder, done. See the [guide](./guide/index.md).
 
 ```ts
-import { defineConfig } from 'seemore';
-
-export default defineConfig({ title: 'My Docs' });
+export default { title: 'My Docs' };
 ```
 
 ```mermaid

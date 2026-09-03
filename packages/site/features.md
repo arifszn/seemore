@@ -48,12 +48,12 @@ A flat list of switches for readers who want fine control, set as an array on th
 
 ```ts
 // seemore.config.ts
-export default defineConfig({
+export default {
   features: [
     'navigation.path',              // off by default → this turns it on
     '!navigation.instant.prefetch', // on by default → this turns it off
   ],
-});
+};
 ```
 
 Flags you don't mention are left at their default, so you only ever list the ones you're changing.

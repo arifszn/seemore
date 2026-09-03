@@ -1,6 +1,4 @@
-import { defineConfig } from 'seemore';
-
-export default defineConfig({
+export default {
   title: 'seemore',
   description: 'Let AI write the Markdown. Let seemore show it better — zero config documentation framework.',
   base: '/seemore/',
@@ -10,4 +8,4 @@ export default defineConfig({
   editLink: {
     base: 'https://github.com/arifszn/seemore/edit/main/packages/site',
   },
-});
+};

@@ -10,9 +10,7 @@ Optional — a folder with no config file builds correctly in the browser, in yo
 
 ```ts
 // seemore.config.ts
-import { defineConfig } from 'seemore';
-
-export default defineConfig({
+export default {
   title: 'My Docs',
   description: 'Everything about the thing.',
   favicon: './favicon.svg',
@@ -25,7 +23,7 @@ export default defineConfig({
   editLink: { base: 'https://github.com/you/repo/edit/main/docs' },
   search: 'static', // or { provider: 'orama-cloud', endpoint, apiKey } / { provider: 'algolia', appId, apiKey, indexName }
   exclude: ['drafts/**'],
-});
+};
 ```
 
 `theme` picks one of the twelve built-in colour presets — see the [Themes](./themes.md) page for screenshots of each. For anything else, put your own CSS in `css`; it's appended last, so it wins. See the [features](./features.md) page for the full list of feature flags.
