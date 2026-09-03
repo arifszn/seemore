@@ -10,7 +10,7 @@ Let AI write the Markdown. Let seemore show it better — zero config documentat
 
 AI tools write Markdown — specs, notes, guides, READMEs, whole folders of it, faster than anyone can read. A pile of `.md` files is write-only memory: nothing to click, nothing to search, no order.
 
-**seemore** points at that folder and renders it as a proper site instead, without you moving a single file or writing any code. This site is one: every page here is a plain Markdown file, rendered by `seemore build`.
+**seemore** points at that folder and renders it as a proper site instead, without you moving a single file or writing any code.
 
 ## Three ways to use it
 

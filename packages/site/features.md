@@ -12,14 +12,11 @@ Search works out of the box with no server to run and nothing to pay for; if you
 
 ## Edit from the page
 
-While the preview is running, the page is also an editor. Double-click any paragraph, heading, list item, quote or table cell and it opens in place with that block's **Markdown source** — `**bold**` stays `**bold**`, links stay links. Fix the text and hit **Save**: the change is written straight back to the file, and the page hot-reloads exactly as it does for an edit made in your editor. Nothing is written until you say so: clicking away keeps the editor open.
+While the preview is running, the page is also an editor. Double-click any paragraph, heading, list item, quote or table cell and it opens in place with that block's **Markdown source** — `**bold**` stays `**bold**`, links stay links. Fix the text and hit **Save**: the change is written straight back to the file, and the page hot-reloads exactly as it does for an edit made in your editor. Nothing is written until you say so: clicking away closes the editor without saving, and once you have typed something it stays open rather than discarding your text.
 
 It works the same in the [code editor extension](./code-editor.md), whose panel runs the same dev server.
 
 Inline editing is for local previews only — `seemore build` output is static, so nothing is emitted there.
-
-> [!NOTE]
-> The dev server binds to localhost, so only your machine can reach the endpoint that writes. If you serve the site to your network with `--host`, anyone who can open the site can also edit your files — pass `features: ['!content.edit']` when you do that.
 
 ## Diagrams
 

@@ -103,7 +103,7 @@ Install **seemore** from the [VS Code Marketplace](https://marketplace.visualstu
 
 ## Edit your files from the browser
 
-The preview is not just for reading — it is the fastest way to fix what you are reading. Double-click any paragraph, heading, list item, quote or table cell and it opens in a small editor holding that block's **Markdown source**: `**bold**` stays `**bold**`, links stay links, tables stay tables. Fix the text and hit **Save** and the change is written to the file on disk. Nothing is written until you say so: clicking away leaves the editor open rather than saving behind your back. It works the same in the VS Code panel, which runs the same dev server.
+The preview is not just for reading — it is the fastest way to fix what you are reading. Double-click any paragraph, heading, list item, quote or table cell and it opens in a small editor holding that block's **Markdown source**: `**bold**` stays `**bold**`, links stay links, tables stay tables. Fix the text and hit **Save** and the change is written to the file on disk.
 
 Inline editing is for local previews only — `seemore build` output is static, so nothing is emitted there. It is on by default in dev; switch it off with the `!` prefix:
 
@@ -112,9 +112,6 @@ export default defineConfig({
   features: ['!content.edit'],
 });
 ```
-
-> [!NOTE]
-> The dev server binds to localhost, so only your machine can reach the endpoint that writes. If you serve the site to your network with `--host`, anyone who can open the site can also edit your files — pass `features: ['!content.edit']` when you do that.
 
 ## Publish it to the web
 
