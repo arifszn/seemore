@@ -1,5 +1,6 @@
-import { Component, Suspense, type ReactNode } from 'react';
+import { Component, Suspense, useEffect, type ReactNode } from 'react';
 import { useLocation, type RouteObject } from 'react-router';
+import { config } from 'virtual:seemore/config';
 import { decodePath } from '../shared/base.js';
 import type { RouteEntry } from '../shared/types.js';
 import { DocPage, DocsLayout, NotFound, Overview, PageError } from './layout/DocsLayout.js';
@@ -15,6 +16,10 @@ export function useRouteUrl(): string {
 function Page() {
   const url = useRouteUrl();
   const entry = useRouteEntry(url);
+  useEffect(() => {
+    document.title =
+      entry === undefined || url === '/' ? config.title : `${entry.title} · ${config.title}`;
+  }, [url, entry?.title]);
   // Keyed by address, so navigating away from a page that threw starts clean rather than
   // carrying its error to every page after it. Reset by content version, so in dev an edit
   // that fixes the file gets to render — a boundary in its error state has unmounted the
