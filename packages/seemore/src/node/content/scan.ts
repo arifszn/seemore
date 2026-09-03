@@ -16,10 +16,13 @@ export const DEFAULT_EXCLUDES = [
   '**/out/**',
   '**/vendor/**',
   '**/target/**',
+  '**/venv/**',
+  '**/deps/**',
+  '**/Pods/**',
+  '**/bower_components/**',
   '**/.seemore/**',
   '**/.*/**',
   '**/.*',
-  '**/CHANGELOG.md',
 ];
 
 /** fumadocs' `meta.json` shape, validated so a typo reports a file rather than a blank folder. */

@@ -100,15 +100,23 @@ describe('page tree', () => {
 });
 
 describe('excludes', () => {
-  it('skips node_modules, dotfiles, dist and CHANGELOG by default', () => {
+  it('skips node_modules, dotfiles, dist and dependency dirs by default', () => {
     const dir = fixture({
       'ok.md': '# ok\n',
       'node_modules/pkg/readme.md': '# no\n',
       'dist/out.md': '# no\n',
       '.hidden/secret.md': '# no\n',
-      'CHANGELOG.md': '# no\n',
+      'venv/lib/pkg/README.md': '# no\n',
+      'deps/pkg/README.md': '# no\n',
+      'Pods/Pkg/README.md': '# no\n',
+      'bower_components/pkg/README.md': '# no\n',
     });
     expect(scan({ contentRoot: dir }).pages.map((p) => p.file)).toEqual(['ok.md']);
+  });
+
+  it('scans CHANGELOG like any other markdown file', () => {
+    const dir = fixture({ 'CHANGELOG.md': '# changelog\n' });
+    expect(scan({ contentRoot: dir }).pages.map((p) => p.file)).toEqual(['CHANGELOG.md']);
   });
 
   it('appends user excludes rather than replacing the defaults', () => {
