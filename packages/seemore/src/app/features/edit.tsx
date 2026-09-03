@@ -135,6 +135,32 @@ export function InlineEditor({ entry }: { entry: RouteEntry }) {
     editingRef.current = editing;
   }, [editing]);
 
+  // The editor is a floating box over the page, so a press that lands anywhere else is a
+  // press away from it. That closes the editor only while nothing has been typed — the same
+  // rule the double-click handler uses, so a stray click can never discard an edit; with
+  // unsaved text the box stays put and Save or Cancel decides. The error message counts as
+  // part of the editor: a click on it is a click to dismiss it.
+  useEffect(() => {
+    if (editing === undefined) return;
+
+    const onPointerDown = (event: PointerEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (target === null || saving) return;
+      if (target.closest('.seemore-editor, .seemore-editor-error') !== null) return;
+
+      const field = textarea.current;
+      if (field !== null) {
+        const typed = field.value.replace(/\r\n/g, '\n');
+        if (typed !== editing.original.replace(/\r\n/g, '\n')) return;
+      }
+      close();
+    };
+
+    // Captured, so a handler that stops the press on its way up cannot hold the editor open.
+    document.addEventListener('pointerdown', onPointerDown, true);
+    return () => document.removeEventListener('pointerdown', onPointerDown, true);
+  }, [editing, saving, close]);
+
   // The block is hidden rather than removed while it is edited, so the page does not jump.
   // If this component goes away mid-edit — a navigation, a hot reload — put it back.
   useEffect(() => () => editing?.element.classList.remove('seemore-editing'), [editing]);
@@ -228,8 +254,9 @@ export function InlineEditor({ entry }: { entry: RouteEntry }) {
             </span>
             {/*
               `onMouseDown` is prevented on both buttons so focus never leaves the textarea.
-              Taking focus would fire its blur handler, which saves — so a click on Cancel
-              would commit the very edit it is meant to discard.
+              Nothing is committed on blur, but the caret and the selection are: a click on
+              Save that a stale file refuses leaves the text exactly where it was, still
+              typed into and still listening for Escape.
             */}
             <button
               type="button"
