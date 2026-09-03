@@ -17,7 +17,7 @@ seemore points at that folder and renders it as a proper site instead, without y
 ## Three ways to use it
 
 - **[In your browser](./getting-started.md)**: `npx seemore` serves the folder you're standing in and updates live as you edit.
-- **[In VS Code](./vscode.md)**: an extension puts the same site in a panel next to the file you're editing.
+- **[In your code editor](./code-editor.md)**: an extension puts the same site in a panel next to the file you're editing — VS Code and VS Code-compatible editors like Cursor and Antigravity.
 - **[As a static site](./publishing.md)**: `npx seemore build` exports plain HTML you can host anywhere, so it doubles as a docs framework, not just a preview tool.
 
 ## Under the hood

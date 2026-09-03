@@ -6,7 +6,7 @@ order: 6
 
 # Configuration
 
-Optional. A folder with no config file builds correctly in the browser, in VS Code, and when built for publishing. If you want to adjust things, create `seemore.config.ts` next to your content:
+Optional. A folder with no config file builds correctly in the browser, in your code editor, and when built for publishing. If you want to adjust things, create `seemore.config.ts` next to your content:
 
 ```ts
 // seemore.config.ts

@@ -1,12 +1,12 @@
 ---
-title: VS Code extension
+title: Code editor extension
 description: The same rendered site as a panel beside your editor.
 order: 3
 ---
 
-# VS Code extension
+# Code editor extension
 
-Install [seemore for VS Code](https://marketplace.visualstudio.com/items?itemName=arifszn.seemore-vscode) to get the same rendered site as a panel beside your editor. No terminal, no `npx`, no browser tab to manage.
+Install seemore from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=arifszn.seemore-vscode) or [Open VSX](https://open-vsx.org/extension/arifszn/seemore-vscode) to get the same rendered site as a panel beside your editor. No terminal, no `npx`, no browser tab to manage. Open VSX also covers VS Code-compatible editors — Cursor, Antigravity, and others.
 
 1. Open any Markdown file.
 2. Click the seemore icon in the editor's title bar, or right-click a folder in the explorer and choose **Open Folder in seemore**.

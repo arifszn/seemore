@@ -5,14 +5,7 @@ export default defineConfig({
   description: 'Let AI write the Markdown. Let seemore show it better — zero config documentation framework.',
   base: '/seemore/',
   theme: 'neutral',
-  nav: [
-    { text: 'GitHub', link: 'https://github.com/arifszn/seemore' },
-    { text: 'npm', link: 'https://www.npmjs.com/package/seemore' },
-    {
-      text: 'VS Code',
-      link: 'https://marketplace.visualstudio.com/items?itemName=arifszn.seemore-vscode',
-    },
-  ],
+  nav: [{ text: 'GitHub', link: 'https://github.com/arifszn/seemore' }],
   footer: { text: '© 2026 seemore. MIT Licensed.' },
   editLink: {
     base: 'https://github.com/arifszn/seemore/edit/main/packages/site',

@@ -11,6 +11,9 @@
     <a href="https://marketplace.visualstudio.com/items?itemName=arifszn.seemore-vscode">
       <img src="https://img.shields.io/badge/VS_Code-Marketplace-007ACC?logo=visualstudiocode&logoColor=white"/>
     </a>
+    <a href="https://open-vsx.org/extension/arifszn/seemore-vscode">
+      <img src="https://img.shields.io/badge/Open_VSX-Registry-C160EF?logo=eclipseide&logoColor=white"/>
+    </a>
     <a href="https://github.com/arifszn/seemore/actions/workflows/ci.yml">
       <img src="https://github.com/arifszn/seemore/actions/workflows/ci.yml/badge.svg"/>
     </a>
@@ -48,7 +51,7 @@ seemore points at that folder and renders it as a proper site instead, without y
 Three ways to use it:
 
 - **[In your browser](#view-in-your-browser)**: `npx seemore` serves the folder you're standing in and updates live as you edit.
-- **[In VS Code](#view-in-vs-code)**: an extension puts the same site in a panel next to the file you're editing.
+- **[In your code editor](#view-in-your-code-editor)**: an extension puts the same site in a panel next to the file you're editing — VS Code and VS Code-compatible editors like Cursor and Antigravity.
 - **[As a static site](#publish-it-to-the-web)**: `npx seemore build` exports plain HTML you can host anywhere, so it doubles as a docs framework, not just a preview tool.
 
 <p align="center">
@@ -65,9 +68,9 @@ Open a terminal in your folder of Markdown files, run `npx seemore`, and open th
 
 With no folder given, seemore serves the folder you're standing in. Point it at a subfolder with `npx seemore docs` if that's where your files live.
 
-## View in VS Code
+## View in your code editor
 
-Install [seemore for VS Code](https://marketplace.visualstudio.com/items?itemName=arifszn.seemore-vscode) to get the same rendered site as a panel beside your editor. No terminal, no `npx`, no browser tab to manage.
+Install seemore from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=arifszn.seemore-vscode) or [Open VSX](https://open-vsx.org/extension/arifszn/seemore-vscode) to get the same rendered site as a panel beside your editor. No terminal, no `npx`, no browser tab to manage. Open VSX also covers VS Code-compatible editors — Cursor, Antigravity, and others.
 
 1. Open any Markdown file.
 2. Click the seemore icon in the editor's title bar, or right-click a folder in the explorer and choose **Open Folder in seemore**.
@@ -105,7 +108,7 @@ export default defineConfig({ base: '/my-repo/' });
 
 ## Configuration
 
-Optional. A folder with no config file builds correctly in the browser, in VS Code, and when built for publishing. If you want to adjust things, create `seemore.config.ts` next to your content:
+Optional. A folder with no config file builds correctly in the browser, in your code editor, and when built for publishing. If you want to adjust things, create `seemore.config.ts` next to your content:
 
 ```ts
 // seemore.config.ts
@@ -255,7 +258,7 @@ Options
 
 ## Under the hood
 
-[fumadocs](https://fumadocs.vercel.app) provides the interface presets, with [Shiki](https://shiki.style), [Mermaid](https://mermaid.js.org), [D2](https://d2lang.com), [Vite](https://vite.dev) and [React Router](https://reactrouter.com) underneath. The VS Code extension runs the same CLI as a child process it manages. Bug reports and pull requests are welcome at [github.com/arifszn/seemore](https://github.com/arifszn/seemore).
+[fumadocs](https://fumadocs.vercel.app) provides the interface presets, with [Shiki](https://shiki.style), [Mermaid](https://mermaid.js.org), [D2](https://d2lang.com), [Vite](https://vite.dev) and [React Router](https://reactrouter.com) underneath. The code editor extension runs the same CLI as a child process it manages. Bug reports and pull requests are welcome at [github.com/arifszn/seemore](https://github.com/arifszn/seemore).
 
 ## Licence
 
