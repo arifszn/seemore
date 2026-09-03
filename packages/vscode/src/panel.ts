@@ -29,6 +29,24 @@ function isCopyMessage(value: unknown): value is CopyMessage {
   return candidate.type === 'seemore:copy' && typeof candidate.text === 'string';
 }
 
+interface OpenExternalMessage {
+  type: 'seemore:open-external';
+  url: string;
+}
+
+function isOpenExternalMessage(value: unknown): value is OpenExternalMessage {
+  if (typeof value !== 'object' || value === null) return false;
+  const candidate = value as Record<string, unknown>;
+  return candidate.type === 'seemore:open-external' && typeof candidate.url === 'string';
+}
+
+/**
+ * The schemes the host will launch for a page-posted URL — everything a rendered document can
+ * legitimately point at (`mailto:` included). The iframe is untrusted content, so this
+ * allowlist is what keeps a stray message from aiming `openExternal` at, say, a `file:` URI.
+ */
+const OPENABLE_SCHEMES = new Set(['http', 'https', 'mailto']);
+
 export class SeemorePanel {
   private panel: vscode.WebviewPanel | undefined;
 
@@ -71,6 +89,14 @@ export class SeemorePanel {
         // write is triggered — only `vscode.env.clipboard`, here in the extension host, can
         // actually reach the OS clipboard. See `SelectionCopyButton.tsx` for the trigger.
         if (isCopyMessage(message)) void vscode.env.clipboard.writeText(message.text);
+        // Away-links come over the bridge too: a `target="_blank"` click inside the nested
+        // iframe has no honoured popup path, so the page intercepts it (see
+        // `ExternalLinkBridge.ts`) and the host opens the browser here instead. Unknown
+        // schemes fail the allowlist silently.
+        if (isOpenExternalMessage(message)) {
+          const uri = vscode.Uri.parse(message.url);
+          if (OPENABLE_SCHEMES.has(uri.scheme)) void vscode.env.openExternal(uri);
+        }
       });
       await this.lockGroup();
     } else {

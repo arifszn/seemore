@@ -1,12 +1,15 @@
 /**
  * The webview's own HTML shell: an iframe pointed at the dev server, plus the bridge script
- * that lets a rendered page ask the extension host to open its source file.
+ * that lets a rendered page ask the extension host to open its source file, or an away-link
+ * in the reader's browser.
  *
  * Kept as a pure string builder — no `vscode` import — so the CSP and escaping are unit
  * testable without a webview.
  */
 
 const BRIDGE_EVENT = 'seemore:open-source';
+/** Posted for an away-link click; see `ExternalLinkBridge.ts`/`panel.ts` for the two ends. */
+const OPEN_EXTERNAL_EVENT = 'seemore:open-external';
 /** Posted with the current selection text; see `panel.ts` for why the write happens there. */
 const COPY_EVENT = 'seemore:copy';
 
@@ -63,10 +66,11 @@ export function renderPanelHtml(options: RenderPanelHtmlOptions): string {
 <script nonce="${options.nonce}">
   const vscode = acquireVsCodeApi();
   const iframe = document.getElementById('site');
-  const FROM_IFRAME = new Set(['${BRIDGE_EVENT}', '${COPY_EVENT}']);
+  const FROM_IFRAME = new Set(['${BRIDGE_EVENT}', '${OPEN_EXTERNAL_EVENT}', '${COPY_EVENT}']);
 
   // The iframe posts these from its own origin, so this cannot be spoofed by an unrelated
-  // page: { type: '${BRIDGE_EVENT}', file: '<posix-relative-path>' } and
+  // page: { type: '${BRIDGE_EVENT}', file: '<posix-relative-path>' },
+  // { type: '${OPEN_EXTERNAL_EVENT}', url: '<absolute-url>' } and
   // { type: '${COPY_EVENT}', text: '<selection>' }.
   window.addEventListener('message', (event) => {
     if (event.source !== iframe.contentWindow) return;

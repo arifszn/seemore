@@ -29,4 +29,11 @@ describe('renderPanelHtml', () => {
   it('sets a default-src none baseline', () => {
     expect(renderPanelHtml(BASE)).toContain("default-src 'none'");
   });
+
+  it('forwards every bridge event the page can post, open-external included', () => {
+    const html = renderPanelHtml(BASE);
+    expect(html).toContain("'seemore:open-source'");
+    expect(html).toContain("'seemore:open-external'");
+    expect(html).toContain("'seemore:copy'");
+  });
 });

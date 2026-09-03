@@ -15,6 +15,7 @@ import { useSearchHighlight } from '../features/highlight.js';
 import { useHashScroll } from '../features/anchors.js';
 import { InlineEditor } from '../features/edit.js';
 import { SeemoreProvider } from './Provider.js';
+import { useExternalLinkBridge } from './ExternalLinkBridge.js';
 import { Header } from './Header.js';
 import { Sidebar } from './Sidebar.js';
 import { Breadcrumb } from './Breadcrumb.js';
@@ -28,6 +29,7 @@ import { IntegratedToc, Toc, TocProvider } from './Toc.js';
  */
 export function DocsLayout({ children }: { children: React.ReactNode }) {
   const tree = usePageTree();
+  useExternalLinkBridge();
 
   return (
     <SeemoreProvider>
