@@ -1,6 +1,6 @@
 import { createServer, type ViteDevServer } from 'vite';
 import pc from 'picocolors';
-import { loadConfig } from '../node/config/load.js';
+import { loadConfig, resolveConfigPath } from '../node/config/load.js';
 import { createContext, type SeemoreContext } from '../node/context.js';
 import { normaliseBase } from '../shared/base.js';
 import { resolveContentRoot } from '../node/paths.js';
@@ -45,7 +45,7 @@ export interface DevServer {
  */
 export async function runDev(options: DevOptions): Promise<DevServer> {
   const contentRoot = resolveContentRoot(options.cwd, options.dir);
-  const loaded = await loadConfig({ root: options.cwd, configPath: options.configPath });
+  const loaded = await loadConfig({ root: contentRoot, configPath: resolveConfigPath(options) });
   const config = {
     ...loaded.config,
     base: options.base === undefined ? loaded.config.base : normaliseBase(options.base),

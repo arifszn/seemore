@@ -132,3 +132,47 @@ describe('dev-only route endpoint', () => {
     expect(res.status).toBe(400);
   });
 });
+
+describe('config discovery when a directory is given', () => {
+  let workspace: string;
+  let dev: DevServer | undefined;
+
+  afterEach(async () => {
+    await dev?.close();
+    dev = undefined;
+    if (workspace) rmSync(workspace, { recursive: true, force: true });
+  });
+
+  /**
+   * An editor extension spawns `seemore <dir>` from whatever cwd the host happens to have,
+   * which is never the documented folder. Discovering the config from the cwd meant that
+   * config was silently ignored and every such site fell back to the untitled defaults.
+   */
+  it('reads the config from the directory argument, not the cwd', async () => {
+    workspace = mkdtempSync(join(tmpdir(), 'seemore-cwd-'));
+    const site = join(workspace, 'site');
+    mkdirSync(site);
+    writeFileSync(join(site, 'index.md'), '# Home\n');
+    writeFileSync(
+      join(site, 'seemore.config.ts'),
+      "export default { title: 'From The Content Root', theme: 'vitepress' };\n",
+    );
+
+    dev = await runDev({ cwd: workspace, dir: 'site', port: 0 });
+
+    expect(dev.ctx.config.title).toBe('From The Content Root');
+    expect(dev.ctx.config.theme).toBe('vitepress');
+  });
+
+  it('still resolves an explicit --config relative to the cwd', async () => {
+    workspace = mkdtempSync(join(tmpdir(), 'seemore-explicit-'));
+    const site = join(workspace, 'site');
+    mkdirSync(site);
+    writeFileSync(join(site, 'index.md'), '# Home\n');
+    writeFileSync(join(workspace, 'custom.config.ts'), "export default { title: 'Named By Flag' };\n");
+
+    dev = await runDev({ cwd: workspace, dir: 'site', configPath: 'custom.config.ts', port: 0 });
+
+    expect(dev.ctx.config.title).toBe('Named By Flag');
+  });
+});

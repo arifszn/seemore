@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { isAbsolute, join, relative, resolve } from 'node:path';
 import pc from 'picocolors';
 import { build as viteBuild } from 'vite';
-import { loadConfig } from '../node/config/load.js';
+import { loadConfig, resolveConfigPath } from '../node/config/load.js';
 import { createContext, type SeemoreContext } from '../node/context.js';
 import { normaliseBase } from '../shared/base.js';
 import { resolveContentRoot } from '../node/paths.js';
@@ -25,7 +25,7 @@ export interface BuildOptions {
 
 export async function runBuild(options: BuildOptions): Promise<{ outDir: string; routes: number }> {
   const contentRoot = resolveContentRoot(options.cwd, options.dir);
-  const loaded = await loadConfig({ root: options.cwd, configPath: options.configPath });
+  const loaded = await loadConfig({ root: contentRoot, configPath: resolveConfigPath(options) });
 
   const config = { ...loaded.config, base: options.base === undefined ? loaded.config.base : normaliseBase(options.base) };
   warnAboutMissingBase(config.base, loaded.file);

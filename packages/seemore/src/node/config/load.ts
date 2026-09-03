@@ -9,7 +9,11 @@ import { configSchema, THEMES, type SeemoreConfig, type ResolvedSeemoreConfig, t
 const CONFIG_NAMES = ['seemore.config.ts', 'seemore.config.mts', 'seemore.config.js', 'seemore.config.mjs'];
 
 export interface LoadConfigOptions {
-  /** Directory to look in, and the base for relative paths inside the config. */
+  /**
+   * Directory to look in, and the base for relative paths inside the config. This is the
+   * content root — the folder being documented — not the process's cwd: `seemore [dir]`
+   * documents `dir`, so `dir/seemore.config.ts` is the config that names that site.
+   */
   root: string;
   /** `--config`; when given, a missing file is an error rather than a fallback to defaults. */
   configPath?: string;
@@ -99,6 +103,15 @@ function findConfigFile({ root, configPath }: LoadConfigOptions): string | undef
     if (existsSync(candidate)) return candidate;
   }
   return undefined;
+}
+
+/**
+ * `--config` is a path the user typed at a shell prompt, so it is relative to where they
+ * stood — not to the content root, which `seemore [dir]` may have moved elsewhere. Made
+ * absolute here so {@link loadConfig} can take `root` to mean the content root throughout.
+ */
+export function resolveConfigPath(options: { cwd: string; configPath?: string }): string | undefined {
+  return options.configPath === undefined ? undefined : resolveFrom(options.cwd, options.configPath);
 }
 
 function resolveFrom(root: string, path: string): string {
