@@ -187,6 +187,7 @@ Flags you don't mention are left at their default, so you only ever list the one
 | `toc.integrate` | off | Merge the table of contents into the sidebar |
 | `content.code.copy` | on | Copy button on code blocks |
 | `content.action.edit` | on with `editLink` | Edit-this-page link |
+| `content.image.zoom` | on | Click-to-zoom on content images |
 | `search.suggest` | on | Inline query completion |
 | `search.highlight` | on | Highlight the query on the page you land on |
 | `social.cards` | off | Per-page OG images (needs `takumi-js`) |
@@ -203,6 +204,35 @@ Supports `.md` and `.mdx` both.
 - **[Mermaid](https://mermaid.js.org)** and **[D2](https://d2lang.com)** diagrams, both rendered live in the browser straight from a ` ```mermaid ` or ` ```d2 ` code fence
 - Sibling images inlined as hashed assets, sibling PDFs open in the browser's own viewer
 - Frontmatter (the `key: value` block at the top of a file) is validated, with errors that name the file and the field
+
+### Code blocks
+
+Fences are highlighted at build time by [Shiki](https://shiki.style), in the theme's own colours.
+
+Settings go on the fence line, after the language — ` ```ts title="server.ts" lineNumbers `:
+
+| On the fence | Effect |
+| --- | --- |
+| `title="server.ts"` | Filename bar above the block |
+| `lineNumbers` | Numbers down the side; `lineNumbers=5` starts the count at 5 |
+| `noCopy` | No copy button on this one block |
+
+Comments mark individual lines and never reach the page:
+
+| In the code | Effect |
+| --- | --- |
+| `// [!code highlight]` | Marks the line |
+| `// [!code ++]`, `// [!code --]` | Diff lines: green with a `+`, red with a `-` |
+| `// [!code focus]` | Blurs every other line until the pointer is over the block |
+| `// [!code word:needle]` | Marks that word everywhere it appears in the block |
+
+The marker follows the language's own comment syntax, so `# [!code highlight]` in Python and `<!-- [!code highlight] -->` in HTML.
+
+### Components
+
+An `.mdx` file can use `<Callout>`, `<Card>`, `<Cards>`, `<CodeBlockTabs>`, `<Mermaid>`, `<D2>` and `<Pdf>` without importing anything. The set is deliberately small: Markdown has no imports, so every component is one seemore ships to every site whether it is used or not, and these are the ones that pair with something Markdown already expresses. Anything else — fumadocs' `<Tabs>`, `<Accordions>`, `<Files>` among them — fails the build, naming the file and the component. In a plain `.md` file a tag is not JSX at all: it is dropped and its text kept, so components need the `.mdx` extension. The [Content page](https://arifszn.github.io/seemore/content) has the details.
+
+Numbered headings — `## 1. Install it`, `## 2. Point it at a folder` — become a numbered sequence.
 
 ### Page addresses
 
