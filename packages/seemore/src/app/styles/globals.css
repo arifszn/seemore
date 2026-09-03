@@ -68,6 +68,18 @@
     @apply opacity-60;
   }
 
+  .seemore-search-input {
+    @apply w-0 flex-1 bg-transparent text-lg placeholder:text-fd-muted-foreground focus-visible:outline-none;
+  }
+
+  .seemore-search-loading {
+    @apply flex items-center justify-center gap-2 px-4 py-6 text-sm text-fd-muted-foreground;
+  }
+
+  .seemore-search-spinner {
+    @apply h-4 w-4 animate-spin rounded-full border-2 border-fd-muted-foreground/30 border-t-fd-muted-foreground;
+  }
+
   .seemore-theme-toggle {
     @apply rounded-lg border border-fd-border p-2;
   }
