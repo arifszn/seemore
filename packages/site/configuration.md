@@ -6,7 +6,7 @@ order: 6
 
 # Configuration
 
-Optional. A folder with no config file builds correctly in the browser, in your code editor, and when built for publishing. If you want to adjust things, create `seemore.config.ts` next to your content:
+Optional — a folder with no config file builds correctly in the browser, in your code editor, and when built for publishing. To adjust things, create `seemore.config.ts` next to your content:
 
 ```ts
 // seemore.config.ts
@@ -28,6 +28,14 @@ export default defineConfig({
 });
 ```
 
-`theme` picks one of the twelve built-in colour presets — see the [Themes](./themes.md) page for screenshots of each. For anything else, put your own CSS in `css`; it's appended last, so it wins.
+`theme` picks one of the twelve built-in colour presets — see the [Themes](./themes.md) page for screenshots of each. For anything else, put your own CSS in `css`; it's appended last, so it wins. See the [features](./features.md) page for the full list of feature flags.
 
-See the [features](./features.md) page for the full list of feature flags.
+## Search
+
+The default `search: 'static'` needs no setup, no server and no account: the index is built from your Markdown and queried in the browser, in a Web Worker. `search.suggest` completes your query inline, and `search.highlight` carries the query onto the page you land on (`?h=…`), so search-result links are shareable.
+
+Hosted indexes are a drop-in swap whenever you want one: [Orama Cloud](https://orama.com) (`@orama/core`) or [Algolia](https://algolia.com) (`algoliasearch`), each needing nothing but its SDK installed:
+
+```ts
+search: { provider: 'algolia', appId: '…', apiKey: '…', indexName: '…' },
+```
