@@ -398,5 +398,16 @@
   }
 }
 
+/* Unlayered, deliberately: fumadocs' `max-h-[460px]` utility lives in Tailwind's utilities
+   layer, which beats anything in `@layer components` regardless of specificity. fumadocs
+   caps the results list at 460px, but the dialog opens at `top-4` plus a ~3.5rem input row,
+   so on a short (landscape phone) viewport the list runs past the fold with its bottom
+   unreachable. Bind it to the real viewport height there instead. */
+@media (max-height: 600px) {
+  [role='dialog'] [class*='max-h-[460px]'] {
+    max-height: calc(100dvh - 6rem);
+  }
+}
+
 /* seemore:user-css — the stylesheet named by `css` in seemore.config.ts is inlined here, at
    the very end, so that it wins against everything above it. */

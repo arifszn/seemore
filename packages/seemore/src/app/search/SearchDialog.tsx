@@ -87,8 +87,11 @@ export function SearchDialog(props: SharedProps) {
         void navigate(withHighlight(stripBase(config.base, item.url), search), { viewTransition: true });
       }}
     >
-      <SearchDialogOverlay />
-      <SearchDialogContent>
+      {/* The sticky header is `z-50` too, and it renders after this portal in the DOM — at
+          mobile's `top-4` it wins the tie and paints over the input row. fumadocs' own header
+          is `z-30`, so theirs never meets this; ours needs the dialog lifted above it. */}
+      <SearchDialogOverlay className="z-[60]" />
+      <SearchDialogContent className="z-[60]">
         <SearchDialogHeader>
           <SearchDialogIcon />
           {/*
