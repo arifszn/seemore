@@ -43,12 +43,14 @@ jobs:
             exit 1
           fi
 
-      # pnpm publish omits the readme field from the publish payload, which makes
-      # npmjs.com show "This package does not have a README" — so publish with npm,
-      # which attaches the packaged README.md to the registry metadata. prepack still
-      # copies the root README.md/LICENSE in before the tarball is built.
-      - name: Publish to npm
+      # Publish clients read the package README before lifecycle scripts run, and
+      # packages/seemore/README.md is a gitignored copy (the prepack copy lands too late
+      # for the readme metadata). Copy it in first so the registry payload carries the
+      # readme and npmjs.com renders it.
+      - name: Copy the root README/LICENSE into the package
         working-directory: packages/seemore
-        run: npm publish --provenance --access public
+        run: cp ../../README.md ../../LICENSE .
+
+      - run: pnpm --filter seemore publish --provenance --access public --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
