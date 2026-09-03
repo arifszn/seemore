@@ -1,7 +1,7 @@
 <br/>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/vscode/assets/icon.png" alt="seemore" width="40" height="40">
+  <img src="https://raw.githubusercontent.com/arifszn/seemore/main/assets/icon.png" alt="seemore" width="40" height="40">
   <h1 align="center">seemore</h1>
   <h4 align="center">Let AI write the Markdown. Let seemore show it better — zero config documentation framework.</h4>
   <p align="center">
@@ -54,8 +54,10 @@ Three ways to use it:
 - **[In your code editor](#view-in-your-code-editor)**: an extension puts the same site in a panel next to the file you're editing — VS Code and VS Code-compatible editors like Cursor and Antigravity.
 - **[As a static site](#publish-it-to-the-web)**: `npx seemore build` exports plain HTML you can host anywhere, so it doubles as a docs framework, not just a preview tool.
 
+And whichever preview is open, the page is also an editor: **double-click any paragraph to fix its Markdown in place**, and the change is written straight back to the file.
+
 <p align="center">
-  <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/neutral.png" alt="seemore rendering a folder of Markdown in the browser, neutral theme" width="640"/>
+  <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/inline-editor.png" alt="seemore rendering a folder of Markdown in the browser, with a paragraph's Markdown source open in the inline editor" width="640"/>
 </p>
 
 ## View in your browser
@@ -89,6 +91,31 @@ Install seemore from the [VS Code Marketplace](https://marketplace.visualstudio.
 | Setting | Default | Effect |
 | --- | --- | --- |
 | `seemore.path` | *(bundled copy)* | Path to a `seemore` CLI entry point to use instead of the version bundled with the extension. Leave empty unless you're developing seemore itself. |
+
+## Edit your files from the browser
+
+The preview is not just for reading — it is the fastest way to fix what you are reading. Double-click any paragraph, heading, list item, quote or table cell and it opens in a small editor holding that block's **Markdown source**: `**bold**` stays `**bold**`, links stay links, tables stay tables. Fix the text and hit **Save** — `Ctrl+Enter` (`Cmd+Enter` on a Mac), with `Esc` to cancel — and the change is written to the file on disk. Nothing is written until you say so: clicking away leaves the editor open rather than saving behind your back.
+
+When AI writes your Markdown, this closes the loop. You review the docs the way a reader sees them, double-click the sentence that is wrong, fix it, and you are done — no switching back to the editor, no hunting for the file and line the text came from.
+
+The save is surgical. Every editable block carries its exact character range from the source file, and a save replaces exactly those characters — the rest of the file is left byte for byte as it was, so `git diff` shows the sentence you changed and nothing else. The file's line endings are preserved, and if the file changed since the page was rendered (you edited it in your editor meanwhile), the save is refused and you are asked to reload, rather than one edit clobbering the other. Once saved, the page hot-reloads through the same path an edit made in an editor takes — and it works the same in the VS Code panel, which runs the same dev server.
+
+It is **dev only**: `seemore build` output is static, with no server to write through, so nothing is emitted there.
+
+Not everything is editable. Content seemore rebuilds wholesale — code fences, Mermaid and D2 diagrams — has no source range to write back to, so double-clicking it does nothing. That is deliberate: no pointer means no edit, rather than a wrong write. Constructs where only the *wrapper* is generated, such as GitHub alerts and steps, do let you edit the text inside, but the editor shows the raw source of that block — including the `[!NOTE]` marker and the `>` prefixes — because that is literally what the file says.
+
+This is on by default in dev. Switch it off with the `!` prefix:
+
+```ts
+export default defineConfig({
+  features: ['!content.edit'],
+});
+```
+
+> [!NOTE]
+> The dev server binds to localhost, so only your machine can reach the endpoint that writes.
+> If you serve the site to your network with `--host`, anyone who can open the site can also
+> edit your files — pass `features: ['!content.edit']` when you do that.
 
 ## Publish it to the web
 
@@ -194,37 +221,6 @@ Flags you don't mention are left at their default, so you only ever list the one
 | `social.cards` | off | Per-page OG images (needs `takumi-js`) |
 
 Combinations that can't work together raise a config error naming both flags and the fix.
-
-### Editing from the browser
-
-Fix text without leaving the page. Double-click a paragraph, heading, list item or table
-cell and it opens in a small editor holding that block's **Markdown source** — `**bold**`
-stays `**bold**`, links stay links. **Save** and **Cancel** buttons sit under the text, and
-`Ctrl+Enter` (`Cmd+Enter` on a Mac) and `Esc` do the same if you prefer the keyboard.
-Nothing is written until you say so: clicking away leaves the editor open rather than
-saving behind your back.
-
-This is on by default. Switch it off with the `!` prefix:
-
-```ts
-export default defineConfig({
-  features: ['!content.edit'],
-});
-```
-
-The save rewrites exactly the characters behind that block and leaves the rest of the file
-byte for byte as it was, so a diff shows the sentence you changed and nothing else. It works
-the same in the VS Code panel, which runs the same dev server.
-
-Two things it deliberately won't do. It is **dev only** — `seemore build` output is static,
-with no server to write through, so nothing is emitted there. And blocks seemore generated
-rather than read — code fences, Mermaid and D2 diagrams, GitHub alerts, steps — have no
-source range to write back to and don't offer editing.
-
-> [!NOTE]
-> The dev server binds to localhost, so only your machine can reach the endpoint that writes.
-> If you serve the site to your network with `--host`, anyone who can open the site can also
-> edit your files — pass `features: ['!content.edit']` when you do that.
 
 ## Content
 

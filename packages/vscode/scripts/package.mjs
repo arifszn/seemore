@@ -54,7 +54,10 @@ try {
   cpSync(join(vscodeDir, 'dist'), join(stagingDir, 'dist'), { recursive: true });
   cpSync(join(vscodeDir, '.vscodeignore'), join(stagingDir, '.vscodeignore'));
   cpSync(join(repoRoot, 'README.md'), join(stagingDir, 'README.md'));
-  cpSync(join(vscodeDir, 'assets'), join(stagingDir, 'assets'), { recursive: true });
+  // Shared with the site's default favicon, so it lives at the repo root next to README
+  // and LICENSE — but it still has to land at `assets/` here, where `package.json`'s
+  // "icon" field points.
+  cpSync(join(repoRoot, 'assets'), join(stagingDir, 'assets'), { recursive: true });
   cpSync(join(repoRoot, 'LICENSE'), join(stagingDir, 'LICENSE'));
   writeFileSync(
     join(stagingDir, 'package.json'),
