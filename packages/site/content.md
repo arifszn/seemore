@@ -15,6 +15,94 @@ Supports `.md` and `.mdx` both.
 - Sibling images inlined as hashed assets, sibling PDFs open in the browser's own viewer
 - Frontmatter (the `key: value` block at the top of a file) is validated, with errors that name the file and the field
 
+## Code blocks
+
+Fences are highlighted at build time by [Shiki](https://shiki.style), in the theme's own colours.
+
+Settings go on the fence line, after the language:
+
+````md
+```ts title="server.ts" lineNumbers
+const port = 4040;
+```
+````
+
+| On the fence | Effect |
+| --- | --- |
+| `title="server.ts"` | Filename bar above the block |
+| `lineNumbers` | Numbers down the side; `lineNumbers=5` starts the count at 5 |
+| `noCopy` | No copy button on this one block |
+
+Comments mark individual lines and never reach the page — the block below uses all five:
+
+```ts title="marked.ts"
+const marked = 1; // [!code highlight]
+const added = 2; // [!code ++]
+const removed = 3; // [!code --]
+const focused = 4; // [!code focus]
+const found = 'needle'; // [!code word:needle]
+```
+
+| In the code | Effect |
+| --- | --- |
+| `[!code highlight]` | Marks the line |
+| `[!code ++]`, `[!code --]` | Diff lines: green with a `+`, red with a `-` |
+| `[!code focus]` | Blurs every other line until the pointer is over the block |
+| `[!code word:needle]` | Marks that word everywhere it appears in the block |
+
+The marker follows the language's own comment syntax, so `# [!code highlight]` in Python and `<!-- [!code highlight] -->` in HTML.
+
+The copy button is on by default. `noCopy` drops it from one block; `!content.code.copy` drops it from every block on the site.
+
+## Components
+
+An `.mdx` file can use these without importing anything:
+
+| Component | What it is |
+| --- | --- |
+| `<Callout type="warn" title="…">` | The box `:::note` produces. `type` is `info`, `warn`, `error`, `success` or `idea` |
+| `<Card>`, `<Cards>` | The link cards the generated index page is built from |
+| `<CodeBlockTabs>` | One code block per tab — npm, pnpm, yarn |
+| `<Mermaid>`, `<D2>` | What a ` ```mermaid ` or ` ```d2 ` fence compiles to; usable directly |
+| `<Pdf>` | The viewer a linked PDF opens in |
+
+The set is deliberately small: Markdown has no imports, so every component is one seemore ships to every site whether it is used or not, and these are the ones that pair with something Markdown already expresses. Anything else — fumadocs' `<Tabs>`, `<Accordions>`, `<Files>` among them — fails the build, naming the file and the component. In a plain `.md` file a tag is not JSX at all: it is dropped and its text kept, so components need the `.mdx` extension.
+
+Code tabs need a `defaultValue`, or the block opens with no tab selected and nothing under it. Leave a blank line around each fence:
+
+````mdx
+<CodeBlockTabs defaultValue="npm">
+  <CodeBlockTabsList>
+    <CodeBlockTabsTrigger value="npm">npm</CodeBlockTabsTrigger>
+    <CodeBlockTabsTrigger value="pnpm">pnpm</CodeBlockTabsTrigger>
+  </CodeBlockTabsList>
+  <CodeBlockTab value="npm">
+
+```bash
+npm i seemore
+```
+
+  </CodeBlockTab>
+  <CodeBlockTab value="pnpm">
+
+```bash
+pnpm add seemore
+```
+
+  </CodeBlockTab>
+</CodeBlockTabs>
+````
+
+## Steps
+
+Numbered headings become a numbered sequence, with the rule and the marker drawn for you:
+
+```md
+## 1. Install it
+
+## 2. Point it at a folder
+```
+
 ## Page addresses
 
 | File | Address |
