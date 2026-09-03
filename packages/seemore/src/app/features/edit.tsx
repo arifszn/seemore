@@ -37,6 +37,8 @@ export function InlineEditor({ entry }: { entry: RouteEntry }) {
   const layer = useRef<HTMLDivElement | null>(null);
   const textarea = useRef<HTMLTextAreaElement | null>(null);
   const [editing, setEditing] = useState<Editing | undefined>(undefined);
+  /** Read inside the dblclick listener, which is bound once and would capture stale state. */
+  const editingRef = useRef<Editing | undefined>(undefined);
   const [error, setError] = useState<string | undefined>(undefined);
   const [saving, setSaving] = useState(false);
   /**
@@ -72,6 +74,15 @@ export function InlineEditor({ entry }: { entry: RouteEntry }) {
 
       const block = target.closest<HTMLElement>('[data-seemore-pos]');
       if (block === null || !host.contains(block)) return;
+
+      // An editor is already open. Moving to another block is fine while nothing has been
+      // typed, but with unsaved text it would discard the edit without asking — so leave it
+      // where it is and let Save or Cancel decide.
+      const field = textarea.current;
+      if (field !== null && editingRef.current !== undefined) {
+        const original = editingRef.current.original;
+        if (field.value.replace(/\r\n/g, '\n') !== original.replace(/\r\n/g, '\n')) return;
+      }
 
       const [start, end] = (block.dataset['seemorePos'] ?? '').split(':').map(Number);
       if (!Number.isInteger(start) || !Number.isInteger(end)) return;
@@ -119,6 +130,10 @@ export function InlineEditor({ entry }: { entry: RouteEntry }) {
     host.addEventListener('dblclick', onDoubleClick);
     return () => host.removeEventListener('dblclick', onDoubleClick);
   }, [entry.absPath]);
+
+  useEffect(() => {
+    editingRef.current = editing;
+  }, [editing]);
 
   // The block is hidden rather than removed while it is edited, so the page does not jump.
   // If this component goes away mid-edit — a navigation, a hot reload — put it back.
@@ -193,7 +208,6 @@ export function InlineEditor({ entry }: { entry: RouteEntry }) {
             spellCheck={false}
             disabled={saving}
             onInput={(event) => resize(event.currentTarget)}
-            onBlur={() => void save()}
             onKeyDown={(event) => {
               if (event.key === 'Escape') {
                 event.preventDefault();

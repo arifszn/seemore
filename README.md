@@ -199,9 +199,10 @@ Combinations that can't work together raise a config error naming both flags and
 
 Fix text without leaving the page. Double-click a paragraph, heading, list item or table
 cell and it opens in a small editor holding that block's **Markdown source** — `**bold**`
-stays `**bold**`, links stay links. **Save** and **Cancel** buttons sit under the text;
-`Ctrl+Enter` (`Cmd+Enter` on a Mac) saves and `Esc` cancels if you prefer the keyboard, and
-clicking away saves too.
+stays `**bold**`, links stay links. **Save** and **Cancel** buttons sit under the text, and
+`Ctrl+Enter` (`Cmd+Enter` on a Mac) and `Esc` do the same if you prefer the keyboard.
+Nothing is written until you say so: clicking away leaves the editor open rather than
+saving behind your back.
 
 This is on by default. Switch it off with the `!` prefix:
 
