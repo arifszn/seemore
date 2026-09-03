@@ -292,6 +292,14 @@
     @apply my-6 rounded-lg border border-fd-border p-4 text-sm text-fd-muted-foreground;
   }
 
+  .seemore-diagram-loading {
+    @apply my-6 flex items-center justify-center py-8;
+  }
+
+  .seemore-diagram-spinner {
+    @apply h-6 w-6 animate-spin rounded-full border-2 border-fd-muted-foreground/30 border-t-fd-muted-foreground;
+  }
+
   /* Inline editing (dev only, `content.edit`). The article is the positioning context for
      the editor layer, which sits over the block being edited. */
   .seemore-editable {
