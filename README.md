@@ -42,11 +42,9 @@
   </p>
 </p>
 
-AI tools write Markdown — specs, notes, guides, READMEs, whole folders of it, faster than
-anyone can read. A pile of `.md` files is write-only memory: nothing to click, nothing to
-search, no order.
+AI tools write Markdown — specs, notes, guides, READMEs, whole folders of it, faster than anyone can read. A pile of `.md` files is write-only memory: nothing to click, nothing to search, no order.
 
-seemore points at that folder and renders it as a proper site instead, without you moving a single file or writing any code.
+**seemore** points at that folder and renders it as a proper site instead, without you moving a single file or writing any code.
 
 Three ways to use it:
 
@@ -60,22 +58,33 @@ And whichever preview is open, the page is also an editor: **double-click any pa
   <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/inline-editor.png" alt="seemore rendering a folder of Markdown in the browser, with a paragraph's Markdown source open in the inline editor" width="640"/>
 </p>
 
+## Features
+
+- **Zero config** — no config file, no code, no files to move; a plain folder of Markdown works in the browser, in your editor, and as a static build
+- **Live preview** — add, rename, retitle or delete a file and the site updates immediately, navigation and search included
+- **Edit in place** — double-click any block in the preview to fix its Markdown; saves are surgical, so `git diff` shows the sentence you changed and nothing else
+- **Static export** — `seemore build` prerenders every page to its own HTML file, `404.html` included, and adds the conventions individual hosts look for (`_redirects`, `200.html`, `.nojekyll`)
+- **Search built in** — static, zero-setup full-text search out of the box, with shareable highlighted results; [Algolia](https://algolia.com) and [Orama Cloud](https://orama.com) for hosted indexes
+- **12 themes** — dark and light follow the system, with a toggle that remembers your choice; your own CSS always wins
+- **Rich Markdown** — GitHub Flavoured Markdown, admonitions, steps, `[[wikilinks]]`, [Mermaid](https://mermaid.js.org) and [D2](https://d2lang.com) diagrams, click-to-zoom images, embedded PDFs
+- **First-class code blocks** — build-time [Shiki](https://shiki.style) highlighting in the theme's own colours, with titles, line numbers, diff markers and focus
+- **MDX components** — `<Callout>`, `<Card>`, `<CodeBlockTabs>` and friends, with no imports to write
+- **Editor integration** — one extension covers VS Code, Cursor, Antigravity and other VS Code-compatible editors, remote workspaces included
+
 ## View in your browser
 
 ```bash
 npx seemore     # view the current folder in your browser, live, no setup
 ```
 
-Open a terminal in your folder of Markdown files, run `npx seemore`, and open the address it prints (`http://localhost:4040` by default). From there it's live: add, rename, retitle or delete a file and the site updates immediately, navigation included.
-
-With no folder given, seemore serves the folder you're standing in. Point it at a subfolder with `npx seemore docs` if that's where your files live.
+Run it in your folder of Markdown files (Node.js 20 or newer) and open the address it prints — `http://localhost:4040` by default. From there it's live: add, rename, retitle or delete a file and the site updates immediately. Point it at a subfolder with `npx seemore docs` if that's where your files live.
 
 ## View in your code editor
 
-Install seemore from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=arifszn.seemore-vscode) or [Open VSX](https://open-vsx.org/extension/arifszn/seemore-vscode) to get the same rendered site as a panel beside your editor. No terminal, no `npx`, no browser tab to manage. Open VSX also covers VS Code-compatible editors — Cursor, Antigravity, and others.
+Install **seemore** from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=arifszn.seemore-vscode) or [Open VSX](https://open-vsx.org/extension/arifszn/seemore-vscode) to get the same rendered site as a panel beside your editor — no terminal, no `npx`, no browser tab to manage. The extension bundles the CLI, so nothing is downloaded or put on your PATH. Open VSX also covers VS Code-compatible editors — Cursor, Antigravity, and others.
 
 1. Open any Markdown file.
-2. Click the seemore icon in the editor's title bar, or right-click a folder in the explorer and choose **Open Folder in seemore**.
+2. Click the **seemore** icon in the editor's title bar, or right-click a folder in the explorer and choose **Open Folder in seemore**.
 3. The rendered site opens beside your editor, scoped to that file's folder.
 
 ### Commands
@@ -90,21 +99,13 @@ Install seemore from the [VS Code Marketplace](https://marketplace.visualstudio.
 
 | Setting | Default | Effect |
 | --- | --- | --- |
-| `seemore.path` | *(bundled copy)* | Path to a `seemore` CLI entry point to use instead of the version bundled with the extension. Leave empty unless you're developing seemore itself. |
+| `seemore.path` | *(bundled copy)* | Path to a `seemore` CLI entry point to use instead of the version bundled with the extension. Leave empty unless you're developing **seemore** itself. |
 
 ## Edit your files from the browser
 
-The preview is not just for reading — it is the fastest way to fix what you are reading. Double-click any paragraph, heading, list item, quote or table cell and it opens in a small editor holding that block's **Markdown source**: `**bold**` stays `**bold**`, links stay links, tables stay tables. Fix the text and hit **Save** — `Ctrl+Enter` (`Cmd+Enter` on a Mac), with `Esc` to cancel — and the change is written to the file on disk. Nothing is written until you say so: clicking away leaves the editor open rather than saving behind your back.
+The preview is not just for reading — it is the fastest way to fix what you are reading. Double-click any paragraph, heading, list item, quote or table cell and it opens in a small editor holding that block's **Markdown source**: `**bold**` stays `**bold**`, links stay links, tables stay tables. Fix the text and hit **Save** and the change is written to the file on disk. Nothing is written until you say so: clicking away leaves the editor open rather than saving behind your back. It works the same in the VS Code panel, which runs the same dev server.
 
-When AI writes your Markdown, this closes the loop. You review the docs the way a reader sees them, double-click the sentence that is wrong, fix it, and you are done — no switching back to the editor, no hunting for the file and line the text came from.
-
-The save is surgical. Every editable block carries its exact character range from the source file, and a save replaces exactly those characters — the rest of the file is left byte for byte as it was, so `git diff` shows the sentence you changed and nothing else. The file's line endings are preserved, and if the file changed since the page was rendered (you edited it in your editor meanwhile), the save is refused and you are asked to reload, rather than one edit clobbering the other. Once saved, the page hot-reloads through the same path an edit made in an editor takes — and it works the same in the VS Code panel, which runs the same dev server.
-
-It is **dev only**: `seemore build` output is static, with no server to write through, so nothing is emitted there.
-
-Not everything is editable. Content seemore rebuilds wholesale — code fences, Mermaid and D2 diagrams — has no source range to write back to, so double-clicking it does nothing. That is deliberate: no pointer means no edit, rather than a wrong write. Constructs where only the *wrapper* is generated, such as GitHub alerts and steps, do let you edit the text inside, but the editor shows the raw source of that block — including the `[!NOTE]` marker and the `>` prefixes — because that is literally what the file says.
-
-This is on by default in dev. Switch it off with the `!` prefix:
+Inline editing is for local previews only — `seemore build` output is static, so nothing is emitted there. It is on by default in dev; switch it off with the `!` prefix:
 
 ```ts
 export default defineConfig({
@@ -113,9 +114,7 @@ export default defineConfig({
 ```
 
 > [!NOTE]
-> The dev server binds to localhost, so only your machine can reach the endpoint that writes.
-> If you serve the site to your network with `--host`, anyone who can open the site can also
-> edit your files — pass `features: ['!content.edit']` when you do that.
+> The dev server binds to localhost, so only your machine can reach the endpoint that writes. If you serve the site to your network with `--host`, anyone who can open the site can also edit your files — pass `features: ['!content.edit']` when you do that.
 
 ## Publish it to the web
 
@@ -123,19 +122,14 @@ export default defineConfig({
 npx seemore build  # static export to dist/ for any host
 ```
 
-The result is a `dist/` folder of plain web files: drop it on [Netlify](https://netlify.com), [Surge](https://surge.sh), [Cloudflare Pages](https://pages.cloudflare.com) or [GitHub Pages](https://pages.github.com), or hand it to any web host.
+The result is a `dist/` folder of plain web files: drop it on [Netlify](https://netlify.com), [Surge](https://surge.sh), [Cloudflare Pages](https://pages.cloudflare.com) or [GitHub Pages](https://pages.github.com), or hand it to any web host. Every page is prerendered to its own `index.html`, next to a `404.html` that every static host honours. On top of that, the small conventions individual hosts look for — `_redirects` for Netlify and Cloudflare Pages, `200.html` for Surge, `.nojekyll` for GitHub Pages — are written for you.
 
-**On GitHub Pages:** project sites live under `username.github.io/my-repo/`, not the root, so set `base` once:
-
-```ts
-export default defineConfig({ base: '/my-repo/' });
-```
-
-(or `--base /my-repo/` on the CLI). Building under GitHub Actions without it set prints the exact line to add.
+> [!TIP]
+> Project sites on GitHub Pages live under `username.github.io/my-repo/`, not the root, so set `base` once: `defineConfig({ base: '/my-repo/' })` (or `--base /my-repo/` on the CLI). Building under GitHub Actions without it set prints the exact line to add.
 
 ## Configuration
 
-Optional. A folder with no config file builds correctly in the browser, in your code editor, and when built for publishing. If you want to adjust things, create `seemore.config.ts` next to your content:
+Optional — a folder with no config file builds correctly everywhere. To adjust things, create `seemore.config.ts` next to your content:
 
 ```ts
 // seemore.config.ts
@@ -156,6 +150,10 @@ export default defineConfig({
   exclude: ['drafts/**'],
 });
 ```
+
+### Search
+
+The default `search: 'static'` needs no setup, no server and no account: the index is built from your Markdown and queried in the browser, in a Web Worker. `search.suggest` completes your query inline, and `search.highlight` carries the query onto the page you land on (`?h=…`), so search-result links are shareable. Hosted indexes are a drop-in swap whenever you want one: [Orama Cloud](https://orama.com) (`@orama/core`) or [Algolia](https://algolia.com) (`algoliasearch`), each needing nothing but its SDK installed.
 
 ### Themes
 
@@ -187,7 +185,7 @@ Twelve built-in colour presets: `neutral` (default), `black`, `catppuccin`, `dus
 
 ### Features
 
-A flat list of switches for readers who want fine control, set as an array on the `features` key in `seemore.config.ts`. To turn on something that's off by default, add its flag name. To turn off something that's on by default, add its flag name prefixed with `!`.
+A flat list of switches for fine control, set as an array on the `features` key. Turn something on by adding its flag name, turn something off with the `!` prefix; flags you don't mention keep their default.
 
 ```ts
 // seemore.config.ts
@@ -198,8 +196,6 @@ export default defineConfig({
   ],
 });
 ```
-
-Flags you don't mention are left at their default, so you only ever list the ones you're changing.
 
 | Flag | Default | Effect |
 | --- | --- | --- |
@@ -230,8 +226,8 @@ Supports `.md` and `.mdx` both.
 - `[[wikilinks]]`, including `[[Page|label]]` and `[[Page#Heading]]`, the easiest way for you or your AI to link pages without relative paths to get right
 - Relative `.md` links are resolved to working links automatically
 - **[Mermaid](https://mermaid.js.org)** and **[D2](https://d2lang.com)** diagrams, both rendered live in the browser straight from a ` ```mermaid ` or ` ```d2 ` code fence
-- Sibling images inlined as hashed assets, sibling PDFs open in the browser's own viewer
-- Frontmatter (the `key: value` block at the top of a file) is validated, with errors that name the file and the field
+- Sibling images inlined as hashed assets with click-to-zoom, sibling PDFs open in the browser's own viewer
+- Frontmatter keys are validated
 
 ### Code blocks
 
@@ -258,7 +254,7 @@ The marker follows the language's own comment syntax, so `# [!code highlight]` i
 
 ### Components
 
-An `.mdx` file can use `<Callout>`, `<Card>`, `<Cards>`, `<CodeBlockTabs>`, `<Mermaid>`, `<D2>` and `<Pdf>` without importing anything. The set is deliberately small: Markdown has no imports, so every component is one seemore ships to every site whether it is used or not, and these are the ones that pair with something Markdown already expresses. Anything else — fumadocs' `<Tabs>`, `<Accordions>`, `<Files>` among them — fails the build, naming the file and the component. In a plain `.md` file a tag is not JSX at all: it is dropped and its text kept, so components need the `.mdx` extension. The [Content page](https://arifszn.github.io/seemore/content) has the details.
+An `.mdx` file can use `<Callout>`, `<Card>`, `<Cards>`, `<CodeBlockTabs>`, `<Mermaid>`, `<D2>` and `<Pdf>` without importing anything. Anything else fails the build, naming the file and the component. In a plain `.md` file a tag is not JSX at all: it is dropped and its text kept, so components need the `.mdx` extension. The [Content page](https://arifszn.github.io/seemore/content) has the full syntax for each.
 
 Numbered headings — `## 1. Install it`, `## 2. Point it at a folder` — become a numbered sequence.
 
@@ -271,8 +267,6 @@ Numbered headings — `## 1. Install it`, `## 2. Point it at a folder` — becom
 | `getting-started.md` | `/getting-started` |
 | `guide/index.md` | `/guide` |
 | `guide/Deep Dive.md` | `/guide/deep-dive` |
-
-Both `/guide` and `/guide/` work on every host.
 
 ### Ordering
 
