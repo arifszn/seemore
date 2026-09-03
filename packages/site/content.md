@@ -17,9 +17,9 @@ Supports `.md` and `.mdx` both.
 
 ## Code blocks
 
-Fences are highlighted at build time by [Shiki](https://shiki.style), in the theme's own colours.
+Code fences are highlighted at build time by [Shiki](https://shiki.style), in the theme's own colours.
 
-Settings go on the fence line, after the language:
+Settings go on the code fence line, after the language:
 
 ````md
 ```ts title="server.ts" lineNumbers
@@ -27,7 +27,7 @@ const port = 4040;
 ```
 ````
 
-| On the fence | Effect |
+| On the code fence | Effect |
 | --- | --- |
 | `title="server.ts"` | Filename bar above the block |
 | `lineNumbers` | Numbers down the side; `lineNumbers=5` starts the count at 5 |
@@ -63,12 +63,12 @@ An `.mdx` file can use these without importing anything:
 | `<Callout type="warn" title="…">` | The box `:::note` produces. `type` is `info`, `warn`, `error`, `success` or `idea` |
 | `<Card>`, `<Cards>` | The link cards the generated index page is built from |
 | `<CodeBlockTabs>` | One code block per tab — npm, pnpm, yarn |
-| `<Mermaid>`, `<D2>` | What a ` ```mermaid ` or ` ```d2 ` fence compiles to; usable directly |
+| `<Mermaid>`, `<D2>` | What a ` ```mermaid ` or ` ```d2 ` code fence compiles to; usable directly |
 | `<Pdf>` | The viewer a linked PDF opens in |
 
 The set is deliberately small: Markdown has no imports, so every component is one **seemore** ships to every site whether it is used or not, and these are the ones that pair with something Markdown already expresses. Anything else — fumadocs' `<Tabs>`, `<Accordions>`, `<Files>` among them — fails the build, naming the file and the component. In a plain `.md` file a tag is not JSX at all: it is dropped and its text kept, so components need the `.mdx` extension.
 
-Code tabs need a `defaultValue`, or the block opens with no tab selected and nothing under it. Leave a blank line around each fence:
+Code tabs need a `defaultValue`, or the block opens with no tab selected and nothing under it. Leave a blank line around each code fence:
 
 ````mdx
 <CodeBlockTabs defaultValue="npm">
@@ -122,7 +122,6 @@ Pages are ordered by:
 1. `meta.json` in the directory — an explicit list, with `...` standing in for anything you didn't name:
 
    ```json
-   // guide/meta.json
    { "pages": ["getting-started", "installation", "..."] }
    ```
 

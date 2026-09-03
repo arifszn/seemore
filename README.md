@@ -232,30 +232,17 @@ Supports `.md` and `.mdx` both.
 
 ### Code blocks
 
-Fences are highlighted at build time by [Shiki](https://shiki.style), in the theme's own colours.
+Code is syntax-highlighted automatically — nothing to configure. Add a filename or line numbers by putting them after the language on the fence line:
 
-Settings go on the fence line, after the language — ` ```ts title="server.ts" lineNumbers `:
+```ts title="server.ts" lineNumbers
+const port = 4040;
+```
 
-| On the fence | Effect |
-| --- | --- |
-| `title="server.ts"` | Filename bar above the block |
-| `lineNumbers` | Numbers down the side; `lineNumbers=5` starts the count at 5 |
-| `noCopy` | No copy button on this one block |
-
-Comments mark individual lines and never reach the page:
-
-| In the code | Effect |
-| --- | --- |
-| `// [!code highlight]` | Marks the line |
-| `// [!code ++]`, `// [!code --]` | Diff lines: green with a `+`, red with a `-` |
-| `// [!code focus]` | Blurs every other line until the pointer is over the block |
-| `// [!code word:needle]` | Marks that word everywhere it appears in the block |
-
-The marker follows the language's own comment syntax, so `# [!code highlight]` in Python and `<!-- [!code highlight] -->` in HTML.
+You can also highlight a line, mark it as added/removed, or focus it, with a comment right in the code — `// [!code highlight]` and friends. See it all rendered live, with the full list of options, on the [Content page](https://arifszn.github.io/seemore/content#code-blocks).
 
 ### Components
 
-An `.mdx` file can use `<Callout>`, `<Card>`, `<Cards>`, `<CodeBlockTabs>`, `<Mermaid>`, `<D2>` and `<Pdf>` without importing anything. Anything else fails the build, naming the file and the component. In a plain `.md` file a tag is not JSX at all: it is dropped and its text kept, so components need the `.mdx` extension. The [Content page](https://arifszn.github.io/seemore/content) has the full syntax for each.
+`.mdx` files can use `<Callout>`, `<Card>`, `<Cards>`, `<CodeBlockTabs>`, `<Mermaid>`, `<D2>` and `<Pdf>` with no imports needed — plain `.md` files just keep the tag as text, so components need the `.mdx` extension. Full syntax for each is on the [Content page](https://arifszn.github.io/seemore/content).
 
 Numbered headings — `## 1. Install it`, `## 2. Point it at a folder` — become a numbered sequence.
 
@@ -276,7 +263,6 @@ Pages are ordered by:
 1. `meta.json` in the directory — an explicit list, with `...` standing in for anything you didn't name:
 
    ```json
-   // guide/meta.json
    { "pages": ["getting-started", "installation", "..."] }
    ```
 
