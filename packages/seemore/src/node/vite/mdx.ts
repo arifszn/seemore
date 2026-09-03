@@ -19,6 +19,7 @@ import {
   remarkSeemoreWikilinks,
   type SeemoreRemarkOptions,
 } from './remark.js';
+import { rehypeSeemorePositions } from './positions.js';
 
 /**
  * The remark/rehype chain. Order matters:
@@ -63,12 +64,23 @@ export function createRemarkPlugins(options: SeemoreRemarkOptions): PluggableLis
   ];
 }
 
-export function createRehypePlugins(): PluggableList {
+export interface SeemoreRehypeOptions {
+  /**
+   * Stamp each editable block with its source range, for the browser's inline editor.
+   * Dev only: a static build has no server to write an edit back to.
+   */
+  positions?: boolean;
+}
+
+export function createRehypePlugins(options: SeemoreRehypeOptions = {}): PluggableList {
   return [
     // A fence in a language Shiki has no grammar for (anything an AI dreamt up) is plain code
     // on the page, not a dead one: `plaintext` is special-cased by Shiki and never needs
     // loading.
     [rehypeCode, { fallbackLanguage: 'plaintext' }],
     rehypeToc,
+    // After `rehype-code`, so a fence Shiki rebuilt is passed over rather than stamped with
+    // the position of whatever it replaced.
+    ...(options.positions === true ? [rehypeSeemorePositions] : []),
   ];
 }

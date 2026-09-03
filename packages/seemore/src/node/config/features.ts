@@ -24,6 +24,10 @@ export const FEATURE_DEFAULTS: Record<Feature, boolean> = {
   'content.code.copy': true,
   // Implicitly on when `editLink` is configured; there is nothing to link to otherwise.
   'content.action.edit': false,
+  // On by default, but only ever active in dev: the stamping that makes a block editable is
+  // not emitted by `seemore build`, and the endpoint that writes is registered only by the
+  // dev server. Switch it off with '!content.edit'.
+  'content.edit': true,
   'content.image.zoom': true,
   'search.suggest': true,
   'search.highlight': true,

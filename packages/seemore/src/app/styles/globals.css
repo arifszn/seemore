@@ -292,6 +292,70 @@
     @apply my-6 rounded-lg border border-fd-border p-4 text-sm text-fd-muted-foreground;
   }
 
+  /* Inline editing (dev only, `content.edit`). The article is the positioning context for
+     the editor layer, which sits over the block being edited. */
+  .seemore-editable {
+    @apply relative;
+  }
+
+  .seemore-editable [data-seemore-pos]:hover {
+    @apply cursor-text rounded-sm bg-fd-muted/40;
+    box-shadow: 0 0 0 4px var(--color-fd-muted);
+  }
+
+  .seemore-editable .seemore-editing {
+    @apply invisible;
+  }
+
+  .seemore-editor-layer {
+    @apply pointer-events-none absolute inset-0;
+  }
+
+  /* `scroll-mt-20` clears the sticky header: without it, scrolling a tall editor into view
+     tucks its first lines underneath the header bar. */
+  .seemore-editor {
+    @apply pointer-events-auto absolute z-20 scroll-mt-20 rounded-lg border border-fd-primary/40 bg-fd-background shadow-lg;
+  }
+
+  .seemore-editor-input {
+    @apply block w-full resize-none bg-transparent p-3 font-mono text-sm leading-relaxed text-fd-foreground outline-none;
+  }
+
+  .seemore-editor-actions {
+    @apply flex items-center justify-end gap-2 border-t border-fd-border px-2.5 py-2;
+  }
+
+  .seemore-editor-status {
+    @apply me-auto ps-0.5 text-xs text-fd-muted-foreground;
+  }
+
+  .seemore-editor-button {
+    @apply rounded-md border border-fd-border px-3 py-1 text-xs font-medium text-fd-foreground transition-colors;
+  }
+
+  .seemore-editor-button:hover:not(:disabled) {
+    @apply bg-fd-accent text-fd-accent-foreground;
+  }
+
+  .seemore-editor-button:disabled {
+    @apply cursor-not-allowed opacity-50;
+  }
+
+  .seemore-editor-button-primary {
+    @apply border-transparent bg-fd-primary text-fd-primary-foreground;
+  }
+
+  .seemore-editor-button-primary:hover:not(:disabled) {
+    @apply bg-fd-primary/90 text-fd-primary-foreground;
+  }
+
+  /* Anchored to the viewport, not to the layer: the layer is `absolute inset-0` over the
+     article, so a `sticky` child of it renders at the article's top and lands on the
+     heading. A conflict is rare and worth reading, so it sits out of the content's way. */
+  .seemore-editor-error {
+    @apply pointer-events-auto fixed bottom-6 left-1/2 z-50 max-w-[min(32rem,calc(100vw-2rem))] -translate-x-1/2 cursor-pointer rounded-lg border border-fd-border bg-fd-background px-4 py-2.5 text-sm text-fd-foreground shadow-xl;
+  }
+
   .seemore-pdf {
     @apply my-6 block;
   }

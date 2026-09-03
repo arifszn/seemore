@@ -187,12 +187,43 @@ Flags you don't mention are left at their default, so you only ever list the one
 | `toc.integrate` | off | Merge the table of contents into the sidebar |
 | `content.code.copy` | on | Copy button on code blocks |
 | `content.action.edit` | on with `editLink` | Edit-this-page link |
+| `content.edit` | on (dev only) | Double-click a block to edit its Markdown in place |
 | `content.image.zoom` | on | Click-to-zoom on content images |
 | `search.suggest` | on | Inline query completion |
 | `search.highlight` | on | Highlight the query on the page you land on |
 | `social.cards` | off | Per-page OG images (needs `takumi-js`) |
 
 Combinations that can't work together raise a config error naming both flags and the fix.
+
+### Editing from the browser
+
+Fix text without leaving the page. Double-click a paragraph, heading, list item or table
+cell and it opens in a small editor holding that block's **Markdown source** — `**bold**`
+stays `**bold**`, links stay links. **Save** and **Cancel** buttons sit under the text;
+`Ctrl+Enter` (`Cmd+Enter` on a Mac) saves and `Esc` cancels if you prefer the keyboard, and
+clicking away saves too.
+
+This is on by default. Switch it off with the `!` prefix:
+
+```ts
+export default defineConfig({
+  features: ['!content.edit'],
+});
+```
+
+The save rewrites exactly the characters behind that block and leaves the rest of the file
+byte for byte as it was, so a diff shows the sentence you changed and nothing else. It works
+the same in the VS Code panel, which runs the same dev server.
+
+Two things it deliberately won't do. It is **dev only** — `seemore build` output is static,
+with no server to write through, so nothing is emitted there. And blocks seemore generated
+rather than read — code fences, Mermaid and D2 diagrams, GitHub alerts, steps — have no
+source range to write back to and don't offer editing.
+
+> [!NOTE]
+> The dev server binds to localhost, so only your machine can reach the endpoint that writes.
+> If you serve the site to your network with `--host`, anyone who can open the site can also
+> edit your files — pass `features: ['!content.edit']` when you do that.
 
 ## Content
 
