@@ -303,6 +303,15 @@
     box-shadow: 0 0 0 4px var(--color-fd-muted);
   }
 
+  /* Written as a plain `.dark` rule rather than `dark:` on the `@apply` above: Tailwind
+     wraps a `dark:` variant reached through `@apply` in `:where(.dark, .dark *)`, which
+     carries no specificity of its own and loses the tie to the plain `box-shadow` line
+     and the `bg-fd-muted/40` utility above regardless of source order. */
+  .dark .seemore-editable [data-seemore-pos]:hover {
+    background-color: transparent;
+    box-shadow: none;
+  }
+
   .seemore-editable .seemore-editing {
     @apply invisible;
   }
