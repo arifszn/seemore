@@ -102,6 +102,10 @@ jobs:
       - name: Publish to Open VSX
         working-directory: packages/vscode
         shell: bash
+        # openvsx's registry answers 5xx often enough that a release has already been lost to
+        # it once. The Marketplace is the primary target, so a failed Open VSX publish is
+        # surfaced as a warning and the release still ships.
+        continue-on-error: true
         run: |
           vsix="seemore-vscode-${{ matrix.target }}-${{ needs.verify.outputs.version }}.vsix"
           npx ovsx publish "$vsix" -p "$OVSX_PAT"
