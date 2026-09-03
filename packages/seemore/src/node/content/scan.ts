@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { basename, dirname, join, resolve } from 'node:path';
 import { globSync } from 'tinyglobby';
 import { z } from 'zod';
@@ -38,6 +39,11 @@ const metaSchema = z
 export interface ContentPage extends RouteInfo {
   /** Absolute path on disk — what the generated import map imports. */
   absPath: string;
+  /**
+   * Hash of the file's text. Changes exactly when the module behind the URL does, which is
+   * what lets the browser tell "this page was edited" from "some other page was".
+   */
+  version: string;
   data: FrontmatterData & { title: string };
 }
 
@@ -78,8 +84,11 @@ export function scan(options: ScanOptions): ScanResult {
   for (const route of routes) {
     const absPath = join(contentRoot, route.file);
     let data: FrontmatterData;
+    let version: string;
     try {
-      data = parseFrontmatter(readFileSync(absPath, 'utf8'), route.file).data;
+      const text = readFileSync(absPath, 'utf8');
+      data = parseFrontmatter(text, route.file).data;
+      version = createHash('sha256').update(text).digest('hex').slice(0, 12);
     } catch (error) {
       errors.push(error instanceof Error ? error.message : String(error));
       continue;
@@ -87,7 +96,7 @@ export function scan(options: ScanOptions): ScanResult {
 
     if (data.draft === true && options.includeDrafts !== true) continue;
 
-    pages.push({ ...route, absPath, data: { ...data, title: titleFor(route, data, options.siteTitle) } });
+    pages.push({ ...route, absPath, version, data: { ...data, title: titleFor(route, data, options.siteTitle) } });
   }
 
   const files: VirtualFile[] = pages.map((page) => ({

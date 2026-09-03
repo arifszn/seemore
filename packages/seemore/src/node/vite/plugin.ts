@@ -230,6 +230,7 @@ function renderRoutesValue(ctx: SeemoreContext): string {
       `    url: ${json(page.url)},`,
       `    file: ${json(page.file)},`,
       `    absPath: ${json(page.absPath)},`,
+      `    version: ${json(page.version)},`,
       `    title: ${json(page.data.title)},`,
       `    description: ${json(page.data.description ?? null)},`,
       `    load: () => import(${json(specifier)}),`,

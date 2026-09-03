@@ -1,11 +1,10 @@
-import { use } from 'react';
 import type * as PageTree from 'fumadocs-core/page-tree';
 import { TreeContextProvider } from 'fumadocs-ui/contexts/tree';
 import { SidebarProvider } from 'fumadocs-ui/components/sidebar/base';
 import { ArrowRight, Pencil } from 'lucide-react';
 import { config } from 'virtual:seemore/config';
-import type { PageModule, RouteEntry } from '../../shared/types.js';
-import { loadPage } from '../lib/pages.js';
+import type { RouteEntry } from '../../shared/types.js';
+import { usePageModule } from '../lib/pages.js';
 import { useRouteUrl } from '../router.js';
 import { feature } from '../lib/features.js';
 import { pruneTree, usePageTree } from '../lib/tree.js';
@@ -43,9 +42,9 @@ export function DocPage({ entry }: { entry: RouteEntry }) {
   const url = useRouteUrl();
   const tree = feature('navigation.prune') ? pruneTree(full, url) : full;
 
-  // `use()` on the cached module promise: already-loaded pages render synchronously, which
-  // is what makes `renderToString` emit a complete page.
-  const page = use(loadPage(entry) as Promise<PageModule>);
+  // `use()` on the cached module promise, inside the hook: already-loaded pages render
+  // synchronously, which is what makes `renderToString` emit a complete page.
+  const page = usePageModule(entry);
   const Content = page.default;
 
   usePrefetch();

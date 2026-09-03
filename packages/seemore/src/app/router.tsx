@@ -1,6 +1,7 @@
 import { Component, Suspense, type ReactNode } from 'react';
 import { useLocation, type RouteObject } from 'react-router';
 import { decodePath } from '../shared/base.js';
+import type { RouteEntry } from '../shared/types.js';
 import { DocPage, DocsLayout, NotFound, Overview, PageError } from './layout/DocsLayout.js';
 import { useRouteEntry } from './lib/pages.js';
 
@@ -13,17 +14,19 @@ export function useRouteUrl(): string {
 
 function Page() {
   const url = useRouteUrl();
+  const entry = useRouteEntry(url);
   // Keyed by address, so navigating away from a page that threw starts clean rather than
-  // carrying its error to every page after it.
+  // carrying its error to every page after it. Reset by content version, so in dev an edit
+  // that fixes the file gets to render — a boundary in its error state has unmounted the
+  // children, and nothing else is left in the tree to try again.
   return (
-    <PageErrorBoundary key={url}>
-      <PageContent url={url} />
+    <PageErrorBoundary key={url} resetKey={entry?.version}>
+      <PageContent url={url} entry={entry} />
     </PageErrorBoundary>
   );
 }
 
-function PageContent({ url }: { url: string }) {
-  const entry = useRouteEntry(url);
+function PageContent({ url, entry }: { url: string; entry: RouteEntry | undefined }) {
   if (entry !== undefined) return <DocPage entry={entry} />;
   // A folder with no `index.md` or root `README.md` still gets a home address: a generated
   // list of every page, not an apology.
@@ -34,11 +37,20 @@ function PageContent({ url }: { url: string }) {
  * The only error boundary in the app. Render errors come from page content — the rest of the
  * tree is seemore's own — so this sits around the page and nothing else.
  */
-class PageErrorBoundary extends Component<{ children: ReactNode }, { message: string | undefined }> {
+class PageErrorBoundary extends Component<
+  { children: ReactNode; resetKey: string | undefined },
+  { message: string | undefined }
+> {
   override state: { message: string | undefined } = { message: undefined };
 
   static getDerivedStateFromError(error: unknown): { message: string } {
     return { message: error instanceof Error ? error.message : String(error) };
+  }
+
+  override componentDidUpdate(previous: { resetKey: string | undefined }): void {
+    if (this.state.message !== undefined && previous.resetKey !== this.props.resetKey) {
+      this.setState({ message: undefined });
+    }
   }
 
   override render() {

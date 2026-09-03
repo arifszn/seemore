@@ -7,6 +7,7 @@ function pages(...files: string[]): ContentPage[] {
   return files.map((file) => ({
     ...toRoute(file),
     absPath: `/content/${file}`,
+    version: 'v1',
     data: { title: file.replace(/\.mdx?$/, '') },
   }));
 }

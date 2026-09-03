@@ -62,6 +62,8 @@ export interface RouteEntry {
   absPath: string;
   title: string;
   description: string | null;
+  /** Content hash; a new value means `load()` now resolves to a different module. */
+  version: string;
   load: () => Promise<PageModule>;
 }
 
