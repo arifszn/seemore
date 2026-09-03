@@ -11,3 +11,8 @@ node_modules/mermaid/dist/mermaid.js
 node_modules/mermaid/dist/mermaid.min.js
 node_modules/mermaid/dist/mermaid.esm.mjs
 node_modules/mermaid/dist/mermaid.esm.min.mjs
+
+# Demo material dependencies publish for their own READMEs — cytoscape-fcose's two animated
+# GIFs are 7 MB of it, more than every native binding in here combined.
+node_modules/**/demo/**
+node_modules/**/demos/**
