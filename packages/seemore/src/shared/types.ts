@@ -17,6 +17,7 @@ export const FEATURES = [
   'toc.integrate',
   'content.code.copy',
   'content.action.edit',
+  'content.edit',
   'content.image.zoom',
   'search.suggest',
   'search.highlight',

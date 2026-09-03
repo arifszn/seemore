@@ -45,7 +45,7 @@ export function createViteConfig({ ctx, mode, outDir, ssrOutDir }: ViteConfigOpt
       getResolver: () => ctx.resolver(),
       onWarning: (message) => ctx.warnings.add(message),
     }),
-    rehypePlugins: createRehypePlugins(),
+    rehypePlugins: createRehypePlugins({ positions: mode === 'dev' && ctx.config.features['content.edit'] }),
     // MDX compiles its own JSX. Vite's builtin transform infers a file's language from its
     // extension and does not know `.md`/`.mdx`, so leaving JSX in the output would fail to
     // parse. Fast Refresh is unaffected: it is a separate transform, applied to these files

@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname } from 'node:path';
 import type { Plugin, ViteDevServer } from 'vite';
@@ -7,6 +7,9 @@ import type { SeemoreContext } from '../context.js';
 import { buildSearchIndex } from '../search/build.js';
 import { toPosix } from '../content/slug.js';
 import { canonicalise } from '../paths.js';
+import { spliceSource } from '../content/edit.js';
+import type { ContentPage } from '../content/scan.js';
+import type { IncomingMessage, ServerResponse } from 'node:http';
 
 export const VIRTUAL = {
   tree: 'virtual:seemore/tree',
@@ -163,6 +166,19 @@ export function seemorePlugin({ ctx, serveSearch = false }: SeemorePluginOptions
         res.setHeader('Content-Type', 'application/json');
         res.end(JSON.stringify({ url: withBase(ctx.config.base, page.url) }));
       });
+
+      // Reads and writes one block of a page's Markdown, for the browser's inline editor.
+      //
+      // Dev-only for the obvious reason — a static build has no server — and behind a
+      // feature flag because it is the one endpoint seemore has that writes to the user's
+      // files. Not registered at all when the flag is off, so there is nothing to reach.
+      if (ctx.config.features['content.edit']) {
+        devServer.middlewares.use((req, res, next) => {
+          const path = (req.url ?? '').split('?')[0] ?? '';
+          if (path !== SOURCE_ENDPOINT && path !== withBase(ctx.config.base, SOURCE_ENDPOINT)) return next();
+          void handleSource(ctx, req, res).catch(next);
+        });
+      }
     },
 
     /** Called by the watcher after a rescan. */
@@ -177,6 +193,89 @@ export function seemorePlugin({ ctx, serveSearch = false }: SeemorePluginOptions
       },
     },
   };
+}
+
+/** Reads and writes a block of Markdown, addressed by source offsets. */
+const SOURCE_ENDPOINT = '/__seemore/source';
+
+async function handleSource(ctx: SeemoreContext, req: IncomingMessage, res: ServerResponse): Promise<void> {
+  if (req.method === 'GET') return handleSourceRead(ctx, req, res);
+  if (req.method === 'PUT') return handleSourceWrite(ctx, req, res);
+
+  res.setHeader('Allow', 'GET, PUT');
+  return send(res, 405, { error: `${req.method ?? 'This method'} is not allowed here.` });
+}
+
+/** Hands the browser the exact characters behind a block, so it can edit its real source. */
+function handleSourceRead(ctx: SeemoreContext, req: IncomingMessage, res: ServerResponse): void {
+  const query = new URLSearchParams((req.url ?? '').split('?')[1] ?? '');
+  const page = resolvePage(ctx, query.get('file'));
+  if (page === undefined) return send(res, 404, { error: 'That file is not part of this site.' });
+
+  const start = Number(query.get('start'));
+  const end = Number(query.get('end'));
+  const content = readFileSync(page.absPath, 'utf8');
+  if (!Number.isInteger(start) || !Number.isInteger(end) || start < 0 || end < start || end > content.length) {
+    return send(res, 400, { error: 'The requested range is not inside this file.' });
+  }
+
+  return send(res, 200, { text: content.slice(start, end) });
+}
+
+async function handleSourceWrite(ctx: SeemoreContext, req: IncomingMessage, res: ServerResponse): Promise<void> {
+  let body: Partial<{ file: string; start: number; end: number; expected: string; text: string }>;
+  try {
+    body = JSON.parse(await readBody(req)) as typeof body;
+  } catch {
+    return send(res, 400, { error: 'The request body was not valid JSON.' });
+  }
+
+  const page = resolvePage(ctx, body.file);
+  if (page === undefined) return send(res, 404, { error: 'That file is not part of this site.' });
+  if (typeof body.expected !== 'string' || typeof body.text !== 'string') {
+    return send(res, 400, { error: 'Both `expected` and `text` are required.' });
+  }
+
+  // Read, splice and write as one string: the offsets are JavaScript string indices, so any
+  // detour through a Buffer would cut a multi-byte character in half.
+  const content = readFileSync(page.absPath, 'utf8');
+  const result = spliceSource(content, {
+    start: body.start as number,
+    end: body.end as number,
+    expected: body.expected,
+    text: body.text,
+  });
+  if (!result.ok) return send(res, result.status, { error: result.error });
+
+  writeFileSync(page.absPath, result.content, 'utf8');
+  // Nothing to invalidate by hand: the watcher sees the write and hot-reloads the page,
+  // which is the same path an edit in an editor takes.
+  return send(res, 200, { ok: true });
+}
+
+/**
+ * The file a request names, but only if it is a page of this site.
+ *
+ * The comparison goes through {@link canonicalise} for the same reason `/__seemore/route`
+ * does — a caller's spelling of a path is not seemore's — and it doubles as the containment
+ * check: a path that is not one of the scanned pages is not writable, whatever it points at.
+ */
+function resolvePage(ctx: SeemoreContext, file: string | null | undefined): ContentPage | undefined {
+  if (typeof file !== 'string' || file === '') return undefined;
+  const absFile = canonicalise(file);
+  return ctx.pages().find((page) => page.absPath === absFile);
+}
+
+async function readBody(req: IncomingMessage): Promise<string> {
+  const chunks: Buffer[] = [];
+  for await (const chunk of req) chunks.push(chunk as Buffer);
+  return Buffer.concat(chunks).toString('utf8');
+}
+
+function send(res: ServerResponse, status: number, payload: unknown): void {
+  res.statusCode = status;
+  res.setHeader('Content-Type', 'application/json');
+  res.end(JSON.stringify(payload));
 }
 
 /**

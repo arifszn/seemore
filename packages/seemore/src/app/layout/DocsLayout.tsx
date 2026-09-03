@@ -13,6 +13,7 @@ import { usePrefetch } from '../features/prefetch.js';
 import { PagePreview } from '../features/preview.js';
 import { useSearchHighlight } from '../features/highlight.js';
 import { useHashScroll } from '../features/anchors.js';
+import { InlineEditor } from '../features/edit.js';
 import { SeemoreProvider } from './Provider.js';
 import { Header } from './Header.js';
 import { Sidebar } from './Sidebar.js';
@@ -52,6 +53,9 @@ export function DocPage({ entry }: { entry: RouteEntry }) {
   useHashScroll();
 
   const integrated = feature('toc.integrate');
+  // Dev only, and off unless asked for: the editor writes to the user's files, and a static
+  // build has no server to write through. `import.meta.env.DEV` also keeps it out of the bundle.
+  const editable = import.meta.env.DEV && feature('content.edit');
 
   return (
     <TocProvider toc={page.toc ?? []}>
@@ -62,8 +66,9 @@ export function DocPage({ entry }: { entry: RouteEntry }) {
 
           <main className="seemore-main">
             {feature('navigation.path') ? <Breadcrumb /> : undefined}
-            <article className="seemore-article prose">
+            <article className={editable ? 'seemore-article prose seemore-editable' : 'seemore-article prose'}>
               <Content components={mdxComponents} />
+              {editable ? <InlineEditor key={entry.url} entry={entry} /> : undefined}
             </article>
 
             {config.editLink !== undefined && feature('content.action.edit') ? (
