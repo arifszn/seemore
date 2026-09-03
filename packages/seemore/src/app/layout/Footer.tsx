@@ -65,7 +65,7 @@ export function BackToTop() {
       className="seemore-back-to-top"
       onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
     >
-      <ArrowUp aria-hidden="true" />
+      <ArrowUp aria-hidden="true" className="size-3.5" />
       <span>Back to top</span>
     </button>
   );
