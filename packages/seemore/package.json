@@ -1,6 +1,6 @@
 {
   "name": "seemore",
-  "version": "1.5.4",
+  "version": "1.5.5",
   "description": "Let AI write the Markdown. Let seemore show it better — zero config documentation framework.",
   "license": "MIT",
   "type": "module",

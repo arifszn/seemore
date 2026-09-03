@@ -43,6 +43,12 @@ jobs:
             exit 1
           fi
 
-      - run: pnpm --filter seemore publish --provenance --access public --no-git-checks
+      # pnpm publish omits the readme field from the publish payload, which makes
+      # npmjs.com show "This package does not have a README" — so publish with npm,
+      # which attaches the packaged README.md to the registry metadata. prepack still
+      # copies the root README.md/LICENSE in before the tarball is built.
+      - name: Publish to npm
+        working-directory: packages/seemore
+        run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
