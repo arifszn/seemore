@@ -12,6 +12,8 @@ Install seemore from the [VS Code Marketplace](https://marketplace.visualstudio.
 2. Click the seemore icon in the editor's title bar, or right-click a folder in the explorer and choose **Open Folder in seemore**.
 3. The rendered site opens beside your editor, scoped to that file's folder.
 
+The panel runs the same dev server as `npx seemore`, so everything about the live preview works here too — including [editing a page's text in place](./features.md): double-click a paragraph in the panel, hit **Save**, and the file beside you updates.
+
 ## Commands
 
 | Command | Where | Does |
