@@ -43,14 +43,6 @@ jobs:
             exit 1
           fi
 
-      # Publish clients read the package README before lifecycle scripts run, and
-      # packages/seemore/README.md is a gitignored copy (the prepack copy lands too late
-      # for the readme metadata). Copy it in first so the registry payload carries the
-      # readme and npmjs.com renders it.
-      - name: Copy the root README/LICENSE into the package
-        working-directory: packages/seemore
-        run: cp ../../README.md ../../LICENSE .
-
       - run: pnpm --filter seemore publish --provenance --access public --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
