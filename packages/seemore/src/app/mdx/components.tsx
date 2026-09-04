@@ -14,6 +14,11 @@ import { Pdf } from './Pdf.js';
  *
  * remark rewrote content links to *based* hrefs, and React Router re-applies the
  * basename itself, so the base is stripped here to keep it from appearing twice.
+ *
+ * MDX only substitutes the `a` override for links written as Markdown syntax — a literal
+ * `<a href="…">` tag in an `.mdx` file compiles straight to a DOM element and never sees this
+ * component. `<Link>` is exposed alongside it (below, in `mdxComponents`) for exactly that
+ * case: a hand-styled internal link that still needs to navigate through the router.
  */
 function MdxLink({ href = '', children, ...props }: AnchorHTMLAttributes<HTMLAnchorElement>) {
   if (isExternalHref(href)) {
@@ -55,6 +60,9 @@ function MdxImage({ src, alt, ...props }: ComponentProps<'img'>) {
 export const mdxComponents = {
   ...defaultMdxComponents,
   a: MdxLink,
+  // For a hand-written `<a>` in `.mdx` content — MDX doesn't route those through `a` above,
+  // so `<Link href="…">` is the escape hatch when a link needs its own classes or layout.
+  Link: MdxLink,
   img: MdxImage,
   // `remark-mdx-mermaid` rewrites ```mermaid fences to <Mermaid chart="…" />, but supplies no
   // component of its own — this is ours.
