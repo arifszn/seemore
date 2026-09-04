@@ -121,6 +121,22 @@ export function seemorePlugin({ ctx, serveSearch = false }: SeemorePluginOptions
 
     configureServer(devServer) {
       server = devServer;
+
+      // Vite's own base middleware redirects "/" to the base, but not the bare base path
+      // itself without its trailing slash — that falls through to its 404 instead. Registered
+      // directly (not from the returned post-hook) so it runs before that internal middleware.
+      const { base } = ctx.config;
+      if (base !== '/') {
+        const bareBase = base.slice(0, -1);
+        devServer.middlewares.use((req, res, next) => {
+          const [path = ''] = (req.url ?? '').split('?');
+          if (path !== bareBase) return next();
+          const query = (req.url ?? '').slice(path.length);
+          res.writeHead(302, { Location: base + query });
+          res.end();
+        });
+      }
+
       if (!serveSearch) return;
 
       // The same JSON the build emits, at the same path, so the client has one code path.
