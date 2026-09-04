@@ -88,6 +88,14 @@ export function spawnDevServer(options: SpawnDevServerOptions): Promise<SpawnedD
       settled = true;
       clearTimeout(timer);
       rl.close();
+      // Readiness is the last output this module reads. The server keeps logging for its
+      // whole lifetime (vite prints a line for every markdown save), and a detached
+      // readline leaves stdout paused — the pipe would fill until the child blocks on
+      // write. Drain stdout from here on, and drop the stderr accumulator with it: it only
+      // feeds the not-ready exit message below, which by definition runs before this.
+      child.stdout.resume();
+      child.stderr.removeAllListeners();
+      child.stderr.resume();
       fn();
     };
 

@@ -68,6 +68,23 @@ describe('spawnDevServer', () => {
     }
   });
 
+  it('drains the server output after readiness instead of buffering it', async () => {
+    const cliEntry = script(`
+      console.log(JSON.stringify({ url: 'http://localhost:9999/', port: 9999, contentRoot: '/repo/docs', pageCount: 2 }));
+      setInterval(() => { console.log('post-ready log line'); }, 10);
+    `);
+
+    const result = await spawnDevServer({ cliEntry, root: '/repo/docs' });
+    try {
+      // Settle detaches readline, which leaves stdout paused; a paused pipe fills until
+      // the child blocks on write, so both streams have to be draining afterwards.
+      expect(result.process.stdout.readableFlowing).toBe(true);
+      expect(result.process.stderr.listenerCount('data')).toBe(0);
+    } finally {
+      result.process.kill();
+    }
+  });
+
   it('rejects when the process exits before printing a ready line', async () => {
     const cliEntry = script(`
       console.error('fatal: something went wrong');
