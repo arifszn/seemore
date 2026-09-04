@@ -6,9 +6,42 @@ order: 4
 
 # Publishing
 
+<CodeBlockTabs defaultValue="npm">
+  <CodeBlockTabsList>
+    <CodeBlockTabsTrigger value="npm">npm</CodeBlockTabsTrigger>
+    <CodeBlockTabsTrigger value="pnpm">pnpm</CodeBlockTabsTrigger>
+    <CodeBlockTabsTrigger value="yarn">yarn</CodeBlockTabsTrigger>
+    <CodeBlockTabsTrigger value="bun">bun</CodeBlockTabsTrigger>
+  </CodeBlockTabsList>
+  <CodeBlockTab value="npm">
+
 ```bash
 npx seemore build  # static export to dist/ for any host
 ```
+
+  </CodeBlockTab>
+  <CodeBlockTab value="pnpm">
+
+```bash
+pnpm dlx seemore build  # static export to dist/ for any host
+```
+
+  </CodeBlockTab>
+  <CodeBlockTab value="yarn">
+
+```bash
+yarn dlx seemore build  # static export to dist/ for any host
+```
+
+  </CodeBlockTab>
+  <CodeBlockTab value="bun">
+
+```bash
+bunx seemore build  # static export to dist/ for any host
+```
+
+  </CodeBlockTab>
+</CodeBlockTabs>
 
 The result is a `dist/` folder of plain web files: drop it on [Netlify](https://netlify.com), [Surge](https://surge.sh), [Cloudflare Pages](https://pages.cloudflare.com) or [GitHub Pages](https://pages.github.com), or hand it to any web host. Every page is prerendered to its own `index.html`, next to a `404.html` that every static host honours. On top of that, the small conventions individual hosts look for — `_redirects` for Netlify and Cloudflare Pages, `200.html` for Surge, `.nojekyll` for GitHub Pages — are written for you.
 

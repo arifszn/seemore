@@ -3,6 +3,7 @@ export default {
   description: 'Let AI write the Markdown. Let seemore show it better — zero config documentation framework.',
   base: '/seemore/',
   theme: 'neutral',
+  css: './custom.css',
   nav: [{ text: 'GitHub', link: 'https://github.com/arifszn/seemore' }],
   footer: { text: '© 2026 seemore. MIT Licensed.' },
   editLink: {

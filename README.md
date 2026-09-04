@@ -63,12 +63,12 @@ And whichever preview is open, the page is also an editor: **double-click any pa
 - **Zero config** — no config file, no code, no files to move; a plain folder of Markdown works in the browser, in your editor, and as a static build
 - **Live preview** — add, rename, retitle or delete a file and the site updates immediately, navigation and search included
 - **Edit in place** — double-click any block in the preview to fix its Markdown; saves are surgical, so `git diff` shows the sentence you changed and nothing else
+- **Full MDX** — when Markdown isn't enough, `.mdx` pages take real JSX: your own React components, inline SVG, custom classes and CSS; `<Callout>`, `<Card>`, `<CodeBlockTabs>` and friends come built in, with no imports to write
 - **Static export** — `seemore build` prerenders every page to its own HTML file, `404.html` included, and adds the conventions individual hosts look for (`_redirects`, `200.html`, `.nojekyll`)
 - **Search built in** — static, zero-setup full-text search out of the box, with shareable highlighted results; [Algolia](https://algolia.com) and [Orama Cloud](https://orama.com) for hosted indexes
 - **12 themes** — dark and light follow the system, with a toggle that remembers your choice; your own CSS always wins
 - **Rich Markdown** — GitHub Flavoured Markdown, admonitions, steps, `[[wikilinks]]`, [Mermaid](https://mermaid.js.org) and [D2](https://d2lang.com) diagrams, click-to-zoom images, embedded PDFs
 - **First-class code blocks** — build-time [Shiki](https://shiki.style) highlighting in the theme's own colours, with titles, line numbers, diff markers and focus
-- **MDX components** — `<Callout>`, `<Card>`, `<CodeBlockTabs>` and friends, with no imports to write
 - **Editor integration** — one extension covers VS Code, Cursor, Antigravity and other VS Code-compatible editors, remote workspaces included
 
 ## View in your browser

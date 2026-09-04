@@ -6,9 +6,42 @@ order: 2
 
 # Getting started
 
+<CodeBlockTabs defaultValue="npm">
+  <CodeBlockTabsList>
+    <CodeBlockTabsTrigger value="npm">npm</CodeBlockTabsTrigger>
+    <CodeBlockTabsTrigger value="pnpm">pnpm</CodeBlockTabsTrigger>
+    <CodeBlockTabsTrigger value="yarn">yarn</CodeBlockTabsTrigger>
+    <CodeBlockTabsTrigger value="bun">bun</CodeBlockTabsTrigger>
+  </CodeBlockTabsList>
+  <CodeBlockTab value="npm">
+
 ```bash
 npx seemore     # view the current folder in your browser, live, no setup
 ```
+
+  </CodeBlockTab>
+  <CodeBlockTab value="pnpm">
+
+```bash
+pnpm dlx seemore     # view the current folder in your browser, live, no setup
+```
+
+  </CodeBlockTab>
+  <CodeBlockTab value="yarn">
+
+```bash
+yarn dlx seemore     # view the current folder in your browser, live, no setup
+```
+
+  </CodeBlockTab>
+  <CodeBlockTab value="bun">
+
+```bash
+bunx seemore     # view the current folder in your browser, live, no setup
+```
+
+  </CodeBlockTab>
+</CodeBlockTabs>
 
 Run it in your folder of Markdown files (Node.js 20 or newer) and open the address it prints — `http://localhost:4040` by default. From there it's live: add, rename, retitle or delete a file and the site updates immediately, navigation and search included. Point it at a subfolder with `npx seemore docs` if that's where your files live.
 

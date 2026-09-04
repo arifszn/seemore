@@ -62,7 +62,7 @@ An `.mdx` file can use these without importing anything:
 | --- | --- |
 | `<Callout type="warn" title="…">` | The box `:::note` produces. `type` is `info`, `warn`, `error`, `success` or `idea` |
 | `<Card>`, `<Cards>` | The link cards the generated index page is built from |
-| `<CodeBlockTabs>` | One code block per tab — npm, pnpm, yarn |
+| `<CodeBlockTabs>` | One code block per tab — npm, pnpm, yarn, bun |
 | `<Mermaid>`, `<D2>` | What a ` ```mermaid ` or ` ```d2 ` code fence compiles to; usable directly |
 | `<Pdf>` | The viewer a linked PDF opens in |
 
