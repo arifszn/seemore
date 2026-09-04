@@ -174,7 +174,16 @@ export function remarkSeemoreAssets(options: SeemoreRemarkOptions): Transformer<
       if (parent === undefined || index === undefined) return;
       if (isExternal(node.url) || node.url.startsWith('/')) return;
 
-      const target = resolve(dir, decodeURIComponent(node.url.split(/[?#]/)[0] ?? ''));
+      const raw = node.url.split(/[?#]/)[0] ?? '';
+      let decoded: string;
+      try {
+        decoded = decodeURIComponent(raw);
+      } catch {
+        // A raw `%` that is not a valid escape (e.g. `50%.png`) throws, and a throw from a
+        // transformer fails the whole build. The literal spelling is still worth a check.
+        decoded = raw;
+      }
+      const target = resolve(dir, decoded);
       if (existsSync(target)) return;
 
       options.onWarning(`Missing asset ${node.url} referenced by ${from}.`);
