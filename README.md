@@ -47,7 +47,7 @@ AI tools write Markdown — specs, notes, guides, READMEs, whole folders of it, 
 **seemore** points at that folder and renders it as a proper site instead, without you moving a single file or writing any code.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/home.png" alt="The seemore site: a terminal typing npx seemore to serve a folder of notes at localhost:4040, with an arrow pointing to the rendered page preview" width="640"/>
+  <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/home.png" alt="The seemore site: a terminal typing npx seemore to serve a folder of notes at localhost:4040, with an arrow pointing to the browser preview" width="640"/>
 </p>
 
 Three ways to use it:

@@ -23,6 +23,12 @@
   max-width: 20ch;
 }
 
+/* the MDX renderer wraps the heading's content in a <p>, which — being a flex
+   item's child — traps its prose margins instead of collapsing them away */
+.seemore-hero-title p {
+  margin: 0;
+}
+
 .seemore-hero-title-quiet {
   color: var(--color-fd-muted-foreground);
 }
@@ -152,7 +158,7 @@
 .seemore-cli-body {
   padding: 0.95rem 1.1rem 1.1rem;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   line-height: 1.75;
   color: #e8e8ea;
   overflow-x: auto;
@@ -250,25 +256,70 @@
 }
 
 .seemore-browser-page {
+  display: flex;
+  align-items: stretch;
+  min-height: 10.5rem;
+}
+
+/* — a miniature docs sidebar, always "loaded" — */
+
+.seemore-browser-side {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  width: 3.6rem;
+  flex-shrink: 0;
+  padding: 0.7rem 0.5rem;
+  border-right: 1px solid #f0f0f0;
+  background: #fafafa;
+}
+
+.seemore-browser-side-brand {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 0.18rem;
+  background: #1d1d1f;
+  margin-bottom: 0.3rem;
+}
+
+.seemore-browser-side-item {
+  height: 0.3rem;
+  border-radius: 999px;
+  background: #ececef;
+}
+
+.seemore-browser-side-item:nth-child(3) {
+  width: 78%;
+  background: #dcdcdf;
+}
+
+.seemore-browser-side-item:nth-child(4) {
+  width: 88%;
+}
+
+.seemore-browser-side-item:nth-child(5) {
+  width: 64%;
+}
+
+.seemore-browser-side-item:nth-child(6) {
+  width: 80%;
+}
+
+.seemore-browser-main {
+  flex: 1;
+  min-width: 0;
   display: grid;
   align-items: center;
-  min-height: 10.5rem;
-  padding: 0.9rem 1.05rem 1rem;
+  padding: 0.8rem 0.95rem 0.9rem;
 }
 
 /* — skeleton shown while the "page loads", stacked under the content — */
 
-.seemore-browser-skeleton,
-.seemore-browser-view {
-  grid-area: 1 / 1;
-}
-
 .seemore-browser-skeleton {
+  grid-area: 1 / 1;
   display: flex;
   flex-direction: column;
   gap: 0.95rem;
-  opacity: 1;
-  animation: seemore-browser-sk 7.5s ease infinite;
 }
 
 .seemore-sk-bar {
@@ -311,69 +362,6 @@
 .seemore-sk-w55 {
   width: 55%;
   margin-left: 1.28rem;
-}
-
-.seemore-browser-view {
-  opacity: 0;
-  line-height: 1.45;
-  animation: seemore-browser-in 7.5s ease infinite;
-}
-
-/* the docs typography adds margins to page elements — this preview sets its own */
-.seemore-browser-view > * {
-  margin: 0;
-}
-
-.seemore-browser-h {
-  margin-bottom: 0.6rem;
-  padding-bottom: 0.45rem;
-  border-bottom: 1px solid #f0f0f0;
-  font-size: 0.85rem;
-  font-weight: 650;
-  letter-spacing: -0.01em;
-  color: #1d1d1f;
-}
-
-.seemore-browser-li {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.24rem 0;
-  font-size: 0.7rem;
-  color: #424245;
-}
-
-.seemore-browser-box {
-  width: 0.78rem;
-  height: 0.78rem;
-  flex-shrink: 0;
-  border: 1px solid #c7c7cc;
-  border-radius: 0.22rem;
-}
-
-.seemore-browser-box-done {
-  position: relative;
-  background: #32d74b;
-  border-color: #32d74b;
-}
-
-.seemore-browser-box-done::after {
-  content: '✓';
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  font-size: 0.5rem;
-  font-weight: 700;
-  color: #ffffff;
-}
-
-.seemore-browser-quote {
-  margin-top: 0.55rem;
-  padding-left: 0.6rem;
-  border-left: 2px solid #32d74b;
-  font-size: 0.7rem;
-  color: #6e6e73;
 }
 
 /* — one 7.5s loop: type, serve, arrow, page appears, reset — */
@@ -454,43 +442,6 @@
   }
 }
 
-@keyframes seemore-browser-in {
-  0%,
-  36% {
-    opacity: 0;
-    transform: translateY(5px);
-  }
-
-  46%,
-  86% {
-    opacity: 1;
-    transform: none;
-  }
-
-  92%,
-  100% {
-    opacity: 0;
-    transform: translateY(5px);
-  }
-}
-
-@keyframes seemore-browser-sk {
-  0%,
-  32% {
-    opacity: 1;
-  }
-
-  42%,
-  86% {
-    opacity: 0;
-  }
-
-  96%,
-  100% {
-    opacity: 1;
-  }
-}
-
 @keyframes seemore-sk-pulse {
   0%,
   100% {
@@ -533,24 +484,16 @@
   .seemore-cli-caret,
   .seemore-cli-out,
   .seemore-hero-arrow,
-  .seemore-browser-view,
-  .seemore-browser-skeleton,
   .seemore-sk-bar,
   .seemore-sk-box {
     animation: none;
-  }
-
-  /* content shown statically — the skeleton underneath must go */
-  .seemore-browser-skeleton {
-    display: none;
   }
 
   .seemore-cli-typed {
     width: 11ch;
   }
 
-  .seemore-cli-out,
-  .seemore-browser-view {
+  .seemore-cli-out {
     opacity: 1;
     transform: none;
   }
