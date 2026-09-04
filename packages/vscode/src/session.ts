@@ -33,6 +33,8 @@ export class SeemoreSession {
 
   private liveRoot: string | undefined;
   private devServer: SpawnedDevServer | undefined;
+  /** Set by {@link dispose}, which — unlike openFile/openFolder — does not go through the queue. */
+  private disposed = false;
   private closeTimer: NodeJS.Timeout | undefined;
   /** Serializes openFile/openFolder so two quick clicks respawn once each, in order, rather than racing and orphaning a process. */
   private queue: Promise<void> = Promise.resolve();
@@ -88,6 +90,7 @@ export class SeemoreSession {
   }
 
   dispose(): void {
+    this.disposed = true;
     this.cancelCloseTimer();
     this.statusBarItem.dispose();
     this.panel.dispose();
@@ -131,6 +134,12 @@ export class SeemoreSession {
         override: vscode.workspace.getConfiguration('seemore').get<string>('path'),
       });
       const spawned = await spawnDevServer({ cliEntry, root });
+      if (this.disposed) {
+        // dispose() ran while the spawn was in flight, so stopServer above already saw an
+        // empty devServer; assigning now would orphan a child nobody will ever stop.
+        spawned.process.kill();
+        return;
+      }
       this.devServer = spawned;
       this.liveRoot = spawned.ready.contentRoot;
       this.updateStatusBar();
