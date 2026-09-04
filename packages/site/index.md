@@ -1,5 +1,5 @@
 ---
-title: seemore
+title: Home
 description: Let AI write the Markdown. Let seemore show it better — zero config documentation framework.
 order: 1
 ---
