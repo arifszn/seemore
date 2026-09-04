@@ -55,7 +55,7 @@ Three ways to use it:
 And whichever preview is open, the page is also an editor: **double-click any paragraph to fix its Markdown in place**, and the change is written straight back to the file.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/inline-editor.png" alt="seemore rendering a folder of Markdown in the browser, with a paragraph's Markdown source open in the inline editor" width="640"/>
+  <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/home.png" alt="The seemore site: a terminal typing npx seemore to serve a folder of notes at localhost:4040, with an arrow pointing to the rendered page preview" width="640"/>
 </p>
 
 ## Features
@@ -78,6 +78,22 @@ npx seemore     # view the current folder in your browser, live, no setup
 ```
 
 Run it in your folder of Markdown files (Node.js 20 or newer) and open the address it prints — `http://localhost:4040` by default. From there it's live: add, rename, retitle or delete a file and the site updates immediately. Point it at a subfolder with `npx seemore docs` if that's where your files live.
+
+## Edit your files from the browser
+
+The preview is not just for reading — it is the fastest way to fix what you are reading. Double-click any paragraph, heading, list item, quote or table cell and it opens in a small editor holding that block's **Markdown source**: `**bold**` stays `**bold**`, links stay links, tables stay tables. Fix the text and hit **Save** and the change is written to the file on disk.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/inline-editor.png" alt="seemore rendering a folder of Markdown in the browser, with a paragraph's Markdown source open in the inline editor" width="640"/>
+</p>
+
+Inline editing is for local previews only — `seemore build` output is static, so nothing is emitted there. It is on by default in dev; switch it off with the `!` prefix:
+
+```ts
+export default {
+  features: ['!content.edit'],
+};
+```
 
 ## View in your code editor
 
@@ -104,18 +120,6 @@ Install **seemore** from the [VS Code Marketplace](https://marketplace.visualstu
 | Setting | Default | Effect |
 | --- | --- | --- |
 | `seemore.path` | *(bundled copy)* | Path to a `seemore` CLI entry point to use instead of the version bundled with the extension. Leave empty unless you're developing **seemore** itself. |
-
-## Edit your files from the browser
-
-The preview is not just for reading — it is the fastest way to fix what you are reading. Double-click any paragraph, heading, list item, quote or table cell and it opens in a small editor holding that block's **Markdown source**: `**bold**` stays `**bold**`, links stay links, tables stay tables. Fix the text and hit **Save** and the change is written to the file on disk.
-
-Inline editing is for local previews only — `seemore build` output is static, so nothing is emitted there. It is on by default in dev; switch it off with the `!` prefix:
-
-```ts
-export default {
-  features: ['!content.edit'],
-};
-```
 
 ## Publish it to the web
 
