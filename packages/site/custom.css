@@ -742,6 +742,44 @@
   max-width: 56ch;
 }
 
+.seemore-section-head p + p {
+  margin-top: 0.6rem;
+}
+
+/* ---------- Who is seemore for? ---------- */
+
+.seemore-uses {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem 2rem;
+}
+
+.seemore-use {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--color-fd-border);
+}
+
+.seemore-use-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.seemore-use-desc {
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--color-fd-muted-foreground);
+}
+
+@media (max-width: 767px) {
+  .seemore-uses {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 /* ---------- Screenshot frame ---------- */
 
 .seemore-shot {

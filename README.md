@@ -58,6 +58,19 @@ Three ways to use it:
 
 And whichever preview is open, the page is also an editor: **double-click any paragraph to fix its Markdown in place**, and the change is written straight back to the file.
 
+## Who is seemore for?
+
+If your documentation is a folder of Markdown files, seemore helps you browse, review, edit and publish it with almost no setup.
+
+Typical use cases include:
+
+- **Review AI-generated documentation** — when you're buried under AI-written Markdown and need a faster way to browse, search and edit it instead of opening files one by one.
+- **Present documentation** — turn a folder of Markdown into a polished website for teammates, clients or the public without moving files into another system.
+- **Zero-setup documentation** — point seemore at an existing folder and it just works, with no migration, configuration or project structure to learn.
+- **Project documentation** — READMEs, architecture docs, RFCs, API documentation, specifications and engineering handbooks.
+- **Documentation review** — read rendered pages instead of raw Markdown while making fixes directly from the preview.
+- **Static documentation sites** — publish the same Markdown with `seemore build` instead of maintaining a separate documentation stack.
+
 ## Features
 
 - **Zero config** — no config file, no code, no files to move; a plain folder of Markdown works in the browser, in your editor, and as a static build
