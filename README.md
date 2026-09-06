@@ -126,7 +126,7 @@ Install **seemore** from the [VS Code Marketplace](https://marketplace.visualstu
 | --- | --- | --- |
 | **Open in seemore** | Editor title bar, on any Markdown file | Renders that file's folder as a site |
 | **Open Folder in seemore** | Explorer, right-click a folder | Renders that folder as a site and pins it as the root |
-| **Pin Current Root** | Status bar item, while a site is open | Pins the currently-serving root for this workspace |
+| **Choose Root** | Status bar item, or the command palette | Pins the folder being served, clears a pinned root, or picks another folder to serve |
 
 ### Settings
 

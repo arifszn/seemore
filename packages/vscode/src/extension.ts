@@ -14,7 +14,7 @@ export function activate(context: vscode.ExtensionContext): void {
       if (uri === undefined) return;
       void session.openFolder(uri);
     }),
-    vscode.commands.registerCommand('seemore.pinLiveRoot', () => void session.pinLiveRoot()),
+    vscode.commands.registerCommand('seemore.chooseRoot', () => void session.chooseRoot()),
   );
 }
 

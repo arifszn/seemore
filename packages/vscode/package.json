@@ -31,8 +31,8 @@
         "category": "seemore"
       },
       {
-        "command": "seemore.pinLiveRoot",
-        "title": "Pin Current Root",
+        "command": "seemore.chooseRoot",
+        "title": "Choose Root",
         "category": "seemore"
       }
     ],

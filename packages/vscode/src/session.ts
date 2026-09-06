@@ -22,6 +22,7 @@ import { canonicalise, hasSeemoreConfig, resolveRelativePosix } from './pathUtil
 import { createPinnedRootStore, type PinnedRootStore } from './pinnedRoot.js';
 import { fetchRoute } from './route.js';
 import { resolveInitialRoot } from './root.js';
+import { rootActionItems } from './rootActions.js';
 
 /** Close-and-reopen inside this window skips the boot cost of spawning a new server. */
 const CLOSE_GRACE_MS = 30_000;
@@ -80,13 +81,53 @@ export class SeemoreSession {
   }
 
   /**
-   * The status bar item's click action. Pins the live root so it stops being re-derived on
-   * the next cold start — the closest thing to an "undo" now that there is no widen to undo.
+   * The status bar item's click action, and the palette's "Choose Root": what folder this
+   * workspace serves, and whether that choice is sticky.
+   *
+   * Deliberately not queued. `openFolder` below is, and this delegates to it — but the
+   * QuickPick and folder dialog wait on a human, and holding the queue across that would
+   * block every "Open in seemore" click behind an open dropdown.
    */
-  async pinLiveRoot(): Promise<void> {
-    if (this.liveRoot === undefined) return;
-    await this.pinned.set(this.liveRoot);
-    void vscode.window.showInformationMessage(`seemore: pinned "${this.liveRoot}" as the root for this workspace.`);
+  async chooseRoot(): Promise<void> {
+    const pinned = this.pinned.get();
+    const liveRoot = this.liveRoot;
+
+    const picked = await vscode.window.showQuickPick(rootActionItems({ liveRoot, pinned }), {
+      title: liveRoot === undefined ? 'seemore' : `seemore: serving ${liveRoot}`,
+      placeHolder: pinned === undefined ? 'No pinned root' : `Pinned root: ${pinned}`,
+    });
+    if (picked === undefined) return;
+
+    switch (picked.action) {
+      case 'pin':
+        if (liveRoot === undefined) return;
+        await this.pinned.set(liveRoot);
+        void vscode.window.showInformationMessage(`seemore: pinned "${liveRoot}" as the root for this workspace.`);
+        return;
+
+      case 'unpin':
+        await this.pinned.set(undefined);
+        // The running server is left alone: clearing the pin changes where the *next* click
+        // resolves to, not what is on screen now.
+        void vscode.window.showInformationMessage(
+          'seemore: cleared the pinned root. The next file you open resolves its own root again.',
+        );
+        return;
+
+      case 'choose': {
+        const chosen = await vscode.window.showOpenDialog({
+          canSelectFiles: false,
+          canSelectFolders: true,
+          canSelectMany: false,
+          openLabel: 'Open in seemore',
+          defaultUri: liveRoot === undefined ? undefined : vscode.Uri.file(liveRoot),
+        });
+        const folder = chosen?.[0];
+        if (folder === undefined) return;
+        await this.openFolder(folder);
+        return;
+      }
+    }
   }
 
   dispose(): void {
@@ -227,8 +268,8 @@ export class SeemoreSession {
       return;
     }
     this.statusBarItem.text = `$(book) seemore: ${basename(this.liveRoot)}`;
-    this.statusBarItem.tooltip = `Serving ${this.liveRoot}\nClick to pin this folder instead of re-resolving it.`;
-    this.statusBarItem.command = 'seemore.pinLiveRoot';
+    this.statusBarItem.tooltip = `Serving ${this.liveRoot}\nClick to pin this folder, clear a pinned root, or choose another.`;
+    this.statusBarItem.command = 'seemore.chooseRoot';
     this.statusBarItem.show();
   }
 }
