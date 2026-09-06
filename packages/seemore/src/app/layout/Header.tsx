@@ -4,17 +4,31 @@ import { useSearchContext } from 'fumadocs-ui/contexts/search';
 import { SidebarTrigger } from 'fumadocs-ui/components/sidebar/base';
 import { useTheme } from 'fumadocs-ui/provider/base';
 import { config } from 'virtual:seemore/config';
+import { useSidebarCollapse } from './Sidebar.js';
 
 export function Header() {
   const search = useSearchContext();
   const { resolvedTheme, setTheme } = useTheme();
   const location = useLocation();
+  const { collapsed, toggle } = useSidebarCollapse();
 
   return (
     <header className="seemore-header">
+      {/* Two triggers, one slot: below `md` the sidebar is a drawer this opens over the page,
+          and at `md` and up it is a rail this hides, leaving the article the room. */}
       <SidebarTrigger className="seemore-sidebar-trigger" aria-label="Toggle navigation">
         <PanelLeft />
       </SidebarTrigger>
+
+      <button
+        type="button"
+        className="seemore-sidebar-collapse"
+        aria-label={collapsed ? 'Show navigation' : 'Hide navigation'}
+        aria-expanded={!collapsed}
+        onClick={toggle}
+      >
+        <PanelLeft aria-hidden="true" />
+      </button>
 
       <Link to="/" className="seemore-brand" viewTransition>
         {config.title}

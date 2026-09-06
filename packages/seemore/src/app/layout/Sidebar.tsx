@@ -1,4 +1,4 @@
-import { useEffect, type ComponentProps, type ReactNode } from 'react';
+import { useCallback, useEffect, useLayoutEffect, type ComponentProps, type ReactNode } from 'react';
 import {
   SidebarFolder as BaseFolder,
   SidebarFolderContent as BaseFolderContent,
@@ -43,11 +43,54 @@ const styled = {
 
 const renderPageTree = createPageTreeRenderer(styled);
 
+const COLLAPSE_KEY = 'seemore:sidebar-collapsed';
+
+/* `useLayoutEffect` does nothing on the server and says so in a warning; the prerender pass
+   takes `useEffect`, which it never runs either. */
+const useIsomorphicLayoutEffect = typeof document === 'undefined' ? useEffect : useLayoutEffect;
+
+/**
+ * Hiding the rail is a reader's preference, like the theme, so it outlives the page rather
+ * than resetting on the next load. fumadocs owns the state itself — every primitive reads
+ * `collapsed` from the same context — this only teaches it to persist, and gives the header
+ * a trigger to call.
+ */
+export function useSidebarCollapse(): { collapsed: boolean; toggle: () => void } {
+  const { collapsed, setCollapsed } = useSidebar();
+
+  const toggle = useCallback(() => {
+    const next = !collapsed;
+    try {
+      localStorage.setItem(COLLAPSE_KEY, String(next));
+    } catch {
+      // Storage blocked, private window: the choice just does not outlive the page.
+    }
+    setCollapsed(next);
+  }, [collapsed, setCollapsed]);
+
+  return { collapsed, toggle };
+}
+
+/** Applied before paint, so a remembered collapse does not flash the rail open first. */
+function useRestoreCollapse(): void {
+  const { setCollapsed } = useSidebar();
+
+  useIsomorphicLayoutEffect(() => {
+    try {
+      if (localStorage.getItem(COLLAPSE_KEY) === 'true') setCollapsed(true);
+    } catch {
+      // Nothing readable is nothing to restore; the rail stays open.
+    }
+  }, [setCollapsed]);
+}
+
 export function Sidebar({ children }: { children?: ReactNode }) {
   // Below `md` the sidebar is a drawer, and the header's trigger is what opens it. Without
   // reading that state the trigger is decorative: the panel is hidden by CSS alone.
-  const { open, setOpen } = useSidebar();
+  const { open, setOpen, collapsed } = useSidebar();
   const url = useRouteUrl();
+
+  useRestoreCollapse();
 
   // Following a link should not leave the drawer covering the page you asked for.
   useEffect(() => {
@@ -79,7 +122,7 @@ export function Sidebar({ children }: { children?: ReactNode }) {
         />
       ) : undefined}
 
-      <div className="seemore-sidebar-column" data-open={open}>
+      <div className="seemore-sidebar-column" data-open={open} data-collapsed={collapsed}>
         <aside className="seemore-sidebar" aria-label="Documentation navigation">
           {/* `toc.integrate` passes the table of contents as children: it belongs inside the
               viewport, so nav and TOC scroll together rather than the TOC sitting below a

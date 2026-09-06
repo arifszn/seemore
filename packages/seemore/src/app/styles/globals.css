@@ -26,8 +26,31 @@
     @apply truncate;
   }
 
+  /* One glyph in one slot, whichever trigger is showing: at header scale the panel icon
+     reads as "navigation", and which way it will move is the label's job, not a second
+     arrow's. Sized and muted to sit with the search and theme buttons rather than shout
+     over them. */
+  .seemore-sidebar-trigger,
+  .seemore-sidebar-collapse {
+    @apply shrink-0 rounded-lg p-1.5 text-fd-muted-foreground transition-colors;
+  }
+
+  .seemore-sidebar-trigger:hover,
+  .seemore-sidebar-collapse:hover {
+    @apply bg-fd-accent text-fd-accent-foreground;
+  }
+
+  .seemore-sidebar-trigger svg,
+  .seemore-sidebar-collapse svg {
+    @apply size-5;
+  }
+
   .seemore-sidebar-trigger {
-    @apply shrink-0 md:hidden;
+    @apply md:hidden;
+  }
+
+  .seemore-sidebar-collapse {
+    @apply hidden md:inline-flex;
   }
 
   .seemore-brand {
@@ -150,6 +173,12 @@
 
   .seemore-sidebar-column[data-open='true'] {
     @apply translate-x-0 rtl:translate-x-0;
+  }
+
+  /* Collapse is the rail's state alone. Below `md` the same column is the drawer, which has
+     its own trigger and its own reason to be open, so the collapsed choice must not reach it. */
+  .seemore-sidebar-column[data-collapsed='true'] {
+    @apply md:hidden;
   }
 
   .seemore-sidebar-backdrop {
