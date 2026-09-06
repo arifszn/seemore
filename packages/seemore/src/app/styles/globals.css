@@ -185,8 +185,11 @@
     @apply fixed inset-0 z-30 bg-black/40 md:hidden;
   }
 
+  /* A flex column, so the site footer can take `mt-auto`: on a page too short to fill the
+     viewport it settles at the bottom instead of floating mid-screen, and on a long one the
+     `gap-10` is all that separates it from the content above. */
   .seemore-main {
-    @apply mx-auto min-w-0 max-w-3xl flex-1 px-4 py-8 md:px-8;
+    @apply mx-auto flex min-w-0 max-w-3xl flex-1 flex-col gap-10 px-4 py-8 md:px-8;
   }
 
   /* Docs are full of long identifiers — `EmbeddedPaymentsController`,
@@ -224,7 +227,7 @@
   }
 
   .seemore-page-footer {
-    @apply mt-10 grid grid-cols-2 gap-4 border-t border-fd-border pt-6 text-sm;
+    @apply grid grid-cols-2 gap-4 border-t border-fd-border pt-6 text-sm;
   }
 
   .seemore-next {
@@ -236,11 +239,11 @@
   }
 
   .seemore-edit-link {
-    @apply mt-8 inline-flex items-center gap-2 text-sm text-fd-muted-foreground;
+    @apply inline-flex items-center gap-2 self-start text-sm text-fd-muted-foreground;
   }
 
   .seemore-site-footer {
-    @apply mt-10 flex flex-wrap gap-4 border-t border-fd-border pt-6 text-sm text-fd-muted-foreground;
+    @apply mt-auto flex flex-wrap gap-4 border-t border-fd-border pt-6 text-sm text-fd-muted-foreground;
   }
 
   /* The generated index page: pages as cards, folders as titled sections of cards. */
