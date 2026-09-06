@@ -25,8 +25,11 @@ export const FEATURES = [
 ] as const;
 
 export type Feature = (typeof FEATURES)[number];
-/** What a user may write in `features`: a flag, or `!flag` to switch a default-on flag off. */
+/** What a user writes in `features`: the flags they are changing, each set on or off. */
+export type FeatureMap = Partial<Record<Feature, boolean>>;
+/** @deprecated The array form, where a `!` prefix means off. Write {@link FeatureMap} instead. */
 export type FeatureFlag = Feature | `!${Feature}`;
+export type FeaturesInput = FeatureMap | readonly FeatureFlag[];
 export type ResolvedFeatures = Record<Feature, boolean>;
 
 export interface NavItem {

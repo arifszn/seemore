@@ -31,9 +31,21 @@ describe('resolveConfig defaults', () => {
     expect(() => resolveConfig({ theme: 'nope' as never }, { root: '/tmp/x' })).toThrow(/vitepress/);
   });
 
-  it('rejects an unknown feature flag, naming the field', () => {
-    expect(() => resolveConfig({ features: ['navigation.instant.turbo' as never] }, { root: '/tmp/x' })).toThrow(
-      /features/,
+  it('rejects an unknown feature flag, naming it and the valid ones', () => {
+    expect(() => resolveConfig({ features: { 'navigation.instant.turbo': true } as never }, { root: '/tmp/x' })).toThrow(
+      /navigation\.instant\.turbo.*navigation\.instant\.prefetch/s,
+    );
+  });
+
+  it('rejects an unknown flag in the array form too, after folding off the ! prefix', () => {
+    expect(() => resolveConfig({ features: ['!navigation.instant.turbo' as never] }, { root: '/tmp/x' })).toThrow(
+      /navigation\.instant\.turbo/,
+    );
+  });
+
+  it('rejects a non-boolean flag value, naming the flag', () => {
+    expect(() => resolveConfig({ features: { 'navigation.path': 'yes' } as never }, { root: '/tmp/x' })).toThrow(
+      /features\.navigation\.path.*boolean/s,
     );
   });
 });
@@ -48,14 +60,28 @@ describe('feature flags', () => {
     expect(isFeatureEnabled(features, 'social.cards')).toBe(false);
   });
 
-  it('enables an opt-in flag', () => {
-    const { features } = resolveConfig({ features: ['navigation.path'] }, { root: '/tmp/x' });
+  it('enables an opt-in flag and disables a default-on one', () => {
+    const { features } = resolveConfig(
+      { features: { 'navigation.path': true, 'content.code.copy': false } },
+      { root: '/tmp/x' },
+    );
     expect(isFeatureEnabled(features, 'navigation.path')).toBe(true);
+    expect(isFeatureEnabled(features, 'content.code.copy')).toBe(false);
   });
 
-  it('disables a default-on flag with the ! prefix', () => {
-    const { features } = resolveConfig({ features: ['!content.code.copy'] }, { root: '/tmp/x' });
-    expect(isFeatureEnabled(features, 'content.code.copy')).toBe(false);
+  it('leaves unmentioned flags at their defaults', () => {
+    const { features } = resolveConfig({ features: { 'navigation.path': true } }, { root: '/tmp/x' });
+    expect(isFeatureEnabled(features, 'toc.follow')).toBe(true);
+    expect(isFeatureEnabled(features, 'social.cards')).toBe(false);
+  });
+
+  it('reads the superseded array form as the same map', () => {
+    const viaArray = resolveConfig({ features: ['navigation.path', '!content.code.copy'] }, { root: '/tmp/x' });
+    const viaMap = resolveConfig(
+      { features: { 'navigation.path': true, 'content.code.copy': false } },
+      { root: '/tmp/x' },
+    );
+    expect(viaArray.features).toEqual(viaMap.features);
   });
 
   it('turns on content.action.edit implicitly when editLink is set', () => {
@@ -63,22 +89,36 @@ describe('feature flags', () => {
     expect(isFeatureEnabled(features, 'content.action.edit')).toBe(true);
   });
 
-  it('rejects toc.integrate together with toc.follow, naming both flags', () => {
-    expect(() => resolveConfig({ features: ['toc.integrate'] }, { root: '/tmp/x' })).toThrow(
-      /toc\.integrate.*toc\.follow|toc\.follow.*toc\.integrate/s,
+  it('rejects toc.integrate together with toc.follow, naming both flags and the fix', () => {
+    expect(() => resolveConfig({ features: { 'toc.integrate': true } }, { root: '/tmp/x' })).toThrow(
+      /toc\.integrate.*'toc\.follow': false/s,
     );
   });
 
   it('accepts toc.integrate when toc.follow is explicitly disabled', () => {
-    const { features } = resolveConfig({ features: ['toc.integrate', '!toc.follow'] }, { root: '/tmp/x' });
+    const { features } = resolveConfig(
+      { features: { 'toc.integrate': true, 'toc.follow': false } },
+      { root: '/tmp/x' },
+    );
     expect(isFeatureEnabled(features, 'toc.integrate')).toBe(true);
     expect(isFeatureEnabled(features, 'toc.follow')).toBe(false);
   });
 
   it('rejects instant previews without the prefetch they are built on', () => {
     expect(() =>
-      resolveConfig({ features: ['navigation.instant.preview', '!navigation.instant.prefetch'] }, { root: '/tmp/x' }),
+      resolveConfig(
+        { features: { 'navigation.instant.preview': true, 'navigation.instant.prefetch': false } },
+        { root: '/tmp/x' },
+      ),
     ).toThrow(/navigation\.instant\.preview/);
+  });
+
+  it('lets an explicit flag override the one editLink turns on implicitly', () => {
+    const { features } = resolveConfig(
+      { editLink: { base: 'https://example.com/edit' }, features: { 'content.action.edit': false } },
+      { root: '/tmp/x' },
+    );
+    expect(isFeatureEnabled(features, 'content.action.edit')).toBe(false);
   });
 });
 

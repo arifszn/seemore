@@ -127,7 +127,7 @@ describe('the dev server source endpoint', () => {
     if (contentRoot) rmSync(contentRoot, { recursive: true, force: true });
   });
 
-  const startDev = async (markdown: string, features: string[]) => {
+  const startDev = async (markdown: string, features: Record<string, boolean>) => {
     contentRoot = mkdtempSync(join(tmpdir(), 'seemore-edit-'));
     writeFileSync(join(contentRoot, 'page.md'), markdown);
     writeFileSync(
@@ -140,8 +140,8 @@ describe('the dev server source endpoint', () => {
 
   it('reads a block and writes an edit back to the file', async () => {
     const markdown = '# Title\n\nFirst para.\n';
-    // Default-on, so an empty feature list is the realistic case.
-    const { url, file } = await startDev(markdown, []);
+    // Default-on, so mentioning no features at all is the realistic case.
+    const { url, file } = await startDev(markdown, {});
     const start = markdown.indexOf('First para.');
     const end = start + 'First para.'.length;
 
@@ -160,7 +160,7 @@ describe('the dev server source endpoint', () => {
 
   it('reports a conflict rather than overwriting a file that changed', async () => {
     const markdown = '# Title\n\nFirst para.\n';
-    const { url, file } = await startDev(markdown, ['content.edit']);
+    const { url, file } = await startDev(markdown, { 'content.edit': true });
     const start = markdown.indexOf('First para.');
     const end = start + 'First para.'.length;
 
@@ -176,7 +176,7 @@ describe('the dev server source endpoint', () => {
   });
 
   it('refuses a file that is not part of the site', async () => {
-    const { url } = await startDev('# Title\n', ['content.edit']);
+    const { url } = await startDev('# Title\n', { 'content.edit': true });
     const outsider = join(tmpdir(), 'seemore-not-a-page.md');
     writeFileSync(outsider, 'secret\n');
 
@@ -194,7 +194,7 @@ describe('the dev server source endpoint', () => {
   });
 
   it('does not register the endpoint at all when the feature is switched off', async () => {
-    const { url, file } = await startDev('# Title\n\nFirst para.\n', ['!content.edit']);
+    const { url, file } = await startDev('# Title\n\nFirst para.\n', { 'content.edit': false });
     const response = await fetch(`${url}/__seemore/source?file=${encodeURIComponent(file)}&start=0&end=7`);
     // Falls through to the SPA fallback, which is HTML — not our JSON.
     expect(response.headers.get('content-type')).not.toContain('application/json');

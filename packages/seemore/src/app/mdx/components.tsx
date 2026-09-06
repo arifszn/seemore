@@ -1,6 +1,7 @@
 import type { AnchorHTMLAttributes, ComponentProps } from 'react';
 import { Link } from 'react-router';
 import defaultMdxComponents from 'fumadocs-ui/mdx';
+import { CodeBlock, Pre } from 'fumadocs-ui/components/codeblock';
 import { ImageZoom } from 'fumadocs-ui/components/image-zoom';
 import { config } from 'virtual:seemore/config';
 import { isExternalHref, stripBase } from '../../shared/base.js';
@@ -57,9 +58,25 @@ function MdxImage({ src, alt, ...props }: ComponentProps<'img'>) {
   return <Image src={src} alt={alt} {...props} />;
 }
 
+/**
+ * fumadocs' own `pre`, with the site-wide copy flag folded in.
+ *
+ * A fence's `noCopy` reaches us as `allowCopy="false"` — `rehype-code` rewrites the meta —
+ * so passing the prop straight through keeps per-block control working, and the flag only
+ * decides what every other fence does.
+ */
+function MdxPre({ allowCopy, children, ...props }: ComponentProps<typeof CodeBlock>) {
+  return (
+    <CodeBlock {...props} allowCopy={feature('content.code.copy') ? allowCopy : false}>
+      <Pre>{children}</Pre>
+    </CodeBlock>
+  );
+}
+
 export const mdxComponents = {
   ...defaultMdxComponents,
   a: MdxLink,
+  pre: MdxPre,
   // For a hand-written `<a>` in `.mdx` content — MDX doesn't route those through `a` above,
   // so `<Link href="…">` is the escape hatch when a link needs its own classes or layout.
   Link: MdxLink,

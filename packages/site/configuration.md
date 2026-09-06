@@ -17,7 +17,7 @@ export default {
   base: '/my-repo/',
   theme: 'ocean',
   css: './custom.css',
-  features: ['navigation.path', 'navigation.instant.preview'],
+  features: { 'navigation.path': true, 'navigation.instant.preview': true },
   nav: [{ text: 'GitHub', link: 'https://github.com/you/repo' }],
   footer: { text: '© 2026' },
   editLink: { base: 'https://github.com/you/repo/edit/main/docs' },

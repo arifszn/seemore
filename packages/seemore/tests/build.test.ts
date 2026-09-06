@@ -411,3 +411,43 @@ describe('stylesheet composition', () => {
     rmSync(contentRoot, { recursive: true, force: true });
   });
 });
+
+describe('the code copy button', () => {
+  const MARKDOWN = [
+    '---',
+    'title: Fences',
+    '---',
+    '',
+    '```js',
+    'const plain = 1;',
+    '```',
+    '',
+    '```js noCopy',
+    'const quiet = 2;',
+    '```',
+    '',
+  ].join('\n');
+
+  /** How many of the page's two fences ended up with a copy button. */
+  async function copyButtons(features: string): Promise<number> {
+    const contentRoot = mkdtempSync(join(tmpdir(), 'seemore-copy-'));
+    const outDir = join(contentRoot, 'out');
+    writeFileSync(join(contentRoot, 'index.md'), MARKDOWN);
+    writeFileSync(join(contentRoot, 'seemore.config.ts'), `export default { title: 'Fences', features: ${features} };`);
+
+    await runBuild({ cwd: contentRoot, outDir });
+    const $ = load(read(outDir, 'index.html'));
+    const count = $('figure button').filter((_, el) => /copy/i.test($(el).attr('aria-label') ?? '')).length;
+
+    rmSync(contentRoot, { recursive: true, force: true });
+    return count;
+  }
+
+  it('is on by default, except on the fence that opted out with noCopy', async () => {
+    expect(await copyButtons('{}')).toBe(1);
+  });
+
+  it('is gone from every fence when the flag is off', async () => {
+    expect(await copyButtons("{ 'content.code.copy': false }")).toBe(0);
+  });
+});

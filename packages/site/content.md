@@ -52,7 +52,7 @@ const found = 'needle'; // [!code word:needle]
 
 The marker follows the language's own comment syntax, so `# [!code highlight]` in Python and `<!-- [!code highlight] -->` in HTML.
 
-The copy button is on by default. `noCopy` drops it from one block; `!content.code.copy` drops it from every block on the site.
+The copy button is on by default. `noCopy` drops it from one block; `'content.code.copy': false` drops it from every block on the site.
 
 ## Components
 

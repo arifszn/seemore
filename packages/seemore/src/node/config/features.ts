@@ -1,15 +1,16 @@
-import type { Feature, FeatureFlag, ResolvedFeatures } from '../../shared/types.js';
+import type { Feature, FeatureFlag, FeatureMap, FeaturesInput, ResolvedFeatures } from '../../shared/types.js';
 
 /**
- * Feature flags.
+ * Feature flags: dotted names, each with a default, written as a map of the ones you are
+ * changing. The map is applied over the defaults, so an unmentioned flag keeps its default
+ * and you never restate the whole set.
  *
- * MkDocs Material's model — one flat list of dotted strings — but typed as a union, which
- * their YAML cannot do. Because seemore has default-on features where MkDocs has none, the
- * list is additive over the defaults and a `!` prefix turns a default-on feature off.
+ * The array form — bare names, `!name` for off — is the shape this started as and still
+ * parses, but it loses silently on a repeated flag where an object literal is a type error.
  */
 
 export { FEATURES } from '../../shared/types.js';
-export type { Feature, FeatureFlag, ResolvedFeatures } from '../../shared/types.js';
+export type { Feature, FeatureFlag, FeatureMap, FeaturesInput, ResolvedFeatures } from '../../shared/types.js';
 
 export const FEATURE_DEFAULTS: Record<Feature, boolean> = {
   'navigation.instant.prefetch': true,
@@ -26,7 +27,7 @@ export const FEATURE_DEFAULTS: Record<Feature, boolean> = {
   'content.action.edit': false,
   // On by default, but only ever active in dev: the stamping that makes a block editable is
   // not emitted by `seemore build`, and the endpoint that writes is registered only by the
-  // dev server. Switch it off with '!content.edit'.
+  // dev server. Switch it off with `'content.edit': false`.
   'content.edit': true,
   'content.image.zoom': true,
   'search.suggest': true,
@@ -39,8 +40,8 @@ export function isFeatureEnabled(features: ResolvedFeatures, feature: Feature): 
 }
 
 /**
- * Rules the flag set must satisfy. MkDocs reports its equivalents in prose and lets the
- * site build wrong; we fail in the config loader with the fix in the message.
+ * Rules the flag set must satisfy. Enforced in the config loader, with the fix in the
+ * message, rather than left to prose that only explains the broken site after the fact.
  */
 type Rule =
   | { kind: 'conflict'; a: Feature; b: Feature; why: string }
@@ -62,24 +63,19 @@ const RULES: Rule[] = [
 ];
 
 export function resolveFeatures(
-  input: readonly FeatureFlag[],
+  input: FeaturesInput,
   implicit: Partial<ResolvedFeatures> = {},
 ): ResolvedFeatures {
-  const resolved: ResolvedFeatures = { ...FEATURE_DEFAULTS, ...implicit };
-
-  for (const flag of input) {
-    const off = flag.startsWith('!');
-    const name = (off ? flag.slice(1) : flag) as Feature;
-    resolved[name] = !off;
-  }
+  // What the user wrote wins over `implicit`, which is inferred from other config options.
+  const resolved: ResolvedFeatures = { ...FEATURE_DEFAULTS, ...implicit, ...toMap(input) };
 
   const problems: string[] = [];
   for (const rule of RULES) {
     if (rule.kind === 'conflict') {
       if (!resolved[rule.a] || !resolved[rule.b]) continue;
-      const fix = FEATURE_DEFAULTS[rule.b]
-        ? `Add '!${rule.b}' to \`features\` to switch it off.`
-        : `Remove '${rule.b}' from \`features\`.`;
+      // Phrased in the map form even for an array config: it is valid there too, and it is
+      // the form we want the config moving towards.
+      const fix = `Set \`'${rule.b}': false\` in \`features\`.`;
       problems.push(`\`${rule.a}\` cannot be combined with \`${rule.b}\`. ${rule.why} ${fix}`);
     } else if (resolved[rule.flag] && !resolved[rule.needs]) {
       problems.push(
@@ -95,4 +91,25 @@ export function resolveFeatures(
   }
 
   return resolved;
+}
+
+/**
+ * The array form says the same thing as the map, so it folds down to one. The config schema
+ * folds before validating, which is what lets every message there name a flag.
+ */
+export function featuresFromFlags(flags: readonly FeatureFlag[]): FeatureMap {
+  const map: FeatureMap = {};
+  for (const flag of flags) {
+    const off = flag.startsWith('!');
+    map[(off ? flag.slice(1) : flag) as Feature] = !off;
+  }
+  return map;
+}
+
+function toMap(input: FeaturesInput): FeatureMap {
+  if (Array.isArray(input)) return featuresFromFlags(input as readonly FeatureFlag[]);
+
+  // An explicit `undefined` reads as "not mentioned", not "off", so the default survives it.
+  const set = Object.entries(input as FeatureMap).filter(([, on]) => on !== undefined);
+  return Object.fromEntries(set) as FeatureMap;
 }

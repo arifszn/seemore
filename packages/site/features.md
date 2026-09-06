@@ -38,25 +38,25 @@ Markdown -> seemore -> Static site
 
 ## Image zoom
 
-Click any content image to zoom in, on by default. Turn it off with `!content.image.zoom`.
+Click any content image to zoom in, on by default. Turn it off with `'content.image.zoom': false`.
 
 ![placeholder](https://dummyimage.com/1600x4:3/)
 
 ## Feature flags
 
-A flat list of switches for readers who want fine control, set as an array on the `features` key in `seemore.config.ts`. To turn on something that's off by default, add its flag name. To turn off something that's on by default, add its flag name prefixed with `!`.
+A set of switches for readers who want fine control, set on the `features` key in `seemore.config.ts`. Name a flag and set it `true` to turn it on, `false` to turn it off.
 
 ```ts
 // seemore.config.ts
 export default {
-  features: [
-    'navigation.path',              // off by default → this turns it on
-    '!navigation.instant.prefetch', // on by default → this turns it off
-  ],
+  features: {
+    'navigation.path': true,               // off by default → this turns it on
+    'navigation.instant.prefetch': false,  // on by default → this turns it off
+  },
 };
 ```
 
-Flags you don't mention are left at their default, so you only ever list the ones you're changing.
+Flags you don't mention are left at their default, so you only ever name the ones you're changing.
 
 | Flag | Default | Effect |
 | --- | --- | --- |

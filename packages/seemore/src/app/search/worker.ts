@@ -5,8 +5,8 @@ import type { SortedResult } from 'fumadocs-core/search';
 /**
  * The static index is parsed and queried off the main thread.
  *
- * On any real corpus, parsing the index on the main thread is a visible stall — MkDocs
- * Material moved theirs into a worker for the same reason.
+ * On any real corpus, parsing the index on the main thread is a visible stall, and it lands
+ * on the keystroke that opens search — exactly where a stall is most felt.
  */
 type Incoming = { type: 'init'; from: string } | { type: 'query'; id: number; query: string };
 type Outgoing =

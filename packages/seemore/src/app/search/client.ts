@@ -17,8 +17,8 @@ export function createSearchClient(config: ClientSearchConfig): SearchClientLike
  * The static index is parsed and queried off the main thread, falling back to the main
  * thread where workers are unavailable.
  *
- * On any real corpus, parsing the index on the main thread is a visible stall — MkDocs
- * Material moved theirs into a worker for the same reason.
+ * On any real corpus, parsing the index on the main thread is a visible stall, and it lands
+ * on the keystroke that opens search — exactly where a stall is most felt.
  */
 function createStaticClient(from: string): SearchClientLike {
   const onMainThread = (): SearchClientLike => {

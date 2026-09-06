@@ -3,7 +3,7 @@ import { dirname, isAbsolute, resolve } from 'node:path';
 import { createJiti } from 'jiti';
 import { z } from 'zod';
 import { normaliseBase } from '../base.js';
-import { resolveFeatures, type FeatureFlag } from './features.js';
+import { FEATURES, resolveFeatures, type FeaturesInput } from './features.js';
 import { configSchema, THEMES, type SeemoreConfig, type ResolvedSeemoreConfig, type SearchConfig } from './schema.js';
 
 const CONFIG_NAMES = ['seemore.config.ts', 'seemore.config.mts', 'seemore.config.js', 'seemore.config.mjs'];
@@ -28,7 +28,7 @@ export function resolveConfig(
 
   const search: SearchConfig = parsed.search === 'static' ? { provider: 'static' } : (parsed.search as SearchConfig);
 
-  const features = resolveFeatures(parsed.features as FeatureFlag[], {
+  const features = resolveFeatures(parsed.features as FeaturesInput, {
     // Nothing to link to without an edit base, so the flag follows the option.
     'content.action.edit': parsed.editLink !== undefined,
   });
@@ -144,6 +144,11 @@ function explain(issue: z.core.$ZodIssue): string {
   // zod's default message for a large enum truncates badly; the valid set is the useful part.
   if (issue.code === 'invalid_value' && issue.path.join('.') === 'theme') {
     return `unknown theme. Valid themes: ${THEMES.join(', ')}.`;
+  }
+  // A misspelt flag arrives as an unknown key, whose default message omits what was allowed.
+  if (issue.code === 'unrecognized_keys' && issue.path.join('.') === 'features') {
+    const named = issue.keys.map((key) => `\`${key}\``).join(', ');
+    return `unknown feature ${issue.keys.length === 1 ? 'flag' : 'flags'}: ${named}. Valid flags: ${FEATURES.join(', ')}.`;
   }
   return issue.message;
 }

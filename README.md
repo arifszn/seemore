@@ -100,11 +100,11 @@ The preview is not just for reading — it is the fastest way to fix what you ar
   <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/inline-editor.png" alt="seemore rendering a folder of Markdown in the browser, with a paragraph's Markdown source open in the inline editor" width="640"/>
 </p>
 
-Inline editing is for local previews only — `seemore build` output is static, so nothing is emitted there. It is on by default in dev; switch it off with the `!` prefix:
+Inline editing is for local previews only — `seemore build` output is static, so nothing is emitted there. It is on by default in dev; switch it off like this:
 
 ```ts
 export default {
-  features: ['!content.edit'],
+  features: { 'content.edit': false },
 };
 ```
 
@@ -158,7 +158,7 @@ export default {
   base: '/my-repo/',
   theme: 'ocean',
   css: './custom.css',
-  features: ['navigation.path', 'navigation.instant.preview'],
+  features: { 'navigation.path': true, 'navigation.instant.preview': true },
   nav: [{ text: 'GitHub', link: 'https://github.com/you/repo' }],
   footer: { text: '© 2026' },
   editLink: { base: 'https://github.com/you/repo/edit/main/docs' },
@@ -201,15 +201,15 @@ Twelve built-in colour presets: `neutral` (default), `black`, `catppuccin`, `dus
 
 ### Features
 
-A flat list of switches for fine control, set as an array on the `features` key. Turn something on by adding its flag name, turn something off with the `!` prefix; flags you don't mention keep their default.
+A set of switches for fine control, set on the `features` key. Name the ones you want to change and set each `true` or `false`; flags you don't mention keep their default.
 
 ```ts
 // seemore.config.ts
 export default {
-  features: [
-    'navigation.path',              // off by default → this turns it on
-    '!navigation.instant.prefetch', // on by default → this turns it off
-  ],
+  features: {
+    'navigation.path': true,               // off by default → this turns it on
+    'navigation.instant.prefetch': false,  // on by default → this turns it off
+  },
 };
 ```
 

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { FEATURES, type FeatureFlag, type ResolvedFeatures } from './features.js';
+import { FEATURES, featuresFromFlags, type FeatureFlag, type FeatureMap, type ResolvedFeatures } from './features.js';
 
 /** The CSS presets fumadocs-ui ships. We do not invent a token system. */
 export const THEMES = [
@@ -19,7 +19,15 @@ export const THEMES = [
 
 export type Theme = (typeof THEMES)[number];
 
-const featureFlag = z.enum([...FEATURES, ...FEATURES.map((f) => `!${f}` as const)] as [string, ...string[]]);
+/**
+ * Only the flags being changed, each set on or off. The superseded array form — bare name
+ * for on, `!name` for off — is folded into the same map first rather than validated as a
+ * second branch, so a bad flag is reported against one schema and names the flag.
+ */
+const featuresSchema = z.preprocess((input) => {
+  const isFlagArray = Array.isArray(input) && input.every((flag) => typeof flag === 'string');
+  return isFlagArray ? featuresFromFlags(input as FeatureFlag[]) : input;
+}, z.partialRecord(z.enum(FEATURES), z.boolean()));
 
 const navItem: z.ZodType<NavItem> = z.lazy(() =>
   z.object({
@@ -65,7 +73,7 @@ export const configSchema = z.object({
   theme: z.enum(THEMES).default('neutral'),
   /** A CSS file appended after everything else, so it wins. */
   css: z.string().optional(),
-  features: z.array(featureFlag).default([]),
+  features: featuresSchema.default({}),
   nav: z.array(navItem).optional(),
   footer: z
     .object({
@@ -85,7 +93,8 @@ export const configSchema = z.object({
 
 /** What a user writes in `seemore.config.ts`. */
 export type SeemoreConfig = Omit<z.input<typeof configSchema>, 'features' | 'theme' | 'search'> & {
-  features?: FeatureFlag[];
+  /** An array of {@link FeatureFlag} also works, but the map is the documented form. */
+  features?: FeatureMap | FeatureFlag[];
   theme?: Theme;
   search?: z.input<typeof searchSchema>;
 };
