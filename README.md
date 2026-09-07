@@ -58,13 +58,11 @@ Three ways to use it:
 
 And whichever preview is open, the page is also an editor: **double-click any paragraph to fix its Markdown in place**, and the change is written straight back to the file.
 
+## Who is seemore for?
+
 <p align="center">
   <video src="https://github.com/user-attachments/assets/8142fcb4-2a1f-4e48-82b5-059a28fc0cf2" width="640" controls muted></video>
 </p>
-
-## Who is seemore for?
-
-If your documentation is a folder of Markdown files, seemore helps you browse, review, edit and publish it with almost no setup.
 
 Typical use cases include:
 
