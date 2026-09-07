@@ -14,6 +14,8 @@ Install **seemore** from the [VS Code Marketplace](https://marketplace.visualstu
 
 The panel runs the same dev server as `npx seemore`, so everything about the live preview works here too — including [editing a page's text in place](./features.md): double-click a paragraph in the panel, hit **Save**, and the file beside you updates.
 
+![VS Code with features.md open in the editor and the seemore panel beside it, rendering the same page with a paragraph's Markdown source open in the inline editor](./assets/vscode-extension.png)
+
 ## Commands
 
 | Command | Where | Does |

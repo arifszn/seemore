@@ -113,7 +113,7 @@ export default {
 Install **seemore** from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=arifszn.seemore-vscode) or [Open VSX](https://open-vsx.org/extension/arifszn/seemore-vscode) to get the same rendered site as a panel beside your editor — no terminal, no `npx`, no browser tab to manage. The extension bundles the CLI, so nothing is downloaded or put on your PATH. Open VSX also covers VS Code-compatible editors — Cursor, Antigravity, and others.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/vscode-extension.png" alt="VS Code with a Markdown file open in the editor and the seemore panel rendering the same folder as a site beside it" width="640"/>
+  <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/vscode-extension.png" alt="VS Code with features.md open in the editor and the seemore panel beside it, rendering the same page with a paragraph's Markdown source open in the inline editor" width="640"/>
 </p>
 
 1. Open any Markdown file.
