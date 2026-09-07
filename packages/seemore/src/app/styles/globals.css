@@ -425,8 +425,32 @@
     @apply block h-[70vh] w-full rounded-lg border border-fd-border;
   }
 
-  .seemore-pdf a {
-    @apply mt-2 block text-sm text-fd-muted-foreground;
+  .seemore-pdf-fallback {
+    @apply mt-2 flex items-center gap-2 text-sm text-fd-muted-foreground no-underline transition-colors hover:text-fd-foreground;
+  }
+
+  .seemore-pdf-fallback-icon {
+    @apply size-4 shrink-0;
+  }
+
+  .seemore-pdf-fallback-title {
+    @apply font-medium text-fd-foreground;
+  }
+
+  /* Most touch browsers can't render `<embed type="application/pdf">` at all, so the box
+     above sits blank. Hide it there and promote the download link into the primary UI. */
+  @media (pointer: coarse) {
+    .seemore-pdf embed {
+      @apply hidden;
+    }
+
+    .seemore-pdf-fallback {
+      @apply mt-0 flex-col items-start gap-1 rounded-lg border border-fd-border bg-fd-card px-4 py-4 hover:border-fd-primary/60;
+    }
+
+    .seemore-pdf-fallback-icon {
+      @apply size-6;
+    }
   }
 }
 
@@ -439,6 +463,14 @@
   [role='dialog'] [class*='max-h-[460px]'] {
     max-height: calc(100dvh - 6rem);
   }
+}
+
+/* Unlayered, deliberately, for the same reason as the dialog fix above: fumadocs underlines
+   in-content links from its utilities layer, which beats `@layer components` regardless of
+   specificity. The PDF fallback reads as a button, not prose — it keeps its icon and title
+   flush, with no underline. */
+.seemore-pdf-fallback {
+  text-decoration-line: none;
 }
 
 /* seemore:user-css — the stylesheet named by `css` in seemore.config.ts is inlined here, at
