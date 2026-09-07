@@ -4,6 +4,9 @@ description: Let AI write the Markdown. Let seemore show it better — zero conf
 order: 1
 ---
 
+import promo from './assets/seemore.mp4';
+import poster from './assets/promo-poster.png';
+
 <div className="seemore-landing">
 
 <div className="seemore-hero">
@@ -116,6 +119,18 @@ order: 1
 
 </div>
 
+</div>
+
+<div className="seemore-section-head">
+
+## See it run
+
+A folder of Markdown, one command, and the site it turns into.
+
+</div>
+
+<div className="seemore-shot">
+  <video src={promo} poster={poster} controls muted playsInline preload="metadata"></video>
 </div>
 
 <div className="seemore-section-head">

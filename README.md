@@ -50,6 +50,10 @@ AI tools write Markdown — specs, notes, guides, READMEs, whole folders of it, 
   <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/home.png" alt="The seemore site: a terminal typing npx seemore to serve a folder of notes at localhost:4040, with an arrow pointing to the browser preview" width="640"/>
 </p>
 
+<p align="center">
+  <video src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/seemore.mp4" width="640" controls muted></video>
+</p>
+
 Three ways to use it:
 
 - **[In your browser](#view-in-your-browser)**: `npx seemore` serves the folder you're standing in and updates live as you edit.
