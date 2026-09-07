@@ -438,7 +438,10 @@
   }
 
   /* Most touch browsers can't render `<embed type="application/pdf">` at all, so the box
-     above sits blank. Hide it there and promote the download link into the primary UI. */
+     above sits blank. Hide it there and promote the download link into the primary UI.
+     `.seemore-pdf-unsupported` is the same fallback, applied via JS (see Pdf.tsx) for
+     environments — Electron webviews included — that fail the same way despite a fine
+     pointer, so both selectors share these rules. */
   @media (pointer: coarse) {
     .seemore-pdf embed {
       @apply hidden;
@@ -451,6 +454,18 @@
     .seemore-pdf-fallback-icon {
       @apply size-6;
     }
+  }
+
+  .seemore-pdf-unsupported embed {
+    @apply hidden;
+  }
+
+  .seemore-pdf-unsupported .seemore-pdf-fallback {
+    @apply mt-0 flex-col items-start gap-1 rounded-lg border border-fd-border bg-fd-card px-4 py-4 hover:border-fd-primary/60;
+  }
+
+  .seemore-pdf-unsupported .seemore-pdf-fallback-icon {
+    @apply size-6;
   }
 }
 

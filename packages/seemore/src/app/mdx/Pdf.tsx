@@ -1,4 +1,4 @@
-import type { ComponentProps } from 'react';
+import { useEffect, useState, type ComponentProps } from 'react';
 import { FileText } from 'lucide-react';
 
 /**
@@ -10,14 +10,24 @@ import { FileText } from 'lucide-react';
  * on a `<span>` gets the same layout with none of that.
  *
  * `pdfjs-dist` is roughly a megabyte, which is a poor trade for a docs site. The accepted
- * cost is that most mobile browsers degrade `<embed>` to a blank box, since they don't
- * support inline PDF plugins. There's no reliable JS-free way to detect that, so the CSS
- * in globals.css hides the embed and expands this link into a full card under
- * `(pointer: coarse)` — touch devices are the same population that lacks embed support.
+ * cost is that some environments degrade `<embed>` to a blank box, since they don't support
+ * inline PDF plugins — most mobile browsers, but also Electron-based webviews (VS Code's
+ * preview included), which don't ship Chrome's PDF viewer extension despite reporting a
+ * fine pointer. The CSS `(pointer: coarse)` fallback in globals.css only catches the first
+ * group, so `navigator.pdfViewerEnabled` — Chromium/Firefox's direct feature check — is used
+ * to catch the second by toggling the same fallback via a class instead of a media query.
  */
 export function Pdf({ src, title, ...props }: ComponentProps<'embed'> & { src: string }) {
+  const [unsupported, setUnsupported] = useState(false);
+
+  useEffect(() => {
+    if ('pdfViewerEnabled' in navigator && !navigator.pdfViewerEnabled) {
+      setUnsupported(true);
+    }
+  }, []);
+
   return (
-    <span className="seemore-pdf">
+    <span className={unsupported ? 'seemore-pdf seemore-pdf-unsupported' : 'seemore-pdf'}>
       <embed src={src} type="application/pdf" title={title} {...props} />
       <a className="seemore-pdf-fallback" href={src} download>
         <FileText className="seemore-pdf-fallback-icon" aria-hidden="true" />
