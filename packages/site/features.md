@@ -18,6 +18,16 @@ It works the same in the [code editor extension](./code-editor.md), whose panel 
 
 Inline editing is for local previews only — `seemore build` output is static, so nothing is emitted there.
 
+## PDF viewer
+
+A PDF referenced with image syntax opens inline in the browser's own viewer, with a download link underneath — a sibling file or a remote URL both work:
+
+```md
+![sample document](https://pdfobject.com/pdf/sample.pdf)
+```
+
+![sample document](https://pdfobject.com/pdf/sample.pdf)
+
 ## Diagrams
 
 A ` ```mermaid ` or ` ```d2 ` code fence renders live in the browser, no build step or external service.

@@ -247,6 +247,26 @@ Supports `.md` and `.mdx` both.
 - Sibling images inlined as hashed assets with click-to-zoom, sibling PDFs open in the browser's own viewer
 - Frontmatter keys are validated
 
+### PDF viewer
+
+Reference a PDF with image syntax and it opens inline in the browser's own viewer, with a download link underneath — a sibling file or a remote URL both work:
+
+```md
+![sample document](./assets/sample.pdf)
+```
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/pdf-viewer.png" alt="A sample PDF rendered inline on the page in the browser's native PDF viewer, with a Download sample document link underneath" width="640"/>
+</p>
+
+### Diagrams
+
+A ` ```mermaid ` or ` ```d2 ` code fence renders live in the browser, no build step or external service:
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/diagrams.png" alt="A mermaid flowchart reading Markdown, seemore, Static site rendered live on the Diagrams page, with a D2 diagram of the same chain below it" width="640"/>
+</p>
+
 ### Code blocks
 
 Code is syntax-highlighted automatically — nothing to configure. Add a filename or line numbers by putting them after the language on the fence line:
