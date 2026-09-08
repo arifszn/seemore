@@ -180,7 +180,21 @@ export function Overview() {
 /** Pages render as card grids; a folder opens a titled section holding its own cards. */
 type Segment = { pages: PageTree.Item[] } | { folder: PageTree.Folder };
 
-function OverviewSections({ nodes }: { nodes: PageTree.Node[] }) {
+/** h2 at the top level, one step smaller per nesting level, capped at h6. */
+const SECTION_HEADING_TAGS = ['h2', 'h3', 'h4', 'h5', 'h6'] as const;
+
+/**
+ * A folder's own children render inside its `<section>`, so depth already exists in the DOM —
+ * each level just needs to look indented. Capped so a very deep tree doesn't march off the page.
+ */
+const SECTION_INDENT_CLASSES = [
+  '',
+  'ms-4 ps-4 border-s border-fd-border',
+  'ms-6 ps-4 border-s border-fd-border',
+  'ms-8 ps-4 border-s border-fd-border',
+];
+
+function OverviewSections({ nodes, depth = 0 }: { nodes: PageTree.Node[]; depth?: number }) {
   const segments: Segment[] = [];
   for (const node of nodes) {
     if (node.type === 'page') {
@@ -192,14 +206,17 @@ function OverviewSections({ nodes }: { nodes: PageTree.Node[] }) {
     }
   }
 
+  const Heading = SECTION_HEADING_TAGS[Math.min(depth, SECTION_HEADING_TAGS.length - 1)] ?? 'h6';
+  const indentClass = SECTION_INDENT_CLASSES[Math.min(depth, SECTION_INDENT_CLASSES.length - 1)];
+
   return (
     <>
       {segments.map((segment, index) =>
         'pages' in segment ? (
           <OverviewGrid key={index} pages={segment.pages} />
         ) : (
-          <section key={index} className="seemore-overview-section">
-            <h2 className="seemore-overview-section-title">{segment.folder.name}</h2>
+          <section key={index} className={`seemore-overview-section ${indentClass}`}>
+            <Heading className="seemore-overview-section-title">{segment.folder.name}</Heading>
             {typeof segment.folder.description === 'string' && segment.folder.description !== '' ? (
               <p className="seemore-overview-section-description">{segment.folder.description}</p>
             ) : undefined}
@@ -210,6 +227,7 @@ function OverviewSections({ nodes }: { nodes: PageTree.Node[] }) {
                   ? segment.folder.children
                   : [segment.folder.index, ...segment.folder.children]
               }
+              depth={depth + 1}
             />
           </section>
         ),
