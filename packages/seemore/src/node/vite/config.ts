@@ -48,9 +48,8 @@ export function createViteConfig({ ctx, mode, outDir, ssrOutDir }: ViteConfigOpt
     rehypePlugins: createRehypePlugins({ positions: mode === 'dev' && ctx.config.features['content.edit'] }),
     // MDX compiles its own JSX. Vite's builtin transform infers a file's language from its
     // extension and does not know `.md`/`.mdx`, so leaving JSX in the output would fail to
-    // parse. Fast Refresh is unaffected: it is a separate transform, applied to these files
-    // through the React plugin's `include` below, which is what turns a content edit into an
-    // in-place component swap rather than a reload.
+    // parse. The output is plain JS against the automatic runtime, so nothing downstream has
+    // to transform it — see the React plugin's `include` below.
     jsx: false,
   };
 
@@ -64,9 +63,12 @@ export function createViteConfig({ ctx, mode, outDir, ssrOutDir }: ViteConfigOpt
     logLevel: mode === 'build' ? 'warn' : 'info',
 
     plugins: [
-      // Order matters: MDX first, then React, so JSX from MDX is transformed and refreshed.
+      // MDX first, so the plugins below see plain JS.
       { ...mdx(mdxOptions), enforce: 'pre' },
-      react({ include: /\.(?:mdx?|jsx?|tsx?)$/ }),
+      ...(mode === 'dev' ? [contentHmrPlugin()] : []),
+      // Content files are deliberately outside `include`; `contentHmrPlugin` above gives them
+      // their HMR boundary instead, for the reasons documented there.
+      react({ include: /\.(?:jsx?|tsx?)$/ }),
       // Before Tailwind: our plugin injects the theme preset into the root stylesheet, and
       // Tailwind must see the injected version.
       seemorePlugin({ ctx, serveSearch: mode === 'dev' }),
@@ -168,6 +170,30 @@ function withRealPaths(paths: string[]): string[] {
  * transitive dependencies and are not resolvable from seemore's own directory — and only the
  * final `index.dom.js` is swapped for its sibling.
  */
+/**
+ * Make a compiled content module self-accepting.
+ *
+ * Nothing re-renders from here: the page on screen is swapped by the version-keyed cache in
+ * `app/lib/pages.ts`, driven by `virtual:seemore/routes`, which the watcher regenerates on
+ * its own. What this buys is the *absence* of two behaviours. Without an `accept` of any
+ * kind, Vite has no boundary for a content file and falls back to a full page reload when
+ * one is deleted. With the React plugin's `include` covering `.md`/`.mdx` — how this used to
+ * get its boundary — Fast Refresh takes the module, then declines it at runtime, because
+ * `rehype-toc` gives every page a named `toc` export beside the default one and a refresh
+ * boundary needs every export to be a component. That decline is an `hmr invalidate` line on
+ * every content edit.
+ */
+function contentHmrPlugin(): Plugin {
+  return {
+    name: 'seemore:content-hmr',
+    apply: 'serve',
+    transform(code, id) {
+      if (!/\.mdx?(?:$|\?)/.test(id)) return null;
+      return { code: `${code}\nif (import.meta.hot) import.meta.hot.accept();\n`, map: null };
+    },
+  };
+}
+
 function workerConditionPlugin(): Plugin {
   return {
     name: 'seemore:worker-conditions',

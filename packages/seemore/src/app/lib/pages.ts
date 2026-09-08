@@ -12,9 +12,9 @@ import type { PageModule, RouteEntry } from '../../shared/types.js';
  * Entries are keyed by URL and stamped with the route's content `version`. A URL can outlive
  * its module: in dev, a body edit keeps the address and replaces the file behind it, and the
  * cached promise would be the last thing still holding the old component. Fast Refresh does
- * not step in — MDX emits a named `toc` export beside the default one, so the React plugin
- * declines the module and invalidates it instead, and that invalidation is absorbed by the
- * route store's own `accept()`. The version is how the cache notices on its own.
+ * not step in — MDX emits a named `toc` export beside the default one, which no refresh
+ * boundary accepts, so content files are left out of the React plugin's `include`. The edit
+ * arrives at the route store's own `accept()`, and the version is how the cache notices.
  */
 type Tracked = Promise<PageModule> & {
   status?: 'pending' | 'fulfilled' | 'rejected';
