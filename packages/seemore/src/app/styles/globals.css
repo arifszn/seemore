@@ -622,15 +622,53 @@
   color: var(--color-fd-foreground, #111827);
 }
 
-/* From 1440px up there is room for both the reading column and the rail side by side;
-   below that the rail would ride over the text, so the collapsible stays in flow.
+/* From 1024px up — the live page's own `lg` breakpoint for showing its TOC rail — there is
+   enough room for the rail if the reading column gives up its centring and narrows to make
+   space; below that the rail would ride over the text at any column width, so the
+   collapsible stays in flow there.
 
-   The rail's `inset-inline-end` is pinned to the article's own centring math (its
-   56rem/2 half-width) rather than a flat viewport offset, so the gap between the
-   article's right edge and the rail stays a fixed 2rem at any width above the
-   breakpoint — matching the live page's `md:px-8` column padding — instead of shrinking
-   toward zero as the viewport narrows toward the breakpoint. */
+   Two tiers because a centred 56rem column plus the rail's 14rem + 2rem gap needs
+   1152px+ to coexist without narrowing: from 1024px the column is pinned to the left
+   with a right-hand reservation sized exactly for the rail, gap and outer margin; once
+   there is enough width (1440px) for the column to sit at its full 56rem *and* stay
+   centred with that same 2rem gap to the rail, it switches back to centred — matching
+   the live page's `md:px-8` column padding either way. */
+@media (min-width: 1024px) and (max-width: 1439.98px) {
+  .seemore-export-main {
+    margin-inline: 0;
+    max-width: none;
+    padding-inline-end: 18rem;
+    padding-inline-start: 2rem;
+  }
+
+  .seemore-export-toc {
+    inset-inline-end: 2rem;
+    margin-block: 0;
+    max-height: calc(100vh - 8rem);
+    overflow-y: auto;
+    position: fixed;
+    top: 5rem;
+    width: 14rem;
+    z-index: 40;
+  }
+
+  .seemore-export-toc summary {
+    cursor: default;
+    margin-bottom: 0.75rem;
+  }
+
+  .seemore-export-toc summary::after {
+    display: none;
+  }
+}
+
 @media (min-width: 1440px) {
+  .seemore-export-main {
+    margin-inline: auto;
+    max-width: 56rem;
+    padding-inline: 1rem;
+  }
+
   .seemore-export-toc {
     inset-inline-end: calc((100vw - 56rem) / 2 - 14rem - 2rem);
     margin-block: 0;

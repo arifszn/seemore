@@ -305,7 +305,7 @@ const RUNTIME = `(function () {
 
   // Wide enough for the rail: open the collapsible so it reads as a list, not a disclosure.
   var tocDetails = document.querySelector('.seemore-export-toc details');
-  if (tocDetails && window.matchMedia('(min-width: 1440px)').matches) tocDetails.open = true;
+  if (tocDetails && window.matchMedia('(min-width: 1024px)').matches) tocDetails.open = true;
 
   var main = document.querySelector('main');
   var overlay = document.createElement('div');
