@@ -51,12 +51,12 @@ describe('resolveConfig defaults', () => {
 });
 
 describe('pageActions', () => {
-  it('defaults to both actions', () => {
-    expect(resolveConfig({}, { root: '/tmp/x' }).pageActions).toEqual(['export-html', 'export-pdf']);
+  it('defaults to the HTML export', () => {
+    expect(resolveConfig({}, { root: '/tmp/x' }).pageActions).toEqual(['export-html']);
   });
 
   it('accepts any subset, in the order given', () => {
-    expect(resolveConfig({ pageActions: ['export-pdf'] }, { root: '/tmp/x' }).pageActions).toEqual(['export-pdf']);
+    expect(resolveConfig({ pageActions: ['export-html'] }, { root: '/tmp/x' }).pageActions).toEqual(['export-html']);
     expect(resolveConfig({ pageActions: [] }, { root: '/tmp/x' }).pageActions).toEqual([]);
   });
 

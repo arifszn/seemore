@@ -683,8 +683,8 @@
   object-fit: contain;
 }
 
-/* Printing — the PDF path. Every pixel of chrome goes, the article gets the whole page,
-   and nothing reader-consumed is ever split across a page break. */
+/* Printing. Every pixel of chrome goes, the article gets the whole page, and nothing
+   reader-consumed is ever split across a page break. */
 @media print {
   .seemore-header,
   .seemore-sidebar,

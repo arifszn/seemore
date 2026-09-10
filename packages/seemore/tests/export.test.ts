@@ -63,7 +63,7 @@ describe('seemore export', () => {
     expect($('embed[src^="data:application/pdf"]').length).toBe(1);
   });
 
-  it('ships the print stylesheet the PDF path depends on', () => {
+  it('ships the print stylesheet, so the file prints as cleanly as the site', () => {
     const html = readFileSync(join(outDir, 'getting-started.html'), 'utf8');
     const css = load(html)('style').text();
 

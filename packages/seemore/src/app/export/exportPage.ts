@@ -11,10 +11,6 @@ import { THEME_TOGGLE } from './themeToggle.js';
  * after hydration (diagrams must already be rendered or renderable), it needs the network
  * only for assets that are themselves remote, and it serialises the DOM as it is — site
  * chrome never enters the file because only the article is taken.
- *
- * The same preparation drives the PDF path: print is the browser's own renderer, so the
- * feature contributes a print stylesheet (see `globals.css`) and a light theme, not a PDF
- * library.
  */
 
 /** Mermaid and D2 render on scroll-into-view; the export needs every diagram as SVG. */
@@ -385,32 +381,4 @@ export async function exportPageAsHtml(): Promise<void> {
   const { css, remoteLinks } = await collectCss();
   const favicons = await collectFavicons();
   download(exportFilename(), buildExportHtml(clone, await inlineCssUrls(css), remoteLinks, favicons));
-}
-
-/**
- * Print the page you are reading — the browser's Save-as-PDF makes it a PDF.
- *
- * Print is always light, whatever the screen was showing: code blocks and diagrams are
- * themed by CSS variables that flip with `dark`, and ink follows the light values.
- */
-export async function printPageAsPdf(): Promise<void> {
-  await prepareDiagrams();
-
-  const root = document.documentElement;
-  const wasDark = root.classList.contains('dark');
-  if (!wasDark) {
-    window.print();
-    return;
-  }
-
-  root.classList.remove('dark');
-  const restore = () => {
-    root.classList.add('dark');
-    window.removeEventListener('afterprint', restore);
-  };
-  window.addEventListener('afterprint', restore);
-  window.print();
-  // Safari's dialog does not always fire `afterprint` when it is dismissed; a page left
-  // dark-less forever is worse than a late restore.
-  window.setTimeout(restore, 60_000);
 }

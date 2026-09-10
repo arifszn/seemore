@@ -56,17 +56,15 @@ Click any content image to zoom in, on by default. Turn it off with `'content.im
 
 An **Actions** button above every page holds actions for the page you are reading:
 
-- **Export as HTML** — the page alone, in one self-contained HTML file: styles inlined, images embedded, diagrams kept. It opens offline, from a double-click, ready to share. The same export runs from the CLI as `npx seemore export <file>`, which writes the file next to the Markdown (or into `--out <dir>`).
-- **Export as PDF** — opens the browser's own print dialog; "Save as PDF" turns the page into a PDF with every bit of chrome stripped and nothing split across a page break.
+- **Export as HTML** — the page alone, in one self-contained HTML file: styles inlined, images embedded, diagrams kept. It opens offline, from a double-click, ready to share. The same export runs from the CLI as `npx seemore export <file>`, which writes the file next to the Markdown (or into `--out <dir>`). Printing that file — or the live page — strips every bit of chrome and splits nothing across a page break, so the browser's own "Save as PDF" is a PDF away.
 
 Actions are enabled per site, in the order they should appear, in `seemore.config.ts`:
 
 ```ts
 // seemore.config.ts
 export default {
-  pageActions: ['export-html', 'export-pdf'],  // the default
-  // pageActions: ['export-pdf'],              // PDF only
-  // pageActions: [],                          // no button at all
+  pageActions: ['export-html'],  // the default
+  // pageActions: [],            // no button at all
 };
 ```
 

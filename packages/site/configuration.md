@@ -22,7 +22,7 @@ export default {
   footer: { text: '© 2026' },
   editLink: { base: 'https://github.com/you/repo/edit/main/docs' },
   search: 'static', // or { provider: 'orama-cloud', endpoint, apiKey } / { provider: 'algolia', appId, apiKey, indexName }
-  pageActions: ['export-html', 'export-pdf'],
+  pageActions: ['export-html'],
   exclude: ['drafts/**'],
 };
 ```
@@ -42,10 +42,10 @@ search: { provider: 'algolia', appId: '…', apiKey: '…', indexName: '…' },
 ## Page actions
 
 `pageActions` decides what the Actions button above every page holds, in order. The default is
-both actions; an empty array removes the button:
+the HTML export; an empty array removes the button:
 
 ```ts
-pageActions: ['export-html', 'export-pdf'],  // the default
+pageActions: ['export-html'],  // the default
 ```
 
 What each action does — and everything an exported file keeps — is on the

@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import { ChevronDown, Download, Printer } from 'lucide-react';
+import { ChevronDown, Download } from 'lucide-react';
 import { config } from 'virtual:seemore/config';
 import type { ActionId } from '../../shared/types.js';
-import { exportPageAsHtml, printPageAsPdf } from '../export/exportPage.js';
+import { exportPageAsHtml } from '../export/exportPage.js';
 
 /**
  * The actions the button can hold, keyed by the id a config's `pageActions` array names.
@@ -12,7 +12,6 @@ import { exportPageAsHtml, printPageAsPdf } from '../export/exportPage.js';
  */
 const ACTIONS: Record<ActionId, { label: string; icon: ReactNode; run: () => Promise<void> }> = {
   'export-html': { label: 'Export as HTML', icon: <Download aria-hidden="true" />, run: exportPageAsHtml },
-  'export-pdf': { label: 'Export as PDF', icon: <Printer aria-hidden="true" />, run: printPageAsPdf },
 };
 
 /**
