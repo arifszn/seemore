@@ -104,7 +104,7 @@ function bindBehaviors(): void {
 
   // Wide enough for the rail: open the collapsible so it reads as a list, not a disclosure.
   const tocDetails = document.querySelector<HTMLDetailsElement>('.seemore-export-toc details');
-  if (tocDetails && window.matchMedia('(min-width: 1280px)').matches) tocDetails.open = true;
+  if (tocDetails && window.matchMedia('(min-width: 1400px)').matches) tocDetails.open = true;
 
   const overlay = document.createElement('div');
   overlay.className = 'seemore-export-overlay';
