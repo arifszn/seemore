@@ -72,6 +72,7 @@ Typical use cases include:
 - **Project documentation** — READMEs, architecture docs, RFCs, API documentation, specifications and engineering handbooks.
 - **Documentation review** — read rendered pages instead of raw Markdown while making fixes directly from the preview.
 - **Static documentation sites** — publish the same Markdown with `seemore build` instead of maintaining a separate documentation stack.
+- **Sharing a single page** — export one page as a self-contained HTML file to drop in Slack or email, no site or server needed.
 
 ## Features
 
@@ -79,12 +80,12 @@ Typical use cases include:
 - **Live preview** — add, rename, retitle or delete a file and the site updates immediately, navigation and search included
 - **Edit in place** — double-click any block in the preview to fix its Markdown; saves are surgical, so `git diff` shows the sentence you changed and nothing else
 - **Full MDX** — when Markdown isn't enough, `.mdx` pages take real JSX: your own React components, inline SVG, custom classes and CSS; `<Callout>`, `<Card>`, `<CodeBlockTabs>` and friends come built in, with no imports to write
-- **Static export** — `seemore build` prerenders every page to its own HTML file, `404.html` included, and adds the conventions individual hosts look for (`_redirects`, `200.html`, `.nojekyll`)
-- **Search built in** — static, zero-setup full-text search out of the box, with shareable highlighted results; [Algolia](https://algolia.com) and [Orama Cloud](https://orama.com) for hosted indexes
-- **Page actions** — an Actions button on every page: copy the page as Markdown, or export it as one self-contained HTML file, with the CLI equivalent in `seemore export <file>`
+- **Static export** — `seemore build` prerenders the whole site to HTML, `404.html` included, ready to deploy anywhere, with the conventions individual hosts look for (`_redirects`, `200.html`, `.nojekyll`)
+- **Page actions** — an Actions button on every page: copy the page as Markdown, or export it as one self-contained HTML file to share on its own — Slack, email, a USB stick, no server needed — with the CLI equivalent in `seemore export <file>`
 - **12 themes** — dark and light follow the system, with a toggle that remembers your choice; your own CSS always wins
 - **Rich Markdown** — GitHub Flavoured Markdown, admonitions, steps, `[[wikilinks]]`, [Mermaid](https://mermaid.js.org) and [D2](https://d2lang.com) diagrams, click-to-zoom images, embedded PDFs
 - **Editor integration** — one extension covers VS Code, Cursor, Antigravity and other VS Code-compatible editors, remote workspaces included
+- **Search built in** — static, zero-setup full-text search out of the box, with shareable highlighted results; [Algolia](https://algolia.com) and [Orama Cloud](https://orama.com) for hosted indexes
 
 ## View in your browser
 
