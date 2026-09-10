@@ -260,6 +260,23 @@ const RUNTIME = `(function () {
     });
   });
 
+  document.querySelectorAll('button[aria-label="Copy Anchor Link"]').forEach(function (button) {
+    var heading = button.closest('h1, h2, h3, h4, h5, h6');
+    var svg = button.querySelector('svg');
+    if (!heading || !heading.id || !navigator.clipboard) return;
+    var revert;
+    button.addEventListener('click', function () {
+      var url = new URL(window.location.href);
+      url.hash = heading.id;
+      navigator.clipboard.writeText(url.href);
+      if (!svg) return;
+      clearTimeout(revert);
+      var original = svg.innerHTML;
+      svg.innerHTML = '<polyline points="20 6 9 17 4 12"></polyline>';
+      revert = setTimeout(function () { svg.innerHTML = original; }, 1500);
+    });
+  });
+
   // The live site's TOC follows the reader with fumadocs' own scroll tracking; in the file,
   // the plainest version of the same behaviour — last heading above the fold wins.
   var tocLinks = [].slice.call(document.querySelectorAll('.seemore-export-toc a'));
