@@ -467,6 +467,41 @@
   .seemore-pdf-unsupported .seemore-pdf-fallback-icon {
     @apply size-6;
   }
+
+  /* Page actions: the row above the article holding the export dropdown. Right-aligned so
+     it reads as chrome, not content, and stays clear of the heading it hangs over. */
+  .seemore-page-actions {
+    @apply relative mb-4 flex justify-end;
+  }
+
+  .seemore-page-actions-trigger {
+    @apply inline-flex items-center gap-1.5 rounded-lg border border-fd-border px-3 py-1.5 text-sm text-fd-muted-foreground transition-colors;
+  }
+
+  .seemore-page-actions-trigger:hover,
+  .seemore-page-actions-trigger[aria-expanded='true'] {
+    @apply bg-fd-accent text-fd-accent-foreground;
+  }
+
+  .seemore-page-actions-trigger svg {
+    @apply size-4;
+  }
+
+  .seemore-page-actions-menu {
+    @apply absolute end-0 z-50 mt-1.5 min-w-44 rounded-lg border border-fd-border bg-fd-background p-1 shadow-lg;
+  }
+
+  .seemore-page-actions-item {
+    @apply flex w-full cursor-pointer items-center gap-2 rounded-md border-none bg-transparent px-2.5 py-1.5 text-sm text-fd-muted-foreground transition-colors;
+  }
+
+  .seemore-page-actions-item:hover {
+    @apply bg-fd-accent text-fd-accent-foreground;
+  }
+
+  .seemore-page-actions-item svg {
+    @apply size-4 shrink-0;
+  }
 }
 
 /* Unlayered, deliberately: fumadocs' `max-h-[460px]` utility lives in Tailwind's utilities
@@ -486,6 +521,206 @@
    flush, with no underline. */
 .seemore-pdf-fallback {
   text-decoration-line: none;
+}
+
+/* The single-page export reuses this same stylesheet — the exported file inlines it — so
+   the classes below only ever appear in the exported document, and cost the live site a
+   few hundred unused bytes. They are unlayered so nothing from a theme preset can beat
+   them inside a file that has no other seemore rules to lean on. */
+
+/* The exported page's body column: the article alone, at reading width, centred — the
+   centring is what keeps slack space symmetric at any viewport width instead of piling
+   up on one side. `width: 100%` is load-bearing: the theme's body is a column flex
+   container, and auto margins alone would switch the block from stretch to
+   shrink-to-fit, letting wide content stretch it past the viewport. */
+.seemore-export-main {
+  margin-inline: auto;
+  max-width: 56rem;
+  overflow-x: clip;
+  padding: 2rem 1rem 4rem;
+  width: 100%;
+}
+
+
+/* Zoom affordance in the export, where the site's zoom runtime is the fallback overlay. */
+.seemore-export-main img {
+  cursor: zoom-in;
+}
+
+.seemore-export-main a img {
+  cursor: pointer;
+}
+
+/* The "On this page" block generated for the export: the live site's TOC transplanted to
+   a page with no layout columns.
+
+   Two shapes, one markup. On narrow screens it sits in flow under the title as a
+   collapsible — fumadocs' own inline-TOC pattern. From 1280px up, where the viewport has
+   room, it becomes a floating rail on the right edge and the runtime opens it.
+
+   Styled after fumadocs' rail — small muted label, text-sm links, the indicator line per
+   nesting level — using the theme's real tokens. The rail itself is a React component
+   that draws its connector as SVG from live layout measurements; a static file gets the
+   same look from plain borders instead. */
+.seemore-export-toc {
+  font-size: 0.875rem;
+  margin-block: 1.5rem;
+}
+
+.seemore-export-toc summary {
+  color: var(--color-fd-muted-foreground, #8b8b8b);
+  cursor: pointer;
+  font-weight: 500;
+  list-style: none;
+  margin: 0 0 0.5rem;
+}
+
+.seemore-export-toc summary::-webkit-details-marker {
+  display: none;
+}
+
+.seemore-export-toc summary::after {
+  border-block-end: 1px solid currentColor;
+  border-inline-end: 1px solid currentColor;
+  content: '';
+  display: inline-block;
+  height: 0.3rem;
+  margin-inline-start: 0.5rem;
+  transform: rotate(-45deg);
+  transition: transform 0.15s;
+  vertical-align: middle;
+  width: 0.3rem;
+}
+
+.seemore-export-toc details[open] > summary::after {
+  transform: rotate(45deg);
+}
+
+.seemore-export-toc ul {
+  border-inline-start: 1px solid var(--color-fd-border, #e5e7eb);
+  list-style: none;
+  margin: 0;
+  padding-inline-start: 1rem;
+}
+
+.seemore-export-toc li {
+  margin-block: 0.375rem;
+}
+
+.seemore-export-toc a {
+  color: var(--color-fd-muted-foreground, #8b8b8b);
+  display: block;
+  text-decoration: none;
+}
+
+.seemore-export-toc a:hover,
+.seemore-export-toc a[data-active='true'] {
+  color: var(--color-fd-foreground, #111827);
+}
+
+@media (min-width: 1280px) {
+  .seemore-export-toc {
+    inset-inline-end: 2rem;
+    margin-block: 0;
+    max-height: calc(100vh - 8rem);
+    overflow-y: auto;
+    position: fixed;
+    top: 5rem;
+    width: 14rem;
+    z-index: 40;
+  }
+
+  /* The rail is always a rail: no disclosure chevron in it. */
+  .seemore-export-toc summary {
+    cursor: default;
+    margin-bottom: 0.75rem;
+  }
+
+  .seemore-export-toc summary::after {
+    display: none;
+  }
+}
+
+/* The export's only chrome: a floating theme toggle, since the header is gone. */
+.seemore-export-theme-toggle {
+  align-items: center;
+  background: var(--color-fd-background, #fff);
+  border: 1px solid var(--color-fd-border, #e5e7eb);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  display: flex;
+  padding: 0.5rem;
+  position: fixed;
+  top: 1rem;
+  z-index: 50;
+  inset-inline-end: 1rem;
+}
+
+.seemore-export-theme-toggle svg {
+  height: 1rem;
+  width: 1rem;
+}
+
+/* Click-to-zoom overlay for the exported file, where the site's zoom runtime is absent. */
+.seemore-export-overlay {
+  align-items: center;
+  background: rgb(0 0 0 / 80%);
+  cursor: zoom-out;
+  display: grid;
+  inset: 0;
+  justify-items: center;
+  position: fixed;
+  z-index: 100;
+}
+
+.seemore-export-overlay img {
+  max-height: 92vh;
+  max-width: 92vw;
+  object-fit: contain;
+}
+
+/* Printing — the PDF path. Every pixel of chrome goes, the article gets the whole page,
+   and nothing reader-consumed is ever split across a page break. */
+@media print {
+  .seemore-header,
+  .seemore-sidebar,
+  .seemore-toc,
+  .seemore-export-toc,
+  .seemore-breadcrumb,
+  .seemore-edit-link,
+  .seemore-page-footer,
+  .seemore-site-footer,
+  .seemore-back-to-top,
+  .seemore-page-actions,
+  .seemore-selection-copy,
+  .seemore-preview,
+  .seemore-export-theme-toggle,
+  .seemore-export-overlay {
+    display: none !important;
+  }
+
+  .seemore-body,
+  .seemore-main,
+  .seemore-article {
+    display: block;
+    margin: 0;
+    max-width: none;
+    padding: 0;
+  }
+
+  body {
+    background: #fff;
+  }
+
+  pre,
+  .seemore-mermaid,
+  .seemore-d2,
+  .seemore-pdf,
+  img,
+  table,
+  blockquote {
+    break-inside: avoid;
+  }
 }
 
 /* seemore:user-css — the stylesheet named by `css` in seemore.config.ts is inlined here, at

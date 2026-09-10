@@ -52,6 +52,26 @@ Click any content image to zoom in, on by default. Turn it off with `'content.im
 
 ![placeholder](https://dummyimage.com/1600x4:3/)
 
+## Page actions
+
+An **Actions** button above every page holds actions for the page you are reading:
+
+- **Export as HTML** — the page alone, in one self-contained HTML file: styles inlined, images embedded, diagrams kept. It opens offline, from a double-click, ready to share. The same export runs from the CLI as `npx seemore export <file>`, which writes the file next to the Markdown (or into `--out <dir>`).
+- **Export as PDF** — opens the browser's own print dialog; "Save as PDF" turns the page into a PDF with every bit of chrome stripped and nothing split across a page break.
+
+Actions are enabled per site, in the order they should appear, in `seemore.config.ts`:
+
+```ts
+// seemore.config.ts
+export default {
+  pageActions: ['export-html', 'export-pdf'],  // the default
+  // pageActions: ['export-pdf'],              // PDF only
+  // pageActions: [],                          // no button at all
+};
+```
+
+Exported files keep the theme toggle, code copy buttons, click-to-zoom and an "On this page" list; they leave behind the sidebar, navbar and search. Remote images (for example, GitHub URLs) stay remote — everything local is embedded.
+
 ## Feature flags
 
 A set of switches for readers who want fine control, set on the `features` key in `seemore.config.ts`. Name a flag and set it `true` to turn it on, `false` to turn it off.

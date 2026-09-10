@@ -9,8 +9,8 @@ import type { Feature, FeatureFlag, FeatureMap, FeaturesInput, ResolvedFeatures 
  * parses, but it loses silently on a repeated flag where an object literal is a type error.
  */
 
-export { FEATURES } from '../../shared/types.js';
-export type { Feature, FeatureFlag, FeatureMap, FeaturesInput, ResolvedFeatures } from '../../shared/types.js';
+export { ACTION_IDS, FEATURES } from '../../shared/types.js';
+export type { ActionId, Feature, FeatureFlag, FeatureMap, FeaturesInput, ResolvedFeatures } from '../../shared/types.js';
 
 export const FEATURE_DEFAULTS: Record<Feature, boolean> = {
   'navigation.instant.prefetch': true,

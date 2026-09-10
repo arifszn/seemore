@@ -46,6 +46,7 @@ export function resolveConfig(
     footer: parsed.footer,
     editLink: parsed.editLink,
     search,
+    pageActions: parsed.pageActions,
     exclude: parsed.exclude,
     root: options.root,
     configFile: options.configFile,

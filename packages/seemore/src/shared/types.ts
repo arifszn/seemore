@@ -44,6 +44,14 @@ export type ClientSearchConfig =
   | { provider: 'algolia'; appId: string; apiKey: string; indexName: string };
 
 /** The payload of `virtual:seemore/config`. */
+/**
+ * The actions a page-actions button can hold, by id. Presence in the `actions` array is
+ * what enables an action; the array order is the menu order.
+ */
+export const ACTION_IDS = ['export-html', 'export-pdf'] as const;
+
+export type ActionId = (typeof ACTION_IDS)[number];
+
 export interface ClientConfig {
   title: string;
   description?: string;
@@ -54,6 +62,7 @@ export interface ClientConfig {
   footer?: { text?: string; links?: { text: string; link: string }[] };
   editLink?: { base: string; text: string };
   favicon?: string;
+  pageActions: ActionId[];
   search: ClientSearchConfig;
   contentRoot: string;
 }

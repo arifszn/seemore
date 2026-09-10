@@ -1,5 +1,13 @@
 import { z } from 'zod';
-import { FEATURES, featuresFromFlags, type FeatureFlag, type FeatureMap, type ResolvedFeatures } from './features.js';
+import {
+  ACTION_IDS,
+  FEATURES,
+  featuresFromFlags,
+  type ActionId,
+  type FeatureFlag,
+  type FeatureMap,
+  type ResolvedFeatures,
+} from './features.js';
 
 /** The CSS presets fumadocs-ui ships. We do not invent a token system. */
 export const THEMES = [
@@ -59,6 +67,15 @@ const searchSchema = z.union([
   }),
 ]);
 
+/**
+ * The actions shown in the page-actions button above the article, in the order given.
+ *
+ * One entry per action: present means enabled, the array order is the menu order, an
+ * empty array means no button at all, and a new action joins the same array. The ids are
+ * seemore's own; the known set grows with the actions seemore ships.
+ */
+const pageActionsSchema = z.array(z.enum(ACTION_IDS)).default(['export-html', 'export-pdf']);
+
 export const configSchema = z.object({
   /**
    * Optional here, but required whenever a config file exists — load.ts enforces that,
@@ -88,6 +105,7 @@ export const configSchema = z.object({
     })
     .optional(),
   search: searchSchema.default('static'),
+  pageActions: pageActionsSchema,
   exclude: z.array(z.string()).default([]),
 });
 
@@ -119,6 +137,7 @@ export interface ResolvedSeemoreConfig {
   footer?: { text?: string; links?: { text: string; link: string }[] };
   editLink?: { base: string; text: string };
   search: SearchConfig;
+  pageActions: ActionId[];
   exclude: string[];
   /** Directory the config was resolved from — relative paths in it hang off this. */
   root: string;

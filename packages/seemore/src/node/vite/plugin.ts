@@ -368,6 +368,7 @@ function clientConfig(ctx: SeemoreContext) {
     nav: config.nav,
     footer: config.footer,
     editLink: config.editLink,
+    pageActions: config.pageActions,
     favicon: config.favicon === undefined ? undefined : withBase(config.base, `/${toPosix(config.favicon)}`),
     search:
       config.search.provider === 'static'
