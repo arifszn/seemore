@@ -797,6 +797,11 @@
   background: var(--color-fd-muted);
 }
 
+.seemore-shot--video {
+  border: none;
+  box-shadow: none;
+}
+
 .seemore-shot img {
   display: block;
   margin: 0 !important;
