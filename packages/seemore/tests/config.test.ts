@@ -51,8 +51,8 @@ describe('resolveConfig defaults', () => {
 });
 
 describe('pageActions', () => {
-  it('defaults to the HTML export', () => {
-    expect(resolveConfig({}, { root: '/tmp/x' }).pageActions).toEqual(['export-html']);
+  it('defaults to the copy and HTML export actions', () => {
+    expect(resolveConfig({}, { root: '/tmp/x' }).pageActions).toEqual(['copy-markdown', 'export-html']);
   });
 
   it('accepts any subset, in the order given', () => {
@@ -61,8 +61,8 @@ describe('pageActions', () => {
   });
 
   it('rejects unknown action ids', () => {
-    expect(() => resolveConfig({ pageActions: ['copy-markdown'] as never }, { root: '/tmp/x' })).toThrow(
-      /copy-markdown|export-html/,
+    expect(() => resolveConfig({ pageActions: ['export-pdf'] as never }, { root: '/tmp/x' })).toThrow(
+      /export-pdf|export-html/,
     );
   });
 });

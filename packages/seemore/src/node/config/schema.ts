@@ -74,7 +74,7 @@ const searchSchema = z.union([
  * empty array means no button at all, and a new action joins the same array. The ids are
  * seemore's own; the known set grows with the actions seemore ships.
  */
-const pageActionsSchema = z.array(z.enum(ACTION_IDS)).default(['export-html']);
+const pageActionsSchema = z.array(z.enum(ACTION_IDS)).default(['copy-markdown', 'export-html']);
 
 export const configSchema = z.object({
   /**

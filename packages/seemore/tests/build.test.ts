@@ -39,6 +39,24 @@ describe('seemore build', () => {
     rmSync(outDir, { recursive: true, force: true });
   });
 
+  it('ships each page as Markdown for the copy action', () => {
+    // `remark-llms` writes the page's Markdown into that page's own compiled module, so the
+    // source travels with the chunk the router already loads. Scoped to that one chunk: the
+    // assertions below are about this page, not about whatever a vendor chunk happens to say.
+    const chunk = readdirSync(join(outDir, 'assets'))
+      .filter((name) => name.endsWith('.js'))
+      .map((name) => read(outDir, join('assets', name)))
+      // Held in a template literal, so its fences arrive escaped.
+      .map((code) => code.replaceAll('\\`', '`'))
+      .find((code) => code.includes('Install it, point it at a folder, done.'));
+
+    expect(chunk).toBeDefined();
+    // The fence stays a fence: the copy predates the plugin that rewrites it to <Mermaid>.
+    expect(chunk).toContain('```mermaid');
+    // Frontmatter is metadata, and never reaches the copy.
+    expect(chunk).not.toContain('order: 1');
+  });
+
   it('emits one directory-style HTML file per route', () => {
     for (const file of [
       'index.html',

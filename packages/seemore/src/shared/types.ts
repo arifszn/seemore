@@ -48,7 +48,7 @@ export type ClientSearchConfig =
  * The actions a page-actions button can hold, by id. Presence in the `actions` array is
  * what enables an action; the array order is the menu order.
  */
-export const ACTION_IDS = ['export-html'] as const;
+export const ACTION_IDS = ['copy-markdown', 'export-html'] as const;
 
 export type ActionId = (typeof ACTION_IDS)[number];
 
@@ -90,4 +90,6 @@ export interface PageModule {
   default: ComponentType<{ components?: Record<string, unknown> }>;
   /** Exported by fumadocs' `rehype-toc`. */
   toc?: TocEntry[];
+  /** The page as Markdown, written at compile time by `remark-llms`. */
+  _markdown?: string;
 }

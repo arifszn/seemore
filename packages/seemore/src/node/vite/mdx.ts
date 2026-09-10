@@ -1,5 +1,6 @@
 import type { PluggableList } from 'unified';
 import remarkFrontmatter from 'remark-frontmatter';
+import { remarkLLMs } from 'fumadocs-core/mdx-plugins/remark-llms';
 import {
   rehypeCode,
   rehypeToc,
@@ -16,10 +17,14 @@ import {
   remarkSeemoreAssets,
   remarkSeemoreD2,
   remarkSeemoreLinks,
+  remarkSeemoreMarkdownSource,
   remarkSeemoreWikilinks,
   type SeemoreRemarkOptions,
 } from './remark.js';
 import { rehypeSeemorePositions } from './positions.js';
+
+/** The named export `remark-llms` writes the page's Markdown to, read by the copy action. */
+export const MARKDOWN_EXPORT = '_markdown';
 
 /**
  * The remark/rehype chain. Order matters:
@@ -37,6 +42,14 @@ export function createRemarkPlugins(options: SeemoreRemarkOptions): PluggableLis
     // Strips the `---` block so it never renders. Its data already came from the scan.
     [remarkFrontmatter, ['yaml']],
     remarkGfm,
+    // Early, and deliberately: this snapshots the page as Markdown for the copy action, and
+    // the further down the chain it sits the less the copy resembles what the author wrote.
+    // Here, a GitHub alert is still `> [!NOTE]` and a diagram is still a ```mermaid fence,
+    // rather than the `<Callout>`/`<Mermaid>` JSX the plugins below turn them into. The
+    // frontmatter strip is the one thing that must come first — its keys are metadata, not
+    // content. Heading ids stay off: `## Title [#title]` is noise in a paste.
+    remarkSeemoreMarkdownSource,
+    [remarkLLMs, { as: MARKDOWN_EXPORT, headingIds: false }],
     remarkHeading,
     remarkAdmonition,
     remarkDirectiveAdmonition,

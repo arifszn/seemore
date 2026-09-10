@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 import { dirname, relative, resolve } from 'node:path';
 import { visit } from 'unist-util-visit';
-import type { Blockquote, Code, Image, Paragraph, PhrasingContent, Root, Text } from 'mdast';
+import type { Blockquote, Code, Image, Paragraph, PhrasingContent, Root, Text, Yaml } from 'mdast';
 import type { Transformer } from 'unified';
 import type { VFile } from 'vfile';
 import type { LinkResolver } from '../content/links.js';
@@ -220,6 +220,42 @@ export function remarkSeemoreLinks(options: SeemoreRemarkOptions): Transformer<R
 
     visit(tree, 'link', rewrite);
     visit(tree, 'definition', rewrite);
+  };
+}
+
+/**
+ * Prepares the tree for `remark-llms`, which stringifies it back to Markdown for the copy
+ * action. Two nodes need a hand, both through `_stringify` — the stringifier's own escape
+ * hatch — so the tree the renderer sees is untouched.
+ *
+ * Frontmatter is metadata, not content: `remark-frontmatter` parses it into a `yaml` node
+ * that never renders, but a stringifier walking the tree faithfully writes it back out.
+ * `filterElement` does not reach it, so it is emptied here.
+ *
+ * A GitHub alert marker is the other: `[!NOTE]` opening a paragraph is escaped to
+ * `\[!NOTE]` on the way out, since a bare `[` could start a link reference — which would
+ * paste as literal text instead of the alert the author wrote. Handing back the exact source
+ * span keeps it, and keeps whatever spacing the author used inside the quote.
+ */
+export function remarkSeemoreMarkdownSource(): Transformer<Root, Root> {
+  return (tree, file) => {
+    const source = String(file.value);
+
+    visit(tree, 'yaml', (node: Yaml) => {
+      node.data = { ...node.data, _stringify: { text: '' } };
+    });
+
+    visit(tree, 'blockquote', (node: Blockquote) => {
+      const first = node.children[0];
+      if (first === undefined || first.type !== 'paragraph') return;
+      if (!ALERT_MARKER.test(textOf(first))) return;
+
+      const start = node.position?.start.offset;
+      const end = node.position?.end.offset;
+      if (start === undefined || end === undefined) return;
+
+      node.data = { ...node.data, _stringify: { text: source.slice(start, end) } };
+    });
   };
 }
 

@@ -81,7 +81,7 @@ Typical use cases include:
 - **Full MDX** — when Markdown isn't enough, `.mdx` pages take real JSX: your own React components, inline SVG, custom classes and CSS; `<Callout>`, `<Card>`, `<CodeBlockTabs>` and friends come built in, with no imports to write
 - **Static export** — `seemore build` prerenders every page to its own HTML file, `404.html` included, and adds the conventions individual hosts look for (`_redirects`, `200.html`, `.nojekyll`)
 - **Search built in** — static, zero-setup full-text search out of the box, with shareable highlighted results; [Algolia](https://algolia.com) and [Orama Cloud](https://orama.com) for hosted indexes
-- **Page actions** — an Actions button on every page: export the page as one self-contained HTML file, with the CLI equivalent in `seemore export <file>`
+- **Page actions** — an Actions button on every page: copy the page as Markdown, or export it as one self-contained HTML file, with the CLI equivalent in `seemore export <file>`
 - **12 themes** — dark and light follow the system, with a toggle that remembers your choice; your own CSS always wins
 - **Rich Markdown** — GitHub Flavoured Markdown, admonitions, steps, `[[wikilinks]]`, [Mermaid](https://mermaid.js.org) and [D2](https://d2lang.com) diagrams, click-to-zoom images, embedded PDFs
 - **Editor integration** — one extension covers VS Code, Cursor, Antigravity and other VS Code-compatible editors, remote workspaces included
@@ -175,7 +175,7 @@ export default {
   footer: { text: '© 2026' },
   editLink: { base: 'https://github.com/you/repo/edit/main/docs' },
   search: 'static', // or { provider: 'orama-cloud', endpoint, apiKey } / { provider: 'algolia', appId, apiKey, indexName }
-  pageActions: ['export-html'],
+  pageActions: ['copy-markdown', 'export-html'],
   exclude: ['drafts/**'],
 };
 ```

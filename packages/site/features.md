@@ -56,6 +56,7 @@ Click any content image to zoom in, on by default. Turn it off with `'content.im
 
 An **Actions** button above every page holds actions for the page you are reading:
 
+- **Copy as Markdown** — the page's own Markdown on your clipboard, ready to paste into an AI chat, an issue or another document. It is the source, not a transcription of the rendered page: a GitHub alert is still `> [!NOTE]`, a diagram is still a ```` ```mermaid ```` fence, and an `.mdx` page's components come across as the JSX the author wrote.
 - **Export as HTML** — the page alone, in one self-contained HTML file: styles inlined, images embedded, diagrams kept. It opens offline, from a double-click, ready to share. The same export runs from the CLI as `npx seemore export <file>`, which writes the file next to the Markdown (or into `--out <dir>`). Printing that file — or the live page — strips every bit of chrome and splits nothing across a page break, so the browser's own "Save as PDF" is a PDF away.
 
 Actions are enabled per site, in the order they should appear, in `seemore.config.ts`:
@@ -63,8 +64,9 @@ Actions are enabled per site, in the order they should appear, in `seemore.confi
 ```ts
 // seemore.config.ts
 export default {
-  pageActions: ['export-html'],  // the default
-  // pageActions: [],            // no button at all
+  pageActions: ['copy-markdown', 'export-html'],  // the default
+  // pageActions: ['copy-markdown'],               // one of them
+  // pageActions: [],                              // no button at all
 };
 ```
 
