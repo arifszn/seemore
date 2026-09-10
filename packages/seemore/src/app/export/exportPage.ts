@@ -1,5 +1,5 @@
 import { config } from 'virtual:seemore/config';
-import { THEME_TOGGLE } from './themeToggle.js';
+import { THEME_INIT, THEME_TOGGLE } from './themeToggle.js';
 
 /**
  * The single-page export: the article you are reading, in one HTML file that renders
@@ -246,7 +246,10 @@ function escapeHtml(text: string): string {
 const RUNTIME = `(function () {
   var root = document.documentElement;
   var toggle = document.querySelector('.seemore-export-theme-toggle');
-  if (toggle) toggle.addEventListener('click', function () { root.classList.toggle('dark'); });
+  if (toggle) toggle.addEventListener('click', function () {
+    root.classList.toggle('dark');
+    if (window.__seemoreRememberTheme) window.__seemoreRememberTheme();
+  });
 
   document.querySelectorAll('figure').forEach(function (figure) {
     var button = figure.querySelector('button[aria-label]');
@@ -304,7 +307,18 @@ const RUNTIME = `(function () {
 })();`;
 
 function buildExportHtml(article: Element, css: string, remoteLinks: string, favicons: string): string {
+  // The root's attributes ride along (lang, dir, whatever a theme added) minus the theme
+  // class next-themes resolved for *this* screen: THEME_INIT sets that from the reader's
+  // own OS when the file is opened. An emptied class attribute is dropped entirely.
   const attrs = Array.from(document.documentElement.attributes)
+    .map((attr) => {
+      if (attr.name !== 'class') return { name: attr.name, value: attr.value };
+      const kept = attr.value
+        .split(/\s+/)
+        .filter((name) => name !== '' && name !== 'dark' && name !== 'light');
+      return { name: attr.name, value: kept.join(' ') };
+    })
+    .filter((attr) => attr.name !== 'class' || attr.value !== '')
     .map((attr) => ` ${attr.name}="${escapeHtml(attr.value)}"`)
     .join('');
 
@@ -319,6 +333,7 @@ function buildExportHtml(article: Element, css: string, remoteLinks: string, fav
     `<title>${escapeHtml(document.title)}</title>`,
     description,
     '<meta name="generator" content="seemore">',
+    THEME_INIT,
     favicons,
     remoteLinks,
     // The guard is belt-and-braces: a stylesheet containing `</style>` would already be

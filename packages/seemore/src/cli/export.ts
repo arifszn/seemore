@@ -9,7 +9,7 @@ import { appRoot, canonicalise, resolveContentRoot } from '../node/paths.js';
 import { loadPrerenderModule } from '../node/prerender/render.js';
 import { createViteConfig } from '../node/vite/config.js';
 import { normaliseBase } from '../shared/base.js';
-import { THEME_TOGGLE } from '../app/export/themeToggle.js';
+import { THEME_INIT, THEME_TOGGLE } from '../app/export/themeToggle.js';
 
 export interface ExportOptions {
   cwd: string;
@@ -163,6 +163,7 @@ function assemble(input: {
     `<title>${escapeHtml(title)}</title>`,
     description === undefined ? '' : `<meta name="description" content="${escapeHtml(description)}">`,
     '<meta name="generator" content="seemore">',
+    THEME_INIT,
     favicon,
     `<style>\n${inlineCssUrls(css, config.base, outDir, contentRoot).replaceAll('</style', '<\\/style')}</style>`,
     '</head>',

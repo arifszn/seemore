@@ -65,6 +65,8 @@ function bindBehaviors(): void {
   const root = document.documentElement;
   document.querySelector('.seemore-export-theme-toggle')?.addEventListener('click', () => {
     root.classList.toggle('dark');
+    // Set by THEME_INIT in the head: pins the file to this choice against the OS.
+    (window as { __seemoreRememberTheme?: () => void }).__seemoreRememberTheme?.();
   });
 
   for (const figure of document.querySelectorAll('figure')) {

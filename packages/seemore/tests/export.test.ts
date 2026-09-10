@@ -63,6 +63,18 @@ describe('seemore export', () => {
     expect($('embed[src^="data:application/pdf"]').length).toBe(1);
   });
 
+  it('decides the theme from the reader\'s OS, not the machine that exported', () => {
+    const html = readFileSync(join(outDir, 'getting-started.html'), 'utf8');
+    const $ = load(html);
+
+    // The class is never baked in: the head script resolves it when the file is opened.
+    expect($('html').attr('class')).toBeUndefined();
+    const head = $('head script').first().text();
+    expect(head).toContain('prefers-color-scheme: dark');
+    // A reader's own toggle choice outlives the OS, which is how the live site behaves.
+    expect(head).toContain('localStorage');
+  });
+
   it('ships the print stylesheet, so the file prints as cleanly as the site', () => {
     const html = readFileSync(join(outDir, 'getting-started.html'), 'utf8');
     const css = load(html)('style').text();

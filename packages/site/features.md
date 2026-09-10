@@ -68,7 +68,7 @@ export default {
 };
 ```
 
-Exported files keep the theme toggle, code copy buttons, click-to-zoom and an "On this page" list; they leave behind the sidebar, navbar and search. Remote images (for example, GitHub URLs) stay remote — everything local is embedded.
+Exported files keep the theme toggle, code copy buttons, click-to-zoom and an "On this page" list; they leave behind the sidebar, navbar and search. Like the site, an exported file opens in the reader's own OS theme — not the one the exporter happened to be using — and remembers their toggle choice from then on. Remote images (for example, GitHub URLs) stay remote — everything local is embedded.
 
 ## Feature flags
 
