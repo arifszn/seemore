@@ -2,7 +2,7 @@
   "name": "seemore-vscode",
   "displayName": "seemore",
   "description": "Read a folder of Markdown as a rendered site — without leaving VS Code.",
-  "version": "1.10.0",
+  "version": "1.10.1",
   "license": "MIT",
   "publisher": "arifszn",
   "icon": "assets/icon.png",
@@ -15,7 +15,9 @@
     "vscode": "^1.90.0",
     "node": ">=20"
   },
-  "categories": ["Other"],
+  "categories": [
+    "Other"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
