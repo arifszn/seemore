@@ -3,12 +3,14 @@ import { parseArgs } from 'node:util';
 import pc from 'picocolors';
 import { runBuild } from './build.js';
 import { runDev } from './dev.js';
+import { runExport } from './export.js';
 
 const USAGE = `
 ${pc.bold('seemore')} — turn a folder of Markdown into a docs site
 
   seemore [dir]           start the dev server
   seemore build [dir]     build a static site into dist/
+  seemore export <file>   export a page as a standalone HTML file
 
 Options
   --port <number>        dev server port (default 4040)
@@ -16,7 +18,7 @@ Options
   --open / --no-open     open a browser on start (default: no)
   --json                 print one machine-readable JSON line instead of the summary (dev only)
   --config <path>        path to seemore.config.ts
-  --out <dir>            build output directory (default: dist)
+  --out <dir>            build output directory (default: dist); for export, where the HTML file is written
   --base <path>          subpath the site is served from, e.g. /my-repo/
   -h, --help             show this message
   -v, --version          show the version
@@ -68,12 +70,20 @@ export async function main(argv: string[] = process.argv.slice(2)): Promise<void
 
   const [command, ...rest] = positionals;
   const isBuild = command === 'build';
+  const isExport = command === 'export';
   const dir = isBuild ? rest[0] : command;
 
   const shared = { cwd: process.cwd(), dir, configPath: values.config, base: values.base };
 
   if (isBuild) {
     await runBuild({ ...shared, outDir: values.out });
+    return;
+  }
+
+  if (isExport) {
+    const file = rest[0];
+    if (file === undefined) throw new Error('Usage: seemore export <file> — name the Markdown file to export.');
+    await runExport({ cwd: shared.cwd, file, out: values.out, configPath: values.config, base: values.base });
     return;
   }
 

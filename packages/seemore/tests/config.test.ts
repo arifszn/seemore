@@ -50,6 +50,23 @@ describe('resolveConfig defaults', () => {
   });
 });
 
+describe('pageActions', () => {
+  it('defaults to both actions', () => {
+    expect(resolveConfig({}, { root: '/tmp/x' }).pageActions).toEqual(['export-html', 'export-pdf']);
+  });
+
+  it('accepts any subset, in the order given', () => {
+    expect(resolveConfig({ pageActions: ['export-pdf'] }, { root: '/tmp/x' }).pageActions).toEqual(['export-pdf']);
+    expect(resolveConfig({ pageActions: [] }, { root: '/tmp/x' }).pageActions).toEqual([]);
+  });
+
+  it('rejects unknown action ids', () => {
+    expect(() => resolveConfig({ pageActions: ['copy-markdown'] as never }, { root: '/tmp/x' })).toThrow(
+      /copy-markdown|export-html/,
+    );
+  });
+});
+
 describe('feature flags', () => {
   it('applies documented defaults when no flags are given', () => {
     const { features } = resolveConfig({}, { root: '/tmp/x' });

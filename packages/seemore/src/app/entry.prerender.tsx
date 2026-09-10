@@ -1,10 +1,11 @@
 import { Writable } from 'node:stream';
 import { StrictMode, type ReactNode } from 'react';
 import { renderToPipeableStream } from 'react-dom/server';
-import { RouterProvider, createMemoryRouter } from 'react-router';
+import { MemoryRouter, RouterProvider, createMemoryRouter } from 'react-router';
 import { config } from 'virtual:seemore/config';
 import { toBasename, withBase } from '../shared/base.js';
 import { ogImagePath } from '../shared/og.js';
+import { mdxComponents } from './mdx/components.js';
 import { createRouteObjects } from './router.js';
 import { findRoute, preloadPage, routeEntries } from './lib/pages.js';
 
@@ -106,6 +107,43 @@ function prerenderError(url: string, cause: unknown): Error {
 
 export function listRoutes(): string[] {
   return routeEntries().map((entry) => entry.url);
+}
+
+/** What `renderArticle` hands back: the content and the metadata a title bar needs. */
+export interface ExportedArticle {
+  html: string;
+  title: string;
+  description?: string;
+}
+
+/**
+ * The article alone — the MDX content, no layout, no sidebar, no chrome — for the
+ * single-page export. Rendering the component directly, rather than extracting the
+ * article from a full-page render, means no HTML parsing anywhere in the export path.
+ *
+ * Diagrams are absent here, as in every prerendered page (see `Mermaid.tsx`); the CLI
+ * export inlines a runtime that renders them when the file is opened.
+ */
+export async function renderArticle(url: string): Promise<ExportedArticle> {
+  const entry = findRoute(url);
+  if (entry === undefined) throw new Error(`No page at ${url}.`);
+
+  const page = await preloadPage(url);
+  if (page === undefined) throw new Error(`No page at ${url}.`);
+
+  const Content = page.default;
+  // A router is still required: content links go through react-router's `Link`, which
+  // reads the routing context. A memory router with just this page is the smallest one.
+  const { html, failures } = await renderToHtml(
+    <StrictMode>
+      <MemoryRouter initialEntries={[withBase(config.base, url)]} basename={toBasename(config.base)}>
+        <Content components={mdxComponents} />
+      </MemoryRouter>
+    </StrictMode>,
+  );
+  if (failures.length > 0) throw prerenderError(url, failures[0]);
+
+  return { html, title: entry.title, description: entry.description ?? undefined };
 }
 
 function head(url: string): string {

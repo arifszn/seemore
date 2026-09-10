@@ -22,6 +22,7 @@ export default {
   footer: { text: '© 2026' },
   editLink: { base: 'https://github.com/you/repo/edit/main/docs' },
   search: 'static', // or { provider: 'orama-cloud', endpoint, apiKey } / { provider: 'algolia', appId, apiKey, indexName }
+  pageActions: ['export-html', 'export-pdf'],
   exclude: ['drafts/**'],
 };
 ```
@@ -37,3 +38,16 @@ Hosted indexes are a drop-in swap whenever you want one: [Orama Cloud](https://o
 ```ts
 search: { provider: 'algolia', appId: '…', apiKey: '…', indexName: '…' },
 ```
+
+## Page actions
+
+`pageActions` decides what the Actions button above every page holds, in order. The default is
+both actions; an empty array removes the button:
+
+```ts
+pageActions: ['export-html', 'export-pdf'],  // the default
+```
+
+What each action does — and everything an exported file keeps — is on the
+[features](./features.md) page; the CLI equivalent is on the [CLI reference](./cli-reference.md)
+page.

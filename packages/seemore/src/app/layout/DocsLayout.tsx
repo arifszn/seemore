@@ -19,6 +19,7 @@ import { useExternalLinkBridge } from './ExternalLinkBridge.js';
 import { Header } from './Header.js';
 import { Sidebar } from './Sidebar.js';
 import { Breadcrumb } from './Breadcrumb.js';
+import { PageActions } from './PageActions.js';
 import { BackToTop, PageFooter, SiteFooter } from './Footer.js';
 import { SelectionCopyButton } from './SelectionCopyButton.js';
 import { IntegratedToc, Toc, TocProvider } from './Toc.js';
@@ -68,6 +69,7 @@ export function DocPage({ entry }: { entry: RouteEntry }) {
 
           <main className="seemore-main">
             {feature('navigation.path') ? <Breadcrumb /> : undefined}
+            <PageActions />
             <article className={editable ? 'seemore-article prose seemore-editable' : 'seemore-article prose'}>
               <Content components={mdxComponents} />
               {editable ? <InlineEditor key={entry.url} entry={entry} /> : undefined}

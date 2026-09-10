@@ -81,9 +81,9 @@ Typical use cases include:
 - **Full MDX** — when Markdown isn't enough, `.mdx` pages take real JSX: your own React components, inline SVG, custom classes and CSS; `<Callout>`, `<Card>`, `<CodeBlockTabs>` and friends come built in, with no imports to write
 - **Static export** — `seemore build` prerenders every page to its own HTML file, `404.html` included, and adds the conventions individual hosts look for (`_redirects`, `200.html`, `.nojekyll`)
 - **Search built in** — static, zero-setup full-text search out of the box, with shareable highlighted results; [Algolia](https://algolia.com) and [Orama Cloud](https://orama.com) for hosted indexes
+- **Page actions** — an Actions button on every page: export the page as one self-contained HTML file or print it to PDF, with the CLI equivalent in `seemore export <file>`
 - **12 themes** — dark and light follow the system, with a toggle that remembers your choice; your own CSS always wins
 - **Rich Markdown** — GitHub Flavoured Markdown, admonitions, steps, `[[wikilinks]]`, [Mermaid](https://mermaid.js.org) and [D2](https://d2lang.com) diagrams, click-to-zoom images, embedded PDFs
-- **First-class code blocks** — build-time [Shiki](https://shiki.style) highlighting in the theme's own colours, with titles, line numbers, diff markers and focus
 - **Editor integration** — one extension covers VS Code, Cursor, Antigravity and other VS Code-compatible editors, remote workspaces included
 
 ## View in your browser
@@ -147,6 +147,16 @@ The result is a `dist/` folder of plain web files: drop it on [Netlify](https://
 > [!TIP]
 > Project sites on GitHub Pages live under `username.github.io/my-repo/`, not the root, so set `base` once: `base: '/my-repo/'` (or `--base /my-repo/` on the CLI). Building under GitHub Actions without it set prints the exact line to add.
 
+## Export page
+
+An **Actions** button above every page exports just that page. **Export as HTML** writes one self-contained file — styles inlined, images embedded, diagrams kept — that opens offline from a double-click, ready to drop into Slack, email or an AI chat. The CLI produces the same HTML file without a browser:
+
+```bash
+npx seemore export docs/spec.md   # writes spec.html next to the Markdown
+```
+
+Which actions appear — or whether the button exists at all — is one line of config, `pageActions`. See [Configuration](#configuration) and the [features page](https://arifszn.github.io/seemore/features) for the details.
+
 ## Configuration
 
 Optional — a folder with no config file builds correctly everywhere. To adjust things, create `seemore.config.ts` next to your content:
@@ -165,6 +175,7 @@ export default {
   footer: { text: '© 2026' },
   editLink: { base: 'https://github.com/you/repo/edit/main/docs' },
   search: 'static', // or { provider: 'orama-cloud', endpoint, apiKey } / { provider: 'algolia', appId, apiKey, indexName }
+  pageActions: ['export-html', 'export-pdf'],
   exclude: ['drafts/**'],
 };
 ```
@@ -319,6 +330,7 @@ Pages are ordered by:
 ```
 seemore [dir]           start the dev server
 seemore build [dir]     build a static site into dist/
+seemore export <file>   export a page as a standalone HTML file
 
 Options
   --port <number>        dev server port (default 4040)
@@ -326,7 +338,7 @@ Options
   --open / --no-open     open a browser on start (default: no)
   --json                 print one machine-readable JSON line instead of the summary (dev only)
   --config <path>        path to seemore.config.ts
-  --out <dir>            build output directory (default: dist)
+  --out <dir>            build output directory (default: dist); for export, where the HTML file is written
   --base <path>          subpath the site is served from, e.g. /my-repo/
   -h, --help             show this message
   -v, --version          show the version

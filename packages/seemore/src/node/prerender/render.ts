@@ -9,8 +9,16 @@ export interface RenderResult {
   head: string;
 }
 
+/** What the single-page export reads out of the prerender: content plus title metadata. */
+export interface ExportedArticle {
+  html: string;
+  title: string;
+  description?: string;
+}
+
 export interface PrerenderModule {
   render(url: string): Promise<RenderResult>;
+  renderArticle(url: string): Promise<ExportedArticle>;
   listRoutes(): string[];
 }
 
@@ -27,9 +35,13 @@ export async function loadPrerenderModule(ctx: SeemoreContext, ssrOutDir: string
   const entry = join(ssrOutDir, 'entry.prerender.js');
   const loaded = (await import(pathToFileURL(entry).href)) as Partial<PrerenderModule>;
 
-  if (typeof loaded.render !== 'function' || typeof loaded.listRoutes !== 'function') {
-    throw new Error(`seemore: the prerender build at ${entry} did not export \`render\` and \`listRoutes\`.`);
+  if (
+    typeof loaded.render !== 'function' ||
+    typeof loaded.renderArticle !== 'function' ||
+    typeof loaded.listRoutes !== 'function'
+  ) {
+    throw new Error(`seemore: the prerender build at ${entry} did not export \`render\`, \`renderArticle\` and \`listRoutes\`.`);
   }
 
-  return { render: loaded.render, listRoutes: loaded.listRoutes };
+  return { render: loaded.render, renderArticle: loaded.renderArticle, listRoutes: loaded.listRoutes };
 }
