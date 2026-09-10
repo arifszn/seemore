@@ -237,11 +237,14 @@ function escapeHtml(text: string): string {
 }
 
 /**
- * The exported file's runtime: theme toggle, code copy, click-to-zoom — the three behaviors
- * kept, at roughly a kilobyte instead of the site bundle. Handed to React in hydration on
- * the live page; here each is three lines against the static DOM.
+ * The exported file's runtime: theme toggle, code copy, heading anchor copy, click-to-zoom —
+ * the behaviors kept, at roughly a kilobyte instead of the site bundle. Handed to React in
+ * hydration on the live page; here each is a few lines against the static DOM.
  *
  * Kept free of `</script>`-shaped sequences by construction: it is inlined verbatim.
+ *
+ * `standalone.ts`'s `bindBehaviors` is a hand-written twin of this string (see its file
+ * header) — any behavior added or changed here needs the same change made there.
  */
 const RUNTIME = `(function () {
   var root = document.documentElement;
@@ -302,7 +305,7 @@ const RUNTIME = `(function () {
 
   // Wide enough for the rail: open the collapsible so it reads as a list, not a disclosure.
   var tocDetails = document.querySelector('.seemore-export-toc details');
-  if (tocDetails && window.matchMedia('(min-width: 1400px)').matches) tocDetails.open = true;
+  if (tocDetails && window.matchMedia('(min-width: 1440px)').matches) tocDetails.open = true;
 
   var main = document.querySelector('main');
   var overlay = document.createElement('div');

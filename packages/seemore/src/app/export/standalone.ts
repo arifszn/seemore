@@ -10,7 +10,8 @@
  *
  * The browser export ships a hand-written twin of the behavior half (the `RUNTIME` string
  * in `exportPage.ts`): it needs no diagram half, because its diagrams are already SVG when
- * the export runs. Keep the two in sync.
+ * the export runs. Keep the two in sync — adding, removing or changing a behavior in one
+ * `bindBehaviors`/`RUNTIME` requires the identical change in the other.
  */
 
 const isDark = (): boolean => document.documentElement.classList.contains('dark');
@@ -78,6 +79,23 @@ function bindBehaviors(): void {
     });
   }
 
+  for (const button of document.querySelectorAll('button[aria-label="Copy Anchor Link"]')) {
+    const heading = button.closest('h1, h2, h3, h4, h5, h6');
+    const svg = button.querySelector('svg');
+    if (heading === null || heading.id === '' || navigator.clipboard === undefined) continue;
+    let revert: ReturnType<typeof setTimeout> | undefined;
+    button.addEventListener('click', () => {
+      const url = new URL(window.location.href);
+      url.hash = heading.id;
+      void navigator.clipboard.writeText(url.href);
+      if (svg === null) return;
+      clearTimeout(revert);
+      const original = svg.innerHTML;
+      svg.innerHTML = '<polyline points="20 6 9 17 4 12"></polyline>';
+      revert = setTimeout(() => { svg.innerHTML = original; }, 1500);
+    });
+  }
+
   // The live site's TOC follows the reader with fumadocs' own scroll tracking; in the file,
   // the plainest version of the same behaviour — last heading above the fold wins.
   const tocLinks = Array.from(document.querySelectorAll<HTMLAnchorElement>('.seemore-export-toc a'));
@@ -106,7 +124,7 @@ function bindBehaviors(): void {
 
   // Wide enough for the rail: open the collapsible so it reads as a list, not a disclosure.
   const tocDetails = document.querySelector<HTMLDetailsElement>('.seemore-export-toc details');
-  if (tocDetails && window.matchMedia('(min-width: 1400px)').matches) tocDetails.open = true;
+  if (tocDetails && window.matchMedia('(min-width: 1440px)').matches) tocDetails.open = true;
 
   const overlay = document.createElement('div');
   overlay.className = 'seemore-export-overlay';

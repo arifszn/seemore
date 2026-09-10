@@ -622,11 +622,17 @@
   color: var(--color-fd-foreground, #111827);
 }
 
-/* From 1400px up there is room for both the reading column and the rail side by side;
-   below that the rail would ride over the text, so the collapsible stays in flow. */
-@media (min-width: 1400px) {
+/* From 1440px up there is room for both the reading column and the rail side by side;
+   below that the rail would ride over the text, so the collapsible stays in flow.
+
+   The rail's `inset-inline-end` is pinned to the article's own centring math (its
+   56rem/2 half-width) rather than a flat viewport offset, so the gap between the
+   article's right edge and the rail stays a fixed 2rem at any width above the
+   breakpoint — matching the live page's `md:px-8` column padding — instead of shrinking
+   toward zero as the viewport narrows toward the breakpoint. */
+@media (min-width: 1440px) {
   .seemore-export-toc {
-    inset-inline-end: 2rem;
+    inset-inline-end: calc((100vw - 56rem) / 2 - 14rem - 2rem);
     margin-block: 0;
     max-height: calc(100vh - 8rem);
     overflow-y: auto;
