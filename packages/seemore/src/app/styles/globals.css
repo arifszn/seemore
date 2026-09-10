@@ -487,8 +487,10 @@
     @apply size-4;
   }
 
+  /* `top-full` is load-bearing: without it the menu keeps its static position, which in this
+     flex row is beside the trigger rather than under it, so it opens over its own button. */
   .seemore-page-actions-menu {
-    @apply absolute end-0 z-50 mt-1.5 min-w-44 rounded-lg border border-fd-border bg-fd-background p-1 shadow-lg;
+    @apply absolute end-0 top-full z-50 mt-1.5 min-w-44 rounded-lg border border-fd-border bg-fd-background p-1 shadow-lg;
   }
 
   .seemore-page-actions-item {
