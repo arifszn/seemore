@@ -61,7 +61,7 @@ And whichever preview is open, the page is also an editor: **double-click any pa
 ## Who is seemore for?
 
 <p align="center">
-  <video src="https://github.com/user-attachments/assets/8142fcb4-2a1f-4e48-82b5-059a28fc0cf2" width="640" controls muted></video>
+  <video src="https://github.com/user-attachments/assets/248032a6-7e25-4f9f-8d73-089b5302afb0" width="640" controls muted></video>
 </p>
 
 Typical use cases include:
