@@ -536,8 +536,10 @@
 .seemore-export-main {
   margin-inline: auto;
   max-width: 56rem;
+  /* Generous top padding: with no header above it, the title needs more room than the
+     live page's column or it reads as glued to the top edge. */
   overflow-x: clip;
-  padding: 2rem 1rem 4rem;
+  padding: 4rem 1rem 4rem;
   width: 100%;
 }
 
@@ -618,7 +620,9 @@
   color: var(--color-fd-foreground, #111827);
 }
 
-@media (min-width: 1280px) {
+/* From 1400px up there is room for both the reading column and the rail side by side;
+   below that the rail would ride over the text, so the collapsible stays in flow. */
+@media (min-width: 1400px) {
   .seemore-export-toc {
     inset-inline-end: 2rem;
     margin-block: 0;
