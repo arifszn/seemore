@@ -264,15 +264,13 @@ Run `seemore --help` for the options, or see the [CLI reference](https://arifszn
 
 ## FAQ
 
-**Do I have to install anything?** No. `npx seemore` runs it without installing. If you'd rather have it around permanently, `npm install -g seemore`, or `npm install -D seemore` to pin a version in a project.
+**Do I have to install anything?** No, just run `npx seemore`.
 
 **Does anything leave my machine?** No. The dev server, the build and the export all run locally, with no account and no telemetry. The only network calls are ones you configure yourself, such as a hosted search provider.
 
 **Will it move or rewrite my files?** No. seemore reads your folder where it is. It writes only when you save an inline edit, or when you run `build` or `export`.
 
 **Is it a preview tool or a docs framework?** Both, from the same folder: `seemore` previews it, the extension renders it beside your editor, and `seemore build` publishes it.
-
-**Do I have to use the terminal?** No. The [seemore skill](https://github.com/arifszn/seemore-skill) lets you ask an AI agent to set it up, write pages and publish for you. It runs the same CLI underneath, so nothing about your folder or your site is different.
 
 ## Under the hood
 
