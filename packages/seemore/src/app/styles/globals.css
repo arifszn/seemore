@@ -476,9 +476,11 @@
   }
 
   /* Page actions: the row above the article holding the export dropdown. Right-aligned so
-     it reads as chrome, not content, and stays clear of the heading it hangs over. */
+     it reads as chrome, not content, and stays clear of the heading it hangs over. No
+     bottom margin: the main column's own `gap-10` already separates it from the article,
+     and a margin here would stack on top of that gap. */
   .seemore-page-actions {
-    @apply relative mb-4 flex justify-end;
+    @apply relative flex justify-end;
   }
 
   .seemore-page-actions-trigger {
@@ -492,6 +494,19 @@
 
   .seemore-page-actions-trigger svg {
     @apply size-4;
+  }
+
+  /* Mobile: the row's trigger padding reads as wasted space on a phone, and the column's
+     `gap-10` is generous for a viewport this small — tighten both below the `md`
+     breakpoint, where the TOC rail is hidden and this row is pure chrome. */
+  @media (max-width: 767.98px) {
+    .seemore-page-actions-trigger {
+      @apply px-2.5 py-1;
+    }
+
+    .seemore-main {
+      @apply gap-6;
+    }
   }
 
   /* `top-full` is load-bearing: without it the menu keeps its static position, which in this
