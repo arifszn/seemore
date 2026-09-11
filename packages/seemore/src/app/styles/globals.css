@@ -181,6 +181,13 @@
     @apply md:hidden;
   }
 
+  /* Matches the rule above but keyed off the attribute the blocking head script sets, so a
+     remembered collapse hides the rail on the very first paint, before React has hydrated and
+     taken over via `data-collapsed`. */
+  :root[data-sidebar-collapsed='true'] .seemore-sidebar-column {
+    @apply md:hidden;
+  }
+
   .seemore-sidebar-backdrop {
     @apply fixed inset-0 z-30 bg-black/40 md:hidden;
   }

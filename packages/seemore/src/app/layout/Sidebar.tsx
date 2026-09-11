@@ -44,10 +44,22 @@ const styled = {
 const renderPageTree = createPageTreeRenderer(styled);
 
 const COLLAPSE_KEY = 'seemore:sidebar-collapsed';
+const COLLAPSE_ATTR = 'sidebarCollapsed';
 
 /* `useLayoutEffect` does nothing on the server and says so in a warning; the prerender pass
    takes `useEffect`, which it never runs either. */
 const useIsomorphicLayoutEffect = typeof document === 'undefined' ? useEffect : useLayoutEffect;
+
+/**
+ * Mirrors the collapse choice onto `<html data-sidebar-collapsed>`, the attribute the blocking
+ * script in `index.html` sets from `localStorage` before React ever runs. Once hydrated, this
+ * component's own state is authoritative and must keep that attribute in sync — otherwise a
+ * later un-collapse would leave the attribute (and the CSS rule keyed on it) stuck on `true`.
+ */
+function syncCollapseAttr(collapsed: boolean): void {
+  if (collapsed) document.documentElement.dataset[COLLAPSE_ATTR] = 'true';
+  else delete document.documentElement.dataset[COLLAPSE_ATTR];
+}
 
 /**
  * Hiding the rail is a reader's preference, like the theme, so it outlives the page rather
@@ -65,6 +77,7 @@ export function useSidebarCollapse(): { collapsed: boolean; toggle: () => void }
     } catch {
       // Storage blocked, private window: the choice just does not outlive the page.
     }
+    syncCollapseAttr(next);
     setCollapsed(next);
   }, [collapsed, setCollapsed]);
 
@@ -77,9 +90,14 @@ function useRestoreCollapse(): void {
 
   useIsomorphicLayoutEffect(() => {
     try {
-      if (localStorage.getItem(COLLAPSE_KEY) === 'true') setCollapsed(true);
+      const restored = localStorage.getItem(COLLAPSE_KEY) === 'true';
+      if (restored) setCollapsed(true);
+      // Reconciles the head script's guess with the real value — clears it if storage was
+      // wiped or disagrees, so a stale attribute never outlives the state it was priming.
+      syncCollapseAttr(restored);
     } catch {
       // Nothing readable is nothing to restore; the rail stays open.
+      syncCollapseAttr(false);
     }
   }, [setCollapsed]);
 }

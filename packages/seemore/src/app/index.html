@@ -9,6 +9,15 @@
          artwork the editor extension ships as its icon. Inlined rather than linked so the
          built site needs no extra request and no file in the user's folder. -->
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Crect width='128' height='128' rx='28' fill='%236D5EF5'/%3E%3Crect x='30' y='26' width='52' height='68' rx='8' fill='%23ffffff' opacity='0.35' transform='rotate(-8 56 60)'/%3E%3Crect x='38' y='22' width='52' height='68' rx='8' fill='%23ffffff' opacity='0.6' transform='rotate(-3 64 56)'/%3E%3Crect x='46' y='24' width='52' height='72' rx='8' fill='%23ffffff'/%3E%3Cg stroke-linecap='round'%3E%3Cline x1='56' y1='42' x2='82' y2='42' stroke='%236D5EF5' stroke-width='6'/%3E%3Cline x1='56' y1='56' x2='88' y2='56' stroke='%23C6C8E6' stroke-width='4'/%3E%3Cline x1='56' y1='66' x2='80' y2='66' stroke='%23C6C8E6' stroke-width='4'/%3E%3Cline x1='56' y1='76' x2='88' y2='76' stroke='%236D5EF5' stroke-width='4'/%3E%3Cline x1='56' y1='86' x2='74' y2='86' stroke='%23C6C8E6' stroke-width='4'/%3E%3C/g%3E%3C/svg%3E" />
+    <!-- Runs before body paints, so a remembered sidebar collapse applies on the very first
+         frame instead of flashing the rail open and then closing it once React hydrates. -->
+    <script>
+      try {
+        if (localStorage.getItem('seemore:sidebar-collapsed') === 'true') {
+          document.documentElement.dataset.sidebarCollapsed = 'true';
+        }
+      } catch {}
+    </script>
     <!--seemore-head-->
   </head>
   <body>
