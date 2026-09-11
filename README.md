@@ -17,20 +17,11 @@
     <a href="https://github.com/arifszn/seemore/actions/workflows/ci.yml">
       <img src="https://github.com/arifszn/seemore/actions/workflows/ci.yml/badge.svg"/>
     </a>
-    <a href="https://github.com/arifszn/seemore/issues">
-      <img src="https://img.shields.io/github/issues/arifszn/seemore"/>
-    </a>
     <a href="https://github.com/arifszn/seemore/stargazers">
       <img src="https://img.shields.io/github/stars/arifszn/seemore"/>
     </a>
-    <a href="https://github.com/arifszn/seemore">
-      <img src="https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat"/>
-    </a>
     <a href="https://github.com/arifszn/seemore/blob/main/LICENSE">
       <img src="https://img.shields.io/github/license/arifszn/seemore"/>
-    </a>
-    <a href="https://twitter.com/intent/tweet?url=https://github.com/arifszn/seemore&hashtags=markdown,docs,webdev,opensource">
-      <img src="https://img.shields.io/twitter/url?style=social&url=https%3A%2F%2Fgithub.com%2Farifszn%2Fseemore"/>
     </a>
   </p>
   <p align="center">
@@ -42,7 +33,7 @@
   </p>
 </p>
 
-AI tools write Markdown — specs, notes, guides, READMEs, whole folders of it, faster than anyone can read. A pile of `.md` files is write-only memory: nothing to click, nothing to search, no order.
+AI tools write Markdown faster than anyone can read it: specs, notes, guides, READMEs, whole folders of it. A folder of `.md` files is a dead end: nothing to click, nothing to search, no order.
 
 **seemore** points at that folder and renders it as a proper site instead, without you moving a single file or writing any code.
 
@@ -50,70 +41,63 @@ AI tools write Markdown — specs, notes, guides, READMEs, whole folders of it, 
   <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/home.png" alt="The seemore site: a terminal typing npx seemore to serve a folder of notes at localhost:4040, with an arrow pointing to the browser preview" width="640"/>
 </p>
 
-Three ways to use it:
+## Quick start
 
-- **[In your browser](#view-in-your-browser)**: `npx seemore` serves the folder you're standing in and updates live as you edit.
-- **[In your code editor](#view-in-your-code-editor)**: an extension puts the same site in a panel next to the file you're editing — VS Code and VS Code-compatible editors like Cursor and Antigravity.
+Requires [Node.js](https://nodejs.org) 20 or newer. Nothing to install, no config file, no files to move.
+
+```bash
+cd my-docs
+npx seemore   # renders this folder at http://localhost:4040
+```
+
+Open the address it prints. From there it's live: add, rename, retitle or delete a file and the site updates immediately, navigation and search included.
+
+The [seemore website](https://arifszn.github.io/seemore) is itself a folder of Markdown rendered by seemore. That's what your own folder will look like.
+
+## Three ways to use it
+
+- **[In your browser](#edit-from-the-browser)**: `npx seemore` serves the folder you're standing in and updates live as you edit.
+- **[In your code editor](#view-in-your-code-editor)**: an extension puts the same site in a panel next to the file you're editing, in VS Code and VS Code-compatible editors like Cursor and Antigravity.
 - **[As a static site](#publish-it-to-the-web)**: `npx seemore build` exports plain HTML you can host anywhere, so it doubles as a docs framework, not just a preview tool.
-
-And whichever preview is open, the page is also an editor: **double-click any paragraph to fix its Markdown in place**, and the change is written straight back to the file.
-
-## Who is seemore for?
 
 <p align="center">
   <video src="https://github.com/user-attachments/assets/248032a6-7e25-4f9f-8d73-089b5302afb0" width="640" controls muted></video>
 </p>
 
-Typical use cases include:
+## What you get
 
-- **Review AI-generated documentation** — when you're buried under AI-written Markdown and need a faster way to browse, search and edit it instead of opening files one by one.
-- **Present documentation** — turn a folder of Markdown into a polished website for teammates, clients or the public without moving files into another system.
-- **Zero-setup documentation** — point seemore at an existing folder and it just works, with no migration, configuration or project structure to learn.
-- **Project documentation** — READMEs, architecture docs, RFCs, API documentation, specifications and engineering handbooks.
-- **Documentation review** — read rendered pages instead of raw Markdown while making fixes directly from the preview.
-- **Static documentation sites** — publish the same Markdown with `seemore build` instead of maintaining a separate documentation stack.
-- **Sharing a single page** — export one page as a self-contained HTML file to drop in Slack or email, no site or server needed.
+Point seemore at anything already sitting in Markdown (AI-written notes, project docs, RFCs, API references, specs, an engineering handbook) and you get:
 
-## Features
+- **Zero config**: no config file, no code, no files to move; a plain folder works in the browser, in your editor, and as a static build
+- **Live preview**: files appear, disappear and reorder as you edit them, navigation and search included
+- **Edit in place**: double-click any block in the preview to fix its Markdown
+- **Editor integration**: one extension covers VS Code, Cursor, Antigravity and other VS Code-compatible editors, remote workspaces included
+- **Documentation framework**: `seemore build` prerenders the whole site to HTML, ready to deploy on any host
+- **Page actions**: copy a page as Markdown, or export it as one self-contained HTML file to drop into Slack, email or an AI chat
+- **Search built in**: static full-text search with no server and no account, with shareable highlighted results; [Algolia](https://algolia.com) and [Orama Cloud](https://orama.com) drop in when you want a hosted index
+- **Rich Markdown**: GitHub Flavoured Markdown, admonitions, steps, `[[wikilinks]]`, [Mermaid](https://mermaid.js.org) and [D2](https://d2lang.com) diagrams, click-to-zoom images, embedded PDFs
+- **Full MDX**: `.mdx` pages take real JSX, your own React components and CSS
+- **12 themes**: dark and light follow the system, with a toggle that remembers your choice; your own CSS always wins
 
-- **Zero config** — no config file, no code, no files to move; a plain folder of Markdown works in the browser, in your editor, and as a static build
-- **Live preview** — add, rename, retitle or delete a file and the site updates immediately, navigation and search included
-- **Edit in place** — double-click any block in the preview to fix its Markdown; saves are surgical, so `git diff` shows the sentence you changed and nothing else
-- **Full MDX** — when Markdown isn't enough, `.mdx` pages take real JSX: your own React components, inline SVG, custom classes and CSS; `<Callout>`, `<Card>`, `<CodeBlockTabs>` and friends come built in, with no imports to write
-- **Static export** — `seemore build` prerenders the whole site to HTML, `404.html` included, ready to deploy anywhere, with the conventions individual hosts look for (`_redirects`, `200.html`, `.nojekyll`)
-- **Page actions** — an Actions button on every page: copy the page as Markdown, or export it as one self-contained HTML file to share on its own — Slack, email, a USB stick, no server needed — with the CLI equivalent in `seemore export <file>`
-- **12 themes** — dark and light follow the system, with a toggle that remembers your choice; your own CSS always wins
-- **Rich Markdown** — GitHub Flavoured Markdown, admonitions, steps, `[[wikilinks]]`, [Mermaid](https://mermaid.js.org) and [D2](https://d2lang.com) diagrams, click-to-zoom images, embedded PDFs
-- **Editor integration** — one extension covers VS Code, Cursor, Antigravity and other VS Code-compatible editors, remote workspaces included
-- **Search built in** — static, zero-setup full-text search out of the box, with shareable highlighted results; [Algolia](https://algolia.com) and [Orama Cloud](https://orama.com) for hosted indexes
+### How it's different
 
-## View in your browser
+- **Starts where your files already are**: most docs frameworks want a project, with a scaffold, a config file, a `docs/` layout and a build step wired into your repo. seemore wants a folder that already exists.
+- **Preview first, site generator second**: the same content serves locally, renders beside your editor, and builds to static HTML, with no separate setup for each.
+- **Nothing to migrate, nothing to undo**: your files are never moved or rewritten, so walking away costs nothing.
 
-```bash
-npx seemore     # view the current folder in your browser, live, no setup
-```
+## Edit from the browser
 
-Run it in your folder of Markdown files (Node.js 20 or newer) and open the address it prints — `http://localhost:4040` by default. From there it's live: add, rename, retitle or delete a file and the site updates immediately. Point it at a subfolder with `npx seemore docs` if that's where your files live.
-
-## Edit your files from the browser
-
-The preview is not just for reading — it is the fastest way to fix what you are reading. Double-click any paragraph, heading, list item, quote or table cell and it opens in a small editor holding that block's **Markdown source**: `**bold**` stays `**bold**`, links stay links, tables stay tables. Fix the text and hit **Save** and the change is written to the file on disk.
+The preview is also an editor. Double-click any paragraph, heading, list item, quote or table cell and it opens in a small editor holding that block's **Markdown source**: `**bold**` stays `**bold**`, links stay links, tables stay tables. Fix the text, hit **Save**, and the change is written to the file on disk.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/inline-editor.png" alt="seemore rendering a folder of Markdown in the browser, with a paragraph's Markdown source open in the inline editor" width="640"/>
 </p>
 
-Inline editing is for local previews only — `seemore build` output is static, so nothing is emitted there. It is on by default in dev; switch it off like this:
-
-```ts
-export default {
-  features: { 'content.edit': false },
-};
-```
+Inline editing is for local previews only.
 
 ## View in your code editor
 
-Install **seemore** from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=arifszn.seemore-vscode) or [Open VSX](https://open-vsx.org/extension/arifszn/seemore-vscode) to get the same rendered site as a panel beside your editor — no terminal, no `npx`, no browser tab to manage. The extension bundles the CLI, so nothing is downloaded or put on your PATH. Open VSX also covers VS Code-compatible editors — Cursor, Antigravity, and others.
+Install **seemore** from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=arifszn.seemore-vscode) or [Open VSX](https://open-vsx.org/extension/arifszn/seemore-vscode) to get the same rendered site as a panel beside your editor, with no terminal, no `npx` and no browser tab to manage. The extension bundles the CLI, so nothing is downloaded or put on your PATH. Open VSX also covers VS Code-compatible editors such as Cursor and Antigravity.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/vscode-extension.png" alt="VS Code with features.md open in the editor and the seemore panel beside it, rendering the same page with a paragraph's Markdown source open in the inline editor" width="640"/>
@@ -123,44 +107,28 @@ Install **seemore** from the [VS Code Marketplace](https://marketplace.visualstu
 2. Click the **seemore** icon in the editor's title bar, or right-click a folder in the explorer and choose **Open Folder in seemore**.
 3. The rendered site opens beside your editor, scoped to that file's folder.
 
-### Commands
-
-| Command | Where | Does |
-| --- | --- | --- |
-| **Open in seemore** | Editor title bar, on any Markdown file | Renders that file's folder as a site |
-| **Open Folder in seemore** | Explorer, right-click a folder | Renders that folder as a site and pins it as the root |
-| **Choose Root** | Status bar item, or the command palette | Pins the folder being served, clears a pinned root, or picks another folder to serve |
-
-### Settings
-
-| Setting | Default | Effect |
-| --- | --- | --- |
-| `seemore.path` | *(bundled copy)* | Path to a `seemore` CLI entry point to use instead of the version bundled with the extension. Leave empty unless you're developing **seemore** itself. |
-
 ## Publish it to the web
 
 ```bash
 npx seemore build  # static export to dist/ for any host
 ```
 
-The result is a `dist/` folder of plain web files: drop it on [Netlify](https://netlify.com), [Surge](https://surge.sh), [Cloudflare Pages](https://pages.cloudflare.com) or [GitHub Pages](https://pages.github.com), or hand it to any web host. Every page is prerendered to its own `index.html`, next to a `404.html` that every static host honours. On top of that, the small conventions individual hosts look for — `_redirects` for Netlify and Cloudflare Pages, `200.html` for Surge, `.nojekyll` for GitHub Pages — are written for you.
+The result is a `dist/` folder of plain web files: drop it on [Netlify](https://netlify.com), [Surge](https://surge.sh), [Cloudflare Pages](https://pages.cloudflare.com) or [GitHub Pages](https://pages.github.com), or hand it to any web host. Every page is prerendered to its own `index.html`, next to a `404.html` that every static host honours, and host-specific files (`_redirects`, `200.html`, `.nojekyll`) are written for you.
 
 > [!TIP]
-> Project sites on GitHub Pages live under `username.github.io/my-repo/`, not the root, so set `base` once: `base: '/my-repo/'` (or `--base /my-repo/` on the CLI). Building under GitHub Actions without it set prints the exact line to add.
+> Publishing to GitHub Pages? Your site lives at `username.github.io/my-repo/` rather than the root, so tell seemore the subpath once with `base: '/my-repo/'`. If you forget, the build prints the exact line to add.
 
-## Export page
-
-An **Actions** button above every page exports just that page. **Export as HTML** writes one self-contained file — styles inlined, images embedded, diagrams kept — that opens offline from a double-click, ready to drop into Slack, email or an AI chat. The CLI produces the same HTML file without a browser:
+To share a single page instead of a site, the **Actions** button above every page writes one self-contained HTML file (styles inlined, images embedded, diagrams kept) that opens offline from a double-click. The CLI does the same without a browser:
 
 ```bash
 npx seemore export docs/spec.md   # writes spec.html next to the Markdown
 ```
 
-Which actions appear — or whether the button exists at all — is one line of config, `pageActions`. See [Configuration](#configuration) and the [features page](https://arifszn.github.io/seemore/features) for the details.
+More on both in [publishing](https://arifszn.github.io/seemore/publishing).
 
 ## Configuration
 
-Optional — a folder with no config file builds correctly everywhere. To adjust things, create `seemore.config.ts` next to your content:
+Configuration is optional; a folder with no config file builds correctly everywhere. To adjust things, create `seemore.config.ts` next to your content:
 
 ```ts
 // seemore.config.ts
@@ -181,51 +149,7 @@ export default {
 };
 ```
 
-### Search
-
-The default `search: 'static'` needs no setup, no server and no account: the index is built from your Markdown and queried in the browser, in a Web Worker. `search.suggest` completes your query inline, and `search.highlight` carries the query onto the page you land on (`?h=…`), so search-result links are shareable. Hosted indexes are a drop-in swap whenever you want one: [Orama Cloud](https://orama.com) (`@orama/core`) or [Algolia](https://algolia.com) (`algoliasearch`), each needing nothing but its SDK installed.
-
-### Themes
-
-Twelve built-in colour presets: `neutral` (default), `black`, `catppuccin`, `dusk`, `ocean`, `purple`, `ruby`, `solar`, `aspen`, `emerald`, `vitepress`, `shadcn`. For anything else, put your own CSS in `css`; it's appended last, so it wins. Dark and light follow your system setting, with a toggle that remembers your choice — `black` is built for dark mode, shown below with the toggle on.
-
-| `neutral` (default) | `black` |
-| :--- | :--- |
-| <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/neutral.png" alt="neutral theme" width="100%"> | <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/black.png" alt="black theme" width="100%"> |
-
-| `catppuccin` | `dusk` |
-| :--- | :--- |
-| <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/catppuccin.png" alt="catppuccin theme" width="100%"> | <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/dusk.png" alt="dusk theme" width="100%"> |
-
-| `ocean` | `purple` |
-| :--- | :--- |
-| <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/ocean.png" alt="ocean theme" width="100%"> | <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/purple.png" alt="purple theme" width="100%"> |
-
-| `ruby` | `solar` |
-| :--- | :--- |
-| <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/ruby.png" alt="ruby theme" width="100%"> | <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/solar.png" alt="solar theme" width="100%"> |
-
-| `aspen` | `emerald` |
-| :--- | :--- |
-| <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/aspen.png" alt="aspen theme" width="100%"> | <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/emerald.png" alt="emerald theme" width="100%"> |
-
-| `vitepress` | `shadcn` |
-| :--- | :--- |
-| <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/vitepress.png" alt="vitepress theme" width="100%"> | <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/shadcn.png" alt="shadcn theme" width="100%"> |
-
-### Features
-
-A set of switches for fine control, set on the `features` key. Name the ones you want to change and set each `true` or `false`; flags you don't mention keep their default.
-
-```ts
-// seemore.config.ts
-export default {
-  features: {
-    'navigation.path': true,               // off by default → this turns it on
-    'navigation.instant.prefetch': false,  // on by default → this turns it off
-  },
-};
-```
+`features` is a set of switches. Name the ones you want to change; flags you don't mention keep their default.
 
 | Flag | Default | Effect |
 | --- | --- | --- |
@@ -246,22 +170,37 @@ export default {
 | `search.highlight` | on | Highlight the query on the page you land on |
 | `social.cards` | off | Per-page OG images (needs `takumi-js`) |
 
-Combinations that can't work together raise a config error naming both flags and the fix.
+Every config key above is documented on the [configuration](https://arifszn.github.io/seemore/configuration) and [features](https://arifszn.github.io/seemore/features) pages.
+
+### Themes
+
+Twelve built-in colour presets: `neutral` (default), `black`, `catppuccin`, `dusk`, `ocean`, `purple`, `ruby`, `solar`, `aspen`, `emerald`, `vitepress`, `shadcn`. Dark and light follow your system setting, with a toggle that remembers your choice. For anything else, put your own CSS in `css`; it's appended last, so it wins.
+
+| `neutral` (default) | `black` |
+| :--- | :--- |
+| <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/neutral.png" alt="neutral theme" width="100%"> | <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/black.png" alt="black theme" width="100%"> |
+
+All twelve are on the [themes page](https://arifszn.github.io/seemore/themes).
 
 ## Content
 
-Supports `.md` and `.mdx` both.
+Works with both `.md` and `.mdx`.
 
-- GitHub Flavoured Markdown, admonitions (note / tip / warning boxes), step-by-step lists, and colour-highlighted code blocks
-- `[[wikilinks]]`, including `[[Page|label]]` and `[[Page#Heading]]`, the easiest way for you or your AI to link pages without relative paths to get right
-- Relative `.md` links are resolved to working links automatically
-- **[Mermaid](https://mermaid.js.org)** and **[D2](https://d2lang.com)** diagrams, both rendered live in the browser straight from a ` ```mermaid ` or ` ```d2 ` code fence
-- Sibling images inlined as hashed assets with click-to-zoom, sibling PDFs open in the browser's own viewer
-- Frontmatter keys are validated
+- GitHub Flavoured Markdown, admonitions (note / tip / warning boxes), step-by-step lists, and colour-highlighted code blocks with optional filenames and line numbers
+- `[[wikilinks]]`, including `[[Page|label]]` and `[[Page#Heading]]`, the easiest way for you or your AI to link pages without relative paths to get right; plain relative `.md` links are resolved automatically too
+- **[Mermaid](https://mermaid.js.org)** and **[D2](https://d2lang.com)** diagrams, rendered live in the browser straight from a ` ```mermaid ` or ` ```d2 ` code fence
+- Sibling images inlined as hashed assets with click-to-zoom, and PDFs opened inline in the browser's own viewer
+- Page order comes from a `meta.json`, a frontmatter `order`, or the title, in that order
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/diagrams.png" alt="A mermaid flowchart reading Markdown, seemore, Static site rendered live on the Diagrams page, with a D2 diagram of the same chain below it" width="640"/>
+</p>
+
+Every syntax above, rendered live, is on the [content page](https://arifszn.github.io/seemore/content).
 
 ### PDF viewer
 
-Reference a PDF with image syntax and it opens inline in the browser's own viewer, with a download link underneath — a sibling file or a remote URL both work:
+Reference a PDF with image syntax, a sibling file or a remote URL, and it opens inline with a download link underneath:
 
 ```md
 ![sample document](./assets/sample.pdf)
@@ -271,83 +210,37 @@ Reference a PDF with image syntax and it opens inline in the browser's own viewe
   <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/pdf-viewer.png" alt="A sample PDF rendered inline on the page in the browser's native PDF viewer, with a Download sample document link underneath" width="640"/>
 </p>
 
-### Diagrams
-
-A ` ```mermaid ` or ` ```d2 ` code fence renders live in the browser, no build step or external service:
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/diagrams.png" alt="A mermaid flowchart reading Markdown, seemore, Static site rendered live on the Diagrams page, with a D2 diagram of the same chain below it" width="640"/>
-</p>
-
-### Code blocks
-
-Code is syntax-highlighted automatically — nothing to configure. Add a filename or line numbers by putting them after the language on the fence line:
-
-```ts title="server.ts" lineNumbers
-const port = 4040;
-```
-
-You can also highlight a line, mark it as added/removed, or focus it, with a comment right in the code — `// [!code highlight]` and friends. See it all rendered live, with the full list of options, on the [Content page](https://arifszn.github.io/seemore/content#code-blocks).
-
-### Components
-
-`.mdx` files can use `<Callout>`, `<Card>`, `<Cards>`, `<CodeBlockTabs>`, `<Mermaid>`, `<D2>` and `<Pdf>` with no imports needed — plain `.md` files just keep the tag as text, so components need the `.mdx` extension. Full syntax for each is on the [Content page](https://arifszn.github.io/seemore/content).
-
-Numbered headings — `## 1. Install it`, `## 2. Point it at a folder` — become a numbered sequence.
-
-### Page addresses
-
-| File | Address |
-| --- | --- |
-| `index.md` | `/` |
-| `README.md` (root) | `/` |
-| `getting-started.md` | `/getting-started` |
-| `guide/index.md` | `/guide` |
-| `guide/Deep Dive.md` | `/guide/deep-dive` |
-
-### Ordering
-
-Pages are ordered by:
-
-1. `meta.json` in the directory — an explicit list, with `...` standing in for anything you didn't name:
-
-   ```json
-   { "pages": ["getting-started", "installation", "..."] }
-   ```
-
-2. Frontmatter `order` — lower numbers first:
-
-   ```md
-   ---
-   title: Getting Started
-   order: 1
-   ---
-   ```
-
-3. Alphabetical by title, for anything left unordered by the two above
-
-## CLI reference
+## CLI
 
 ```
 seemore [dir]           start the dev server
 seemore build [dir]     build a static site into dist/
 seemore export <file>   export a page as a standalone HTML file
-
-Options
-  --port <number>        dev server port (default 4040)
-  --host [host]          expose the dev server on the network
-  --open / --no-open     open a browser on start (default: no)
-  --json                 print one machine-readable JSON line instead of the summary (dev only)
-  --config <path>        path to seemore.config.ts
-  --out <dir>            build output directory (default: dist); for export, where the HTML file is written
-  --base <path>          subpath the site is served from, e.g. /my-repo/
-  -h, --help             show this message
-  -v, --version          show the version
 ```
+
+Run `seemore --help` for the options, or see the [CLI reference](https://arifszn.github.io/seemore/cli-reference).
+
+## FAQ
+
+**Do I have to install anything?** No. `npx seemore` runs it without installing. If you'd rather have it around permanently, `npm install -g seemore`, or `npm install -D seemore` to pin a version in a project.
+
+**Does anything leave my machine?** No. The dev server, the build and the export all run locally, with no account and no telemetry. The only network calls are ones you configure yourself, such as a hosted search provider.
+
+**Will it move or rewrite my files?** No. seemore reads your folder where it is. It writes only when you save an inline edit, or when you run `build` or `export`.
+
+**Is it a preview tool or a docs framework?** Both, from the same folder: `seemore` previews it, the extension renders it beside your editor, and `seemore build` publishes it.
 
 ## Under the hood
 
-[fumadocs](https://fumadocs.vercel.app) provides the interface presets, with [Shiki](https://shiki.style), [Mermaid](https://mermaid.js.org), [D2](https://d2lang.com), [Vite](https://vite.dev) and [React Router](https://reactrouter.com) underneath. The code editor extension runs the same CLI as a child process it manages. Bug reports and pull requests are welcome at [github.com/arifszn/seemore](https://github.com/arifszn/seemore).
+[fumadocs](https://fumadocs.vercel.app) provides the interface presets, with [Shiki](https://shiki.style), [Mermaid](https://mermaid.js.org), [D2](https://d2lang.com), [Vite](https://vite.dev) and [React Router](https://reactrouter.com) underneath. The code editor extension runs the same CLI as a child process it manages.
+
+## Contributing
+
+Bug reports and pull requests are welcome. [CONTRIBUTING.md](https://github.com/arifszn/seemore/blob/main/CONTRIBUTING.md) covers how to get the repo running, the checks to pass before opening a pull request, and how releases work.
+
+## Star it
+
+If seemore saved you some time, [give it a star](https://github.com/arifszn/seemore). That is how other people find it.
 
 ## Licence
 

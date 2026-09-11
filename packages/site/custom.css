@@ -746,12 +746,17 @@
   margin-top: 0.6rem;
 }
 
-/* ---------- Who is seemore for? ---------- */
+/* ---------- How it's different ---------- */
 
 .seemore-uses {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1.25rem 2rem;
+}
+
+/* Three abreast, so a trio fills its row instead of leaving a hole in a two-up grid. */
+.seemore-uses--trio {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .seemore-use {
@@ -772,6 +777,13 @@
   font-size: 0.875rem;
   line-height: 1.55;
   color: var(--color-fd-muted-foreground);
+}
+
+/* The content column narrows before the viewport does, so a trio goes single-file early. */
+@media (max-width: 1279px) {
+  .seemore-uses--trio {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 @media (max-width: 767px) {

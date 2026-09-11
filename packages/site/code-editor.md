@@ -6,13 +6,13 @@ order: 3
 
 # Code editor extension
 
-Install **seemore** from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=arifszn.seemore-vscode) or [Open VSX](https://open-vsx.org/extension/arifszn/seemore-vscode) to get the same rendered site as a panel beside your editor — no terminal, no `npx`, no browser tab to manage. Open VSX also covers VS Code-compatible editors — Cursor, Antigravity, and others — and the panel works in remote workspaces and Codespaces too.
+Install **seemore** from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=arifszn.seemore-vscode) or [Open VSX](https://open-vsx.org/extension/arifszn/seemore-vscode) to get the same rendered site as a panel beside your editor, with no terminal, no `npx` and no browser tab to manage. Open VSX also covers VS Code-compatible editors such as Cursor and Antigravity, and the panel works in remote workspaces and Codespaces too.
 
 1. Open any Markdown file.
 2. Click the **seemore** icon in the editor's title bar, or right-click a folder in the explorer and choose **Open Folder in seemore**.
 3. The rendered site opens beside your editor, scoped to that file's folder.
 
-The panel runs the same dev server as `npx seemore`, so everything about the live preview works here too — including [editing a page's text in place](./features.md): double-click a paragraph in the panel, hit **Save**, and the file beside you updates.
+The panel runs the same dev server as `npx seemore`, so everything about the live preview works here too, including [editing a page's text in place](./features.md): double-click a paragraph in the panel, hit **Save**, and the file beside you updates.
 
 ![VS Code with features.md open in the editor and the seemore panel beside it, rendering the same page with a paragraph's Markdown source open in the inline editor](./assets/vscode-extension.png)
 

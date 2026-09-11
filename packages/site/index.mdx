@@ -17,13 +17,13 @@ import poster from './assets/promo-poster.png';
 </h1>
 
 <div className="seemore-hero-lede">
-  AI tools write Markdown — specs, notes, guides, READMEs, whole folders of it, faster than
-  anyone can read. A pile of `.md` files is write-only memory: nothing to click, nothing to
-  search, no order. **seemore** points at that folder and renders it as a proper site instead,
-  without you moving a single file or writing any code.
+  AI tools write Markdown faster than anyone can read it: specs, notes, guides, READMEs, whole
+  folders of it. A folder of `.md` files is a dead end: nothing to click, nothing to search, no
+  order. **seemore** points at that folder and renders it as a proper site instead, without you
+  moving a single file or writing any code.
 </div>
 
-<div className="seemore-hero-demo" role="img" aria-label="Terminal typing npx seemore, which serves a folder of notes at localhost:4040 — an arrow points to a browser preview loading the site">
+<div className="seemore-hero-demo" role="img" aria-label="Terminal typing npx seemore, which serves a folder of notes at localhost:4040, with an arrow pointing to a browser preview loading the site">
 
 <div className="seemore-cli">
 
@@ -32,7 +32,7 @@ import poster from './assets/promo-poster.png';
 <span className="seemore-tl seemore-tl-r"></span>
 <span className="seemore-tl seemore-tl-y"></span>
 <span className="seemore-tl seemore-tl-g"></span>
-<span className="seemore-cli-title">zsh — ~/notes</span>
+<span className="seemore-cli-title">zsh · ~/notes</span>
 
 </div>
 
@@ -181,7 +181,7 @@ Same folder, same Markdown, wherever you're already looking at it.
       </span>
       <span className="seemore-way-title">In your code editor</span>
     </span>
-    <span className="seemore-way-desc">An extension puts the same site in a panel next to the file you're editing — VS Code and compatible editors.</span>
+    <span className="seemore-way-desc">An extension puts the same site in a panel next to the file you're editing, in VS Code and compatible editors.</span>
   </span>
 </Link>
 
@@ -203,7 +203,7 @@ Same folder, same Markdown, wherever you're already looking at it.
       </span>
       <span className="seemore-way-title">As a static site</span>
     </span>
-    <span className="seemore-way-desc">npx seemore build exports plain HTML you can host anywhere — a docs framework, not just a preview tool.</span>
+    <span className="seemore-way-desc">npx seemore build exports plain HTML you can host anywhere, so it doubles as a docs framework, not just a preview tool.</span>
   </span>
 </Link>
 
@@ -211,76 +211,15 @@ Same folder, same Markdown, wherever you're already looking at it.
 
 <div className="seemore-section-head">
 
-## Who is seemore for?
+## What you get
+
+Point seemore at anything already sitting in Markdown: AI-written notes, project docs, RFCs, API
+references, specs, an engineering handbook.
 
 </div>
 
 <div className="seemore-shot seemore-shot--video">
   <video src={promo} poster={poster} controls muted playsInline preload="metadata"></video>
-</div>
-
-<div className="seemore-section-head">
-
-Typical use cases include:
-
-</div>
-
-<div className="seemore-uses">
-
-<div className="seemore-use">
-  <span className="seemore-use-title">Review AI-generated documentation</span>
-  <span className="seemore-use-desc">When you're buried under AI-written Markdown and need a faster way to browse, search and edit it instead of opening files one by one.</span>
-</div>
-
-<div className="seemore-use">
-  <span className="seemore-use-title">Present documentation</span>
-  <span className="seemore-use-desc">Turn a folder of Markdown into a polished website for teammates, clients or the public without moving files into another system.</span>
-</div>
-
-<div className="seemore-use">
-  <span className="seemore-use-title">Zero-setup documentation</span>
-  <span className="seemore-use-desc">Point seemore at an existing folder and it just works, with no migration, configuration or project structure to learn.</span>
-</div>
-
-<div className="seemore-use">
-  <span className="seemore-use-title">Project documentation</span>
-  <span className="seemore-use-desc">READMEs, architecture docs, RFCs, API documentation, specifications and engineering handbooks.</span>
-</div>
-
-<div className="seemore-use">
-  <span className="seemore-use-title">Documentation review</span>
-  <span className="seemore-use-desc">Read rendered pages instead of raw Markdown while making fixes directly from the preview.</span>
-</div>
-
-<div className="seemore-use">
-  <span className="seemore-use-title">Static documentation sites</span>
-  <span className="seemore-use-desc">Publish the same Markdown with seemore build instead of maintaining a separate documentation stack.</span>
-</div>
-
-<div className="seemore-use">
-  <span className="seemore-use-title">Sharing a single page</span>
-  <span className="seemore-use-desc">Export one page as a self-contained HTML file to drop in Slack or email, no site or server needed.</span>
-</div>
-
-</div>
-
-<div className="seemore-section-head">
-
-## Edit without leaving the page
-
-While a preview is open, the rendered page is also an editor. Double-click any paragraph to fix
-its Markdown in place — the change is written straight back to the file.
-
-</div>
-
-<div className="seemore-shot">
-  ![seemore rendering a folder of Markdown in the browser, with a paragraph's Markdown source open in the inline editor](./assets/inline-editor.png)
-</div>
-
-<div className="seemore-section-head">
-
-## What you get
-
 </div>
 
 <Cards>
@@ -294,36 +233,74 @@ its Markdown in place — the change is written straight back to the file.
   />
   <Card
     title="Edit in place"
-    description="Double-click any block to fix its Markdown; saves are surgical, so git diff shows the sentence you changed and nothing else."
-  />
-  <Card
-    title="Full MDX"
-    description="When Markdown isn't enough, .mdx pages take real JSX — your own components, inline SVG, custom CSS — plus <Callout>, <Card> and friends with no imports. This page is built that way."
-  />
-  <Card
-    title="Static export"
-    description="seemore build prerenders the whole site to HTML, ready to deploy anywhere, and writes each host's convention files for you."
-  />
-  <Card
-    title="Page actions"
-    description="Export the page you are reading as one self-contained HTML file to share on its own — from the site or with seemore export."
-  />
-  <Card
-    title="12 themes"
-    description="Dark and light follow the system, with a toggle that remembers your choice; your own CSS always wins."
-  />
-  <Card
-    title="Rich Markdown"
-    description="GitHub Flavoured Markdown, admonitions, steps, [[wikilinks]], Mermaid and D2 diagrams, click-to-zoom images, embedded PDFs."
+    description="Double-click any block in the preview to fix its Markdown, and the change is written straight back to the file."
   />
   <Card
     title="Editor integration"
     description="One extension covers VS Code, Cursor, Antigravity and other VS Code-compatible editors, remote workspaces included."
   />
   <Card
+    title="Documentation framework"
+    description="seemore build prerenders the whole site to HTML, ready to deploy anywhere, and writes each host's convention files for you."
+  />
+  <Card
+    title="Page actions"
+    description="Copy a page as Markdown, or export it as one self-contained HTML file to drop into Slack, email or an AI chat."
+  />
+  <Card
     title="Search built in"
     description="Static, zero-setup full-text search out of the box, with shareable highlighted results; Algolia and Orama Cloud for hosted indexes."
   />
+  <Card
+    title="Rich Markdown"
+    description="GitHub Flavoured Markdown, admonitions, steps, [[wikilinks]], Mermaid and D2 diagrams, click-to-zoom images, embedded PDFs."
+  />
+  <Card
+    title="Full MDX"
+    description="When Markdown isn't enough, .mdx pages take real JSX: your own components, inline SVG and custom CSS. This page is built that way."
+  />
+  <Card
+    title="12 themes"
+    description="Dark and light follow the system, with a toggle that remembers your choice; your own CSS always wins."
+  />
 </Cards>
+
+<div className="seemore-section-head">
+
+## How it's different
+
+</div>
+
+<div className="seemore-uses seemore-uses--trio">
+
+<div className="seemore-use">
+  <span className="seemore-use-title">Starts where your files already are</span>
+  <span className="seemore-use-desc">Most docs frameworks want a project: a scaffold, a config file, a docs/ layout, a build step wired into your repo. seemore wants a folder that already exists.</span>
+</div>
+
+<div className="seemore-use">
+  <span className="seemore-use-title">Preview first, site generator second</span>
+  <span className="seemore-use-desc">The same content serves locally, renders beside your editor, and builds to static HTML, with no separate setup for each.</span>
+</div>
+
+<div className="seemore-use">
+  <span className="seemore-use-title">Nothing to migrate, nothing to undo</span>
+  <span className="seemore-use-desc">Your files are never moved or rewritten, so walking away costs nothing.</span>
+</div>
+
+</div>
+
+<div className="seemore-section-head">
+
+## Edit without leaving the page
+
+While a preview is open, the rendered page is also an editor. Double-click any paragraph to fix
+its Markdown in place, and the change is written straight back to the file.
+
+</div>
+
+<div className="seemore-shot">
+  ![seemore rendering a folder of Markdown in the browser, with a paragraph's Markdown source open in the inline editor](./assets/inline-editor.png)
+</div>
 
 </div>

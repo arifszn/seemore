@@ -6,7 +6,7 @@ order: 5
 
 # Content
 
-Supports `.md` and `.mdx` both.
+Works with both `.md` and `.mdx`.
 
 - GitHub Flavoured Markdown, admonitions (note / tip / warning boxes), step-by-step lists, and colour-highlighted code blocks
 - `[[wikilinks]]`, including `[[Page|label]]` and `[[Page#Heading]]`, the easiest way for you or your AI to link pages without relative paths to get right
@@ -33,7 +33,7 @@ const port = 4040;
 | `lineNumbers` | Numbers down the side; `lineNumbers=5` starts the count at 5 |
 | `noCopy` | No copy button on this one block |
 
-Comments mark individual lines and never reach the page — the block below uses all five:
+Comments mark individual lines and never reach the page. The block below uses all five:
 
 ```ts title="marked.ts"
 const marked = 1; // [!code highlight]
@@ -62,11 +62,11 @@ An `.mdx` file can use these without importing anything:
 | --- | --- |
 | `<Callout type="warn" title="…">` | The box `:::note` produces. `type` is `info`, `warn`, `error`, `success` or `idea` |
 | `<Card>`, `<Cards>` | The link cards the generated index page is built from |
-| `<CodeBlockTabs>` | One code block per tab — npm, pnpm, yarn, bun |
+| `<CodeBlockTabs>` | One code block per tab: npm, pnpm, yarn, bun |
 | `<Mermaid>`, `<D2>` | What a ` ```mermaid ` or ` ```d2 ` code fence compiles to; usable directly |
 | `<Pdf>` | The viewer a linked PDF opens in |
 
-The set is deliberately small: Markdown has no imports, so every component is one **seemore** ships to every site whether it is used or not, and these are the ones that pair with something Markdown already expresses. Anything else — fumadocs' `<Tabs>`, `<Accordions>`, `<Files>` among them — fails the build, naming the file and the component. In a plain `.md` file a tag is not JSX at all: it is dropped and its text kept, so components need the `.mdx` extension.
+The set is deliberately small: Markdown has no imports, so every component is one **seemore** ships to every site whether it is used or not, and these are the ones that pair with something Markdown already expresses. Anything else (fumadocs' `<Tabs>`, `<Accordions>` and `<Files>` among them) fails the build, naming the file and the component. In a plain `.md` file a tag is not JSX at all: it is dropped and its text kept, so components need the `.mdx` extension.
 
 Code tabs need a `defaultValue`, or the block opens with no tab selected and nothing under it. Leave a blank line around each code fence:
 
@@ -113,19 +113,19 @@ Numbered headings become a numbered sequence, with the rule and the marker drawn
 | `guide/index.md` | `/guide` |
 | `guide/Deep Dive.md` | `/guide/deep-dive` |
 
-Both `/guide` and `/guide/` work on every host. If nothing claims `/` — no root `index.md`, no root `README.md` — the home page is generated for you: a card grid of every page in the site. In any one directory `index.md` wins over `README.md`, with a warning naming the file it ignored; two different files slugifying to the same address is a build error naming both.
+Both `/guide` and `/guide/` work on every host. If nothing claims `/`, with no root `index.md` and no root `README.md`, the home page is generated for you: a card grid of every page in the site. In any one directory `index.md` wins over `README.md`, with a warning naming the file it ignored; two different files slugifying to the same address is a build error naming both.
 
 ## Ordering
 
 Pages are ordered by:
 
-1. `meta.json` in the directory — an explicit list, with `...` standing in for anything you didn't name:
+1. `meta.json` in the directory, an explicit list, with `...` standing in for anything you didn't name:
 
    ```json
    { "pages": ["getting-started", "installation", "..."] }
    ```
 
-2. Frontmatter `order` — lower numbers first:
+2. Frontmatter `order`, lower numbers first:
 
    ```md
    ---

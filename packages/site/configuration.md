@@ -6,7 +6,7 @@ order: 6
 
 # Configuration
 
-Optional — a folder with no config file builds correctly in the browser, in your code editor, and when built for publishing. To adjust things, create `seemore.config.ts` next to your content:
+Configuration is optional; a folder with no config file builds correctly in the browser, in your code editor, and when built for publishing. To adjust things, create `seemore.config.ts` next to your content:
 
 ```ts
 // seemore.config.ts
@@ -27,7 +27,7 @@ export default {
 };
 ```
 
-`theme` picks one of the twelve built-in colour presets — see the [Themes](./themes.md) page for screenshots of each. For anything else, put your own CSS in `css`; it's appended last, so it wins. See the [features](./features.md) page for the full list of feature flags.
+`theme` picks one of the twelve built-in colour presets; see the [Themes](./themes.md) page for screenshots of each. For anything else, put your own CSS in `css`; it's appended last, so it wins. See the [features](./features.md) page for the full list of feature flags.
 
 ## Search
 
@@ -48,6 +48,6 @@ both actions; an empty array removes the button:
 pageActions: ['copy-markdown', 'export-html'],  // the default
 ```
 
-What each action does — and everything an exported file keeps — is on the
+What each action does, and everything an exported file keeps, is on the
 [features](./features.md) page; the CLI equivalent is on the [CLI reference](./cli-reference.md)
 page.
