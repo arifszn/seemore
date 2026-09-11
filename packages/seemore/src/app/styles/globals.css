@@ -629,6 +629,14 @@
   color: var(--color-fd-foreground, #111827);
 }
 
+/* Tablet width, below the rail breakpoint: the collapsible TOC still sits in flow, but the
+   base 1rem side padding reads as too tight once the column is this wide. */
+@media (min-width: 768px) and (max-width: 1023.98px) {
+  .seemore-export-main {
+    padding: 4rem 3rem 4rem;
+  }
+}
+
 /* From 1024px up — the live page's own `lg` breakpoint for showing its TOC rail — there is
    enough room for the rail if the reading column gives up its centring and narrows to make
    space; below that the rail would ride over the text at any column width, so the
@@ -645,7 +653,7 @@
     margin-inline: 0;
     max-width: none;
     padding-inline-end: 18rem;
-    padding-inline-start: 2rem;
+    padding-inline-start: 6rem;
   }
 
   .seemore-export-toc {
