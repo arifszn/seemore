@@ -158,6 +158,8 @@ The result is a `dist/` folder of plain web files: drop it on [Netlify](https://
 > [!TIP]
 > Publishing to GitHub Pages? If your site lives at `username.github.io/my-repo/` rather than the root, tell seemore the subpath once with `base: '/my-repo/'`.
 
+### Share a single page to Slack, email
+
 To share a single page instead of a site, the **Actions** button above every page writes one self-contained HTML file (styles inlined, images embedded, diagrams kept) that opens offline from a double-click. The CLI does the same without a browser:
 
 ```bash
