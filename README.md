@@ -56,7 +56,7 @@ The [seemore website](https://arifszn.github.io/seemore) is itself a folder of M
 
 ## Or ask an AI agent to set it up
 
-Not comfortable in a terminal? There's an [agent skill](https://github.com/arifszn/seemore-skill) that drives all of this for you: installing seemore, starting the preview, writing and reordering pages, building and publishing. You describe what you want in plain language; your AI agent runs the commands.
+Not comfortable in a terminal? There's an [agent skill](https://github.com/arifszn/seemore-skill) that drives all of this for you.
 
 ### Claude Code (Plugin Marketplace)
 
