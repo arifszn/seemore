@@ -73,6 +73,27 @@ describe('relative markdown links', () => {
     const based = createLinkResolver(corpus, '/sub/');
     expect(based.resolveHref('./Deep Dive.md', 'guide/index.md').href).toBe('/sub/guide/deep-dive');
   });
+
+  // A remote URL is off this site no matter what it ends with. Keying the passthrough off
+  // the extension instead treated every linked README.md on GitHub as a missing local page.
+  it('leaves a remote URL alone even when it ends in .md', () => {
+    for (const href of [
+      'https://github.com/you/repo/blob/main/INSTALL.md',
+      'http://example.com/docs/page.mdx',
+      'https://example.com/a.md#section',
+      '//example.com/a.md',
+      'mailto:someone@example.md',
+    ]) {
+      const result = resolve(href, 'guide/index.md');
+      expect(result.href).toBe(href);
+      expect(result.warning).toBeUndefined();
+    }
+  });
+
+  it('still resolves a local page whose name collides with a remote-looking path', () => {
+    expect(resolve('./getting-started.md', 'index.md').warning).toBeUndefined();
+    expect(resolve('/guide/Deep Dive.md', 'index.md').href).toBe('/guide/deep-dive');
+  });
 });
 
 describe('wikilinks', () => {

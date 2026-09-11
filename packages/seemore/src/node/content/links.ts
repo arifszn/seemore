@@ -1,5 +1,5 @@
 import { slug as slugify } from 'github-slugger';
-import { isExternalHref, withBase } from '../base.js';
+import { isRemoteHref, withBase } from '../base.js';
 import type { ContentPage } from './scan.js';
 import { slugifySegment, toPosix } from './slug.js';
 
@@ -82,9 +82,11 @@ export function createLinkResolver(pages: readonly ContentPage[], base: string):
 
   return {
     resolveHref(raw, fromFile) {
-      if (isExternalHref(raw) && !raw.startsWith('.') && !CONTENT_EXT.test(raw.split('#')[0] ?? '')) {
-        return { href: raw };
-      }
+      // An href that points off this site is never a content link, whatever it ends with:
+      // `https://github.com/you/repo/blob/main/README.md` is a page on GitHub, not a page
+      // here. Only a relative or content-root-absolute path can name one of our own files.
+      if (isRemoteHref(raw) || raw.startsWith('#')) return { href: raw };
+
       const [pathPart = '', hashPart] = splitHash(raw);
       if (!CONTENT_EXT.test(pathPart)) return { href: raw };
 

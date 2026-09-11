@@ -25,6 +25,16 @@ export function isExternalHref(href: string): boolean {
   return EXTERNAL.test(href) || href.startsWith('#') || !href.startsWith('/');
 }
 
+/**
+ * True only for an href that points off this site: one with a scheme (`https:`, `mailto:`)
+ * or protocol-relative (`//host/path`). Narrower than {@link isExternalHref}, which also
+ * covers relative and hash hrefs because a base must not touch those either — a distinction
+ * that matters wherever a relative path and a remote URL have to be told apart.
+ */
+export function isRemoteHref(href: string): boolean {
+  return EXTERNAL.test(href);
+}
+
 /** Prefix a root-relative path with the base. Idempotent; leaves external hrefs alone. */
 export function withBase(base: string, href: string): string {
   const b = normaliseBase(base);
