@@ -54,7 +54,9 @@ Open the address it prints. From there it's live: add, rename, retitle or delete
 
 The [seemore website](https://arifszn.github.io/seemore) is itself a folder of Markdown rendered by seemore. That's what your own folder will look like.
 
-## Or ask an AI agent to set it up
+<details>
+<summary><strong>Or ask an AI agent to set it up</strong></summary>
+<br/>
 
 Not comfortable in a terminal? There's an [agent skill](https://github.com/arifszn/seemore-skill) that drives all of this for you.
 
@@ -89,6 +91,8 @@ Or invoke the skill by name:
 ```
 /seemore:seemore
 ```
+
+</details>
 
 ## Three ways to use it
 
@@ -152,7 +156,7 @@ npx seemore build  # static export to dist/ for any host
 The result is a `dist/` folder of plain web files: drop it on [Netlify](https://netlify.com), [Surge](https://surge.sh), [Cloudflare Pages](https://pages.cloudflare.com) or [GitHub Pages](https://pages.github.com), or hand it to any web host. Every page is prerendered to its own `index.html`, next to a `404.html` that every static host honours, and host-specific files (`_redirects`, `200.html`, `.nojekyll`) are written for you.
 
 > [!TIP]
-> Publishing to GitHub Pages? Your site lives at `username.github.io/my-repo/` rather than the root, so tell seemore the subpath once with `base: '/my-repo/'`. If you forget, the build prints the exact line to add.
+> Publishing to GitHub Pages? If your site lives at `username.github.io/my-repo/` rather than the root, tell seemore the subpath once with `base: '/my-repo/'`.
 
 To share a single page instead of a site, the **Actions** button above every page writes one self-contained HTML file (styles inlined, images embedded, diagrams kept) that opens offline from a double-click. The CLI does the same without a browser:
 
