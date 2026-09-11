@@ -54,6 +54,42 @@ Open the address it prints. From there it's live: add, rename, retitle or delete
 
 The [seemore website](https://arifszn.github.io/seemore) is itself a folder of Markdown rendered by seemore. That's what your own folder will look like.
 
+## Or ask an AI agent to set it up
+
+Not comfortable in a terminal? There's an [agent skill](https://github.com/arifszn/seemore-skill) that drives all of this for you: installing seemore, starting the preview, writing and reordering pages, building and publishing. You describe what you want in plain language; your AI agent runs the commands.
+
+### Claude Code (Plugin Marketplace)
+
+```bash
+/plugin marketplace add arifszn/seemore-skill
+/plugin install seemore
+```
+
+### Other agents (Codex, OpenCode, Antigravity, Gemini, Cursor, …)
+
+This is a standalone skill that works in any agent supporting the `SKILL.md` format. See **[INSTALL.md](https://github.com/arifszn/seemore-skill/blob/main/INSTALL.md)** for per-agent skills paths and copy-paste commands.
+
+Or just tell your agent to install it by pasting this:
+
+```
+Fetch and follow the install instructions from
+https://raw.githubusercontent.com/arifszn/seemore-skill/refs/heads/main/INSTALL.md
+```
+
+### Usage
+
+Once it's installed, ask for what you want:
+
+```
+Turn this folder of notes into a docs site I can read in my browser
+```
+
+Or invoke the skill by name:
+
+```
+/seemore:seemore
+```
+
 ## Three ways to use it
 
 - **[In your browser](#edit-from-the-browser)**: `npx seemore` serves the folder you're standing in and updates live as you edit.
@@ -229,6 +265,8 @@ Run `seemore --help` for the options, or see the [CLI reference](https://arifszn
 **Will it move or rewrite my files?** No. seemore reads your folder where it is. It writes only when you save an inline edit, or when you run `build` or `export`.
 
 **Is it a preview tool or a docs framework?** Both, from the same folder: `seemore` previews it, the extension renders it beside your editor, and `seemore build` publishes it.
+
+**Do I have to use the terminal?** No. The [seemore skill](https://github.com/arifszn/seemore-skill) lets you ask an AI agent to set it up, write pages and publish for you. It runs the same CLI underneath, so nothing about your folder or your site is different.
 
 ## Under the hood
 

@@ -6,6 +6,8 @@ order: 2
 
 # Getting started
 
+## Run it yourself
+
 <CodeBlockTabs defaultValue="npm">
   <CodeBlockTabsList>
     <CodeBlockTabsTrigger value="npm">npm</CodeBlockTabsTrigger>
@@ -48,3 +50,39 @@ Run it in your folder of Markdown files (Node.js 20 or newer) and open the addre
 The page in front of you is also an editor. Double-click any paragraph, heading, list item or table cell and its **Markdown source** opens in place. Fix it, hit **Save**, and the change is written back to the file, everything around it untouched. See [Features](./features.md) for the details.
 
 See the [CLI reference](./cli-reference.md) for every flag.
+
+## Or ask an AI agent to set it up
+
+If you would rather not run commands at all, the [seemore skill](https://github.com/arifszn/seemore-skill) teaches an AI agent to do everything on this page for you: installing seemore, starting the preview, adding and reordering pages, building and publishing.
+
+### Claude Code (Plugin Marketplace)
+
+```bash
+/plugin marketplace add arifszn/seemore-skill
+/plugin install seemore
+```
+
+### Other agents (Codex, OpenCode, Antigravity, Gemini, Cursor, …)
+
+This is a standalone skill that works in any agent supporting the `SKILL.md` format. Its [install instructions](https://github.com/arifszn/seemore-skill) list the skills directory each agent uses.
+
+Or just tell your agent to install it by pasting this:
+
+```
+Fetch and follow the install instructions from
+https://raw.githubusercontent.com/arifszn/seemore-skill/refs/heads/main/INSTALL.md
+```
+
+### Usage
+
+Once it's installed, describe what you want:
+
+```
+Turn this folder of notes into a docs site I can read in my browser
+```
+
+Or invoke the skill by name:
+
+```
+/seemore:seemore
+```
