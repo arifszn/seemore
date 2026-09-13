@@ -20,7 +20,7 @@ Options
   --config <path>        path to seemore.config.ts
   --out <dir>            build output directory (default: dist); for export, where the HTML file is written
   --base <path>          subpath the site is served from, e.g. /my-repo/
-  -h, --help            show this message
+  -h, --help             show this message
   -v, --version          show the version
 `;
 

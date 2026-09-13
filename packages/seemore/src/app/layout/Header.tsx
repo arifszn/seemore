@@ -4,7 +4,7 @@ import { useSearchContext } from 'fumadocs-ui/contexts/search';
 import { SidebarTrigger } from 'fumadocs-ui/components/sidebar/base';
 import { useTheme } from 'fumadocs-ui/provider/base';
 import { config } from 'virtual:seemore/config';
-import { isAuthBuild, lockSite } from '../lib/auth.js';
+import { lockSite } from '../lib/auth.js';
 import { useSidebarCollapse } from './Sidebar.js';
 
 export function Header() {
@@ -60,7 +60,8 @@ export function Header() {
         </button>
       ) : undefined}
 
-      {isAuthBuild() ? (
+      {/* Read directly, not through a helper, so an unprotected bundle folds this away. */}
+      {import.meta.env.SEEMORE_AUTH ? (
         <button type="button" className="seemore-lock" aria-label="Lock site" title="Lock site" onClick={() => void lockSite()}>
           <Lock aria-hidden="true" />
         </button>

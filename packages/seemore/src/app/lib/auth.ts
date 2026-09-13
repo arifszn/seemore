@@ -4,14 +4,6 @@ import { LOCK_MESSAGE, MANIFEST_FILE } from '../../shared/auth/files.js';
 import { indexedDbStore } from '../../shared/auth/store.js';
 
 /**
- * Whether this is a password-protected build. A compile-time constant the build defines —
- * `virtual:seemore/config` carries nothing about protection.
- */
-export function isAuthBuild(): boolean {
-  return import.meta.env.SEEMORE_AUTH === true;
-}
-
-/**
  * The Lock button: forget the key now rather than when `remember` runs out. The stored key is
  * deleted, the worker drops the content key it holds in memory, and the reload lands on the
  * lock shell.

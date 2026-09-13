@@ -1,6 +1,6 @@
 import { useEffect, useState, type ComponentProps } from 'react';
 import { FileText } from 'lucide-react';
-import { isAuthBuild } from '../lib/auth.js';
+import { isRemoteHref } from '../../shared/base.js';
 
 /**
  * Sibling PDFs render in the browser's own viewer.
@@ -37,7 +37,8 @@ export function Pdf({ src, title, ...props }: ComponentProps<'embed'> & { src: s
   return (
     <span className={unsupported ? 'seemore-pdf seemore-pdf-unsupported' : 'seemore-pdf'}>
       {file === undefined ? undefined : <embed src={file} type="application/pdf" title={title} {...props} />}
-      <a className="seemore-pdf-fallback" href={file ?? src} download={src.split('/').pop()}>
+      {/* A blob URL has no file name of its own, so a protected build names the download. */}
+      <a className="seemore-pdf-fallback" href={file ?? src} download={file?.startsWith('blob:') ? src.split('/').pop() : true}>
         <FileText className="seemore-pdf-fallback-icon" aria-hidden="true" />
         <span className="seemore-pdf-fallback-title">Download {title ?? 'PDF'}</span>
       </a>
@@ -52,10 +53,13 @@ export function Pdf({ src, title, ...props }: ComponentProps<'embed'> & { src: s
  * never embedded: WebKit caches that ciphertext response and serves it to later fetches too.
  */
 function useDecryptedUrl(src: string): string | undefined {
-  const [url, setUrl] = useState<string | undefined>(isAuthBuild() ? undefined : src);
+  // A remote PDF is not on this host, so it was never encrypted — and a cross-origin fetch of
+  // it would usually be refused anyway.
+  const encrypted = import.meta.env.SEEMORE_AUTH && !isRemoteHref(src);
+  const [url, setUrl] = useState<string | undefined>(encrypted ? undefined : src);
 
   useEffect(() => {
-    if (!isAuthBuild()) return;
+    if (!encrypted) return;
     let revoked = false;
     let blobUrl: string | undefined;
     void fetch(src)
@@ -70,7 +74,7 @@ function useDecryptedUrl(src: string): string | undefined {
       revoked = true;
       if (blobUrl !== undefined) URL.revokeObjectURL(blobUrl);
     };
-  }, [src]);
+  }, [src, encrypted]);
 
   return url;
 }

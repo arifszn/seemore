@@ -89,8 +89,8 @@ export function createViteConfig({ ctx, mode, outDir, ssrOutDir, auth = false }:
     ],
 
     // A compile-time constant rather than a field of `virtual:seemore/config`, which carries
-    // nothing about protection.
-    define: auth ? { 'import.meta.env.SEEMORE_AUTH': 'true' } : undefined,
+    // nothing about protection. Defined either way, so an unprotected bundle drops the auth code.
+    define: { 'import.meta.env.SEEMORE_AUTH': JSON.stringify(auth) },
 
     // Vite bundles workers with the browser export condition, but a worker has no `document`.
     // `decode-named-character-reference` — pulled in through fumadocs' search client, via

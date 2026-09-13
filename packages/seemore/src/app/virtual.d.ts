@@ -15,3 +15,8 @@ declare module 'virtual:seemore/routes' {
 declare module 'virtual:seemore/config' {
   export const config: import('../shared/types.js').ClientConfig;
 }
+
+interface ImportMetaEnv {
+  /** Defined by the client build: whether the site is password-protected (`auth`). */
+  readonly SEEMORE_AUTH?: boolean;
+}
