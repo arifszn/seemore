@@ -563,7 +563,7 @@
   /* Generous top padding: with no header above it, the title needs more room than the
      live page's column or it reads as glued to the top edge. */
   overflow-x: clip;
-  padding: 4rem 1rem 4rem;
+  padding: 4rem 2rem 4rem;
   width: 100%;
 }
 
