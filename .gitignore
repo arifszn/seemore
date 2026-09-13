@@ -7,6 +7,7 @@ dist/
 
 # Design spec: local only, not distributed
 SPEC.md
+*.spec.md
 
 # playwright-cli session artifacts
 .playwright-cli/
