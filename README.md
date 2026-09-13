@@ -89,7 +89,7 @@ Turn this folder of notes into a docs site I can read in my browser
 Or invoke the skill by name:
 
 ```
-/seemore:seemore
+/seemore
 ```
 
 </details>
