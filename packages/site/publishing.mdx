@@ -67,14 +67,16 @@ Keep the password out of the config file. `seemore build` reads it from the `SEE
 environment variable and refuses to build without one:
 
 ```bash
-SEEMORE_PASSWORD='a long passphrase' npx seemore build
+SEEMORE_PASSWORD='a-long-passphrase' npx seemore build
 ```
 
 On Windows PowerShell:
 
 ```powershell
-$env:SEEMORE_PASSWORD='a long passphrase'; npx seemore build
+$env:SEEMORE_PASSWORD='a-long-passphrase'; npx seemore build
 ```
+
+![The lock screen visitors see: the site's icon and title above a password field and an Unlock button](./assets/password-protection.png)
 
 The build encrypts the site content and search index. The output is still a plain `dist/` folder that
 you can deploy to any of the hosts above.

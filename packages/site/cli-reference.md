@@ -35,13 +35,13 @@ When `auth` is set in `seemore.config.ts`, `seemore build` reads the password fr
 is missing:
 
 ```bash
-SEEMORE_PASSWORD='a long passphrase' npx seemore build
+SEEMORE_PASSWORD='a-long-passphrase' npx seemore build
 ```
 
 On Windows PowerShell:
 
 ```powershell
-$env:SEEMORE_PASSWORD='a long passphrase'; npx seemore build
+$env:SEEMORE_PASSWORD='a-long-passphrase'; npx seemore build
 ```
 
 Password protection applies only to `seemore build`. The dev server and `seemore export` are not

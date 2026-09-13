@@ -164,14 +164,18 @@ The result is a `dist/` folder of plain web files: drop it on [Netlify](https://
 Add `auth: true` to `seemore.config.ts`. Set the password when you build:
 
 ```bash
-SEEMORE_PASSWORD='a long passphrase' npx seemore build
+SEEMORE_PASSWORD='a-long-passphrase' npx seemore build
 ```
 
 On Windows PowerShell:
 
 ```powershell
-$env:SEEMORE_PASSWORD='a long passphrase'; npx seemore build
+$env:SEEMORE_PASSWORD='a-long-passphrase'; npx seemore build
 ```
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/password-protection.png" alt="The lock screen of a password-protected seemore site: the site's icon and title above a password field and an Unlock button" width="560"/>
+</p>
 
 By default, visitors stay unlocked for one day after their last visit. Change this with `remember`:
 

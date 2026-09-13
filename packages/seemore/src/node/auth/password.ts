@@ -13,7 +13,7 @@ export function readPassword(command: string, env: NodeJS.ProcessEnv = process.e
   if (raw === undefined || raw === '') {
     throw new Error(
       `\`auth\` is on, but ${PASSWORD_ENV} is not set. Pass the password through the environment — in CI, from a secret:\n\n` +
-        `  ${PASSWORD_ENV}='a long passphrase' ${command}\n\n` +
+        `  ${PASSWORD_ENV}='a-long-passphrase' ${command}\n\n` +
         `Never put it in seemore.config.ts.`,
     );
   }
