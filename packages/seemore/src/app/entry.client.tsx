@@ -4,8 +4,21 @@ import { RouterProvider, createBrowserRouter } from 'react-router';
 import { config } from 'virtual:seemore/config';
 import { decodePath, stripBase, toBasename } from '../shared/base.js';
 import { createRouteObjects } from './router.js';
+import { onVitePreloadError } from './lib/chunkReload.js';
 import { preloadPage } from './lib/pages.js';
 import './styles/globals.css';
+
+// Vite dispatches this when a chunk preload fails and rethrows when it is not cancelled.
+// One reload picks up the new chunk names after a deploy; the guard keeps a genuinely
+// broken chunk from looping.
+window.addEventListener('vite:preloadError', (event) => {
+  event.preventDefault();
+  try {
+    onVitePreloadError(sessionStorage, Date.now(), () => window.location.reload());
+  } catch {
+    // Storage unavailable (private mode): a reload without a guard could loop.
+  }
+});
 
 const container = document.getElementById('root');
 if (container === null) throw new Error('seemore: #root is missing from the page shell.');
