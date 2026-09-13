@@ -62,7 +62,7 @@
   }
 
   .seemore-search-trigger {
-    @apply ms-auto inline-flex shrink-0 items-center gap-2 rounded-lg border border-fd-border p-2 text-sm text-fd-muted-foreground sm:px-3 sm:py-1.5;
+    @apply ms-auto inline-flex shrink-0 cursor-pointer items-center gap-2 rounded-lg border border-fd-border p-2 text-sm text-fd-muted-foreground sm:px-3 sm:py-1.5;
   }
 
   /* Icon only where there is no room for the label. */
@@ -106,7 +106,7 @@
 
   .seemore-theme-toggle,
   .seemore-lock {
-    @apply rounded-lg border border-fd-border p-2;
+    @apply cursor-pointer rounded-lg border border-fd-border p-2;
   }
 
   .seemore-icon-dark {
