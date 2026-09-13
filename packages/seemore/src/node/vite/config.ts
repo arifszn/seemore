@@ -32,9 +32,21 @@ export interface ViteConfigOptions {
   outDir?: string;
   /** When set, build the prerender entry for node instead of the client bundle. */
   ssrOutDir?: string;
+  /**
+   * A client build for a password-protected site: no output name may carry a source basename,
+   * and the app shows its Lock button.
+   */
+  auth?: boolean;
 }
 
-export function createViteConfig({ ctx, mode, outDir, ssrOutDir }: ViteConfigOptions): InlineConfig {
+/** Under `auth`, output names are content hashes only: `Deep Dive.md` must not ship as `Deep Dive-3f9a.js`. */
+const HASHED_NAMES = {
+  entryFileNames: 'assets/[hash].js',
+  chunkFileNames: 'assets/[hash].js',
+  assetFileNames: 'assets/[hash][extname]',
+};
+
+export function createViteConfig({ ctx, mode, outDir, ssrOutDir, auth = false }: ViteConfigOptions): InlineConfig {
   const root = appRoot();
   const isSsr = ssrOutDir !== undefined;
 
@@ -76,11 +88,18 @@ export function createViteConfig({ ctx, mode, outDir, ssrOutDir }: ViteConfigOpt
       ...(mode === 'dev' ? [seemoreWatcherPlugin(ctx)] : []),
     ],
 
+    // A compile-time constant rather than a field of `virtual:seemore/config`, which carries
+    // nothing about protection.
+    define: auth ? { 'import.meta.env.SEEMORE_AUTH': 'true' } : undefined,
+
     // Vite bundles workers with the browser export condition, but a worker has no `document`.
     // `decode-named-character-reference` — pulled in through fumadocs' search client, via
     // remark — calls `document.createElement` at module scope in its browser build, so the
     // search worker threw on load. The package ships a DOM-free `worker` entry; use it.
-    worker: { plugins: () => [workerConditionPlugin()] },
+    worker: {
+      plugins: () => [workerConditionPlugin()],
+      rollupOptions: auth ? { output: HASHED_NAMES } : undefined,
+    },
 
     resolve: {
       // The app is compiled from seemore's own sources, so its dependencies must resolve
@@ -129,7 +148,7 @@ export function createViteConfig({ ctx, mode, outDir, ssrOutDir }: ViteConfigOpt
       : {
           outDir,
           emptyOutDir: true,
-          rollupOptions: { input: join(root, 'index.html') },
+          rollupOptions: { input: join(root, 'index.html'), output: auth ? HASHED_NAMES : undefined },
           // The app bundle is seemore's own, not the user's; warning them about a size they
           // cannot act on is noise.
           chunkSizeWarningLimit: 2_000,

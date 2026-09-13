@@ -76,6 +76,29 @@ const searchSchema = z.union([
  */
 const pageActionsSchema = z.array(z.enum(ACTION_IDS)).default(['copy-markdown', 'export-html']);
 
+const REMEMBER_FORMS = "expected 0 (only while the tab is open), or a number of hours or days, like '12h' or '7d'.";
+
+/**
+ * `auth: true`, or `auth: { id?, remember? }`; `false` and absence both mean off. `true` and
+ * `false` fold to their object forms before validating, so a bad field is reported by name
+ * rather than as a failed union.
+ */
+const authSchema = z.preprocess(
+  (input) => (input === true ? {} : input === false ? undefined : input),
+  z
+    .strictObject({
+      id: z
+        .string()
+        .trim()
+        .min(1, { error: 'must not be empty. Leave `id` out to use the site title, or give the site a stable name.' })
+        .optional(),
+      remember: z
+        .union([z.literal(0), z.string().regex(/^[1-9]\d*[hd]$/, { error: REMEMBER_FORMS })], { error: REMEMBER_FORMS })
+        .optional(),
+    })
+    .optional(),
+);
+
 export const configSchema = z.object({
   /**
    * Optional here, but required whenever a config file exists — load.ts enforces that,
@@ -107,15 +130,31 @@ export const configSchema = z.object({
   search: searchSchema.default('static'),
   pageActions: pageActionsSchema,
   exclude: z.array(z.string()).default([]),
+  auth: authSchema,
 });
 
 /** What a user writes in `seemore.config.ts`. */
-export type SeemoreConfig = Omit<z.input<typeof configSchema>, 'features' | 'theme' | 'search'> & {
+export type SeemoreConfig = Omit<z.input<typeof configSchema>, 'features' | 'theme' | 'search' | 'auth'> & {
   /** An array of {@link FeatureFlag} also works, but the map is the documented form. */
   features?: FeatureMap | FeatureFlag[];
   theme?: Theme;
   search?: z.input<typeof searchSchema>;
+  /**
+   * Password protection: `seemore build` encrypts the site, and visitors unlock it with the
+   * password. The password itself comes from `SEEMORE_PASSWORD` at build time, never from here.
+   */
+  auth?: boolean | AuthOptions;
 };
+
+export interface AuthOptions {
+  /**
+   * A stable name the key is derived from; defaults to `title`. Set it if you expect to
+   * rename the site, so visitors stay unlocked. Changing it logs everyone out.
+   */
+  id?: string;
+  /** How long a visitor stays unlocked after their last visit: `'12h'`, `'7d'`, or `0` for only while the tab is open. Default `'1d'`. */
+  remember?: 0 | `${number}h` | `${number}d`;
+}
 
 export type SearchConfig =
   | { provider: 'static' }
@@ -139,6 +178,8 @@ export interface ResolvedSeemoreConfig {
   search: SearchConfig;
   pageActions: ActionId[];
   exclude: string[];
+  /** Present when the site is password-protected. Nothing here is ever sent to the browser. */
+  auth?: { id: string; remember: number };
   /** Directory the config was resolved from — relative paths in it hang off this. */
   root: string;
   /** Absolute path of the config file, when there is one. */

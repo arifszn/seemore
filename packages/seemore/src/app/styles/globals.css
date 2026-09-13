@@ -75,7 +75,8 @@
     @apply rounded border border-fd-border px-1 text-xs;
   }
 
-  .seemore-theme-toggle {
+  .seemore-theme-toggle,
+  .seemore-lock {
     @apply shrink-0;
   }
 
@@ -103,7 +104,8 @@
     @apply h-4 w-4 animate-spin rounded-full border-2 border-fd-muted-foreground/30 border-t-fd-muted-foreground;
   }
 
-  .seemore-theme-toggle {
+  .seemore-theme-toggle,
+  .seemore-lock {
     @apply rounded-lg border border-fd-border p-2;
   }
 

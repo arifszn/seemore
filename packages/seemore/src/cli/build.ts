@@ -4,6 +4,8 @@ import { tmpdir } from 'node:os';
 import { isAbsolute, join, relative, resolve } from 'node:path';
 import pc from 'picocolors';
 import { build as viteBuild } from 'vite';
+import { sealSite } from '../node/auth/build.js';
+import { readPassword } from '../node/auth/password.js';
 import { loadConfig, resolveConfigPath } from '../node/config/load.js';
 import { createContext, type SeemoreContext } from '../node/context.js';
 import { normaliseBase } from '../shared/base.js';
@@ -34,6 +36,9 @@ export async function runBuild(options: BuildOptions): Promise<{ outDir: string;
   const outDir = resolve(options.cwd, options.outDir ?? 'dist');
   assertSafeOutDir(outDir, options.cwd, contentRoot);
 
+  // Checked before any work, so a missing or short password never leaves a half-built site.
+  const password = config.auth === undefined ? undefined : readPassword('npx seemore build');
+
   const scan = ctx.source.current();
   failOnErrors(ctx.errors(), contentRoot);
   if (scan.pages.length === 0) {
@@ -44,10 +49,45 @@ export async function runBuild(options: BuildOptions): Promise<{ outDir: string;
   console.log(pc.dim(`seemore  ${scan.pages.length} pages from ${relative(options.cwd, contentRoot) || '.'}`));
 
   // 1. The client bundle, which also produces the HTML template every page is injected into.
-  await viteBuild(createViteConfig({ ctx, mode: 'build', outDir }));
+  await viteBuild(createViteConfig({ ctx, mode: 'build', outDir, auth: password !== undefined }));
   const template = readFileSync(join(outDir, 'index.html'), 'utf8');
 
-  // 2. The same module graph, evaluated in node.
+  // 2. One HTML file per route — or, under `auth`, none: every address falls back to the one
+  // lock shell, so no route publishes its slug.
+  const routes = password === undefined ? await prerenderPages(ctx, outDir, template) : countRoutes(ctx);
+
+  // 3. The search index, at the same path the dev middleware serves. Measured before any
+  // encryption, so the size warning is about what visitors actually download.
+  if (config.search.provider === 'static') {
+    const index = await buildSearchIndex(ctx);
+    mkdirSync(join(outDir, 'api'), { recursive: true });
+    writeFileSync(join(outDir, 'api', 'search.json'), index, 'utf8');
+
+    const size = measureIndex(index);
+    console.log(pc.dim(`seemore  search index ${formatBytes(size.gzipped)} gzipped`));
+    if (size.warning !== undefined) ctx.warnings.add(size.warning);
+  }
+
+  if (config.search.provider !== 'static') await warnIfSearchSdkMissing(ctx, config.search.provider);
+
+  // Never together with `auth`: the config loader refuses the combination.
+  if (config.features['social.cards']) await generateSocialCards(ctx, outDir);
+
+  // 4. Last, once every other file is written: encrypt everything that is not public.
+  if (password !== undefined) {
+    const encrypted = await sealSite(ctx, outDir, template, password);
+    console.log(pc.dim(`seemore  ${encrypted} files encrypted; visitors unlock them with the password`));
+  }
+
+  ctx.warnings.flush();
+  console.log(pc.green(`seemore  ${routes} pages written to ${relative(options.cwd, outDir) || outDir}`));
+
+  return { outDir, routes };
+}
+
+/** Prerender every route into its own `index.html`, plus the fallbacks. Returns the route count. */
+async function prerenderPages(ctx: SeemoreContext, outDir: string, template: string): Promise<number> {
+  // The same module graph as the client bundle, evaluated in node.
   const ssrOutDir = mkdtempSync(join(tmpdir(), 'seemore-ssr-'));
   try {
     const prerender = await loadPrerenderModule(ctx, ssrOutDir);
@@ -63,33 +103,21 @@ export async function runBuild(options: BuildOptions): Promise<{ outDir: string;
       writeHtml(outDir, outputPathFor(url), applyTemplate(template, await prerender.render(url)));
     }
 
-    // 3. The shell an unknown address falls back to, which is also Surge's `200.html`.
+    // The shell an unknown address falls back to, which is also Surge's `200.html`.
     const notFound = applyTemplate(template, await prerender.render('/__seemore_not_found'));
     writeHtml(outDir, '404.html', notFound);
-    writeDeployArtifacts(outDir, config.base, notFound);
+    writeDeployArtifacts(outDir, ctx.config.base, notFound);
 
-    // 4. The search index, at the same path the dev middleware serves.
-    if (config.search.provider === 'static') {
-      const index = await buildSearchIndex(ctx);
-      mkdirSync(join(outDir, 'api'), { recursive: true });
-      writeFileSync(join(outDir, 'api', 'search.json'), index, 'utf8');
-
-      const size = measureIndex(index);
-      console.log(pc.dim(`seemore  search index ${formatBytes(size.gzipped)} gzipped`));
-      if (size.warning !== undefined) ctx.warnings.add(size.warning);
-    }
-
-    if (config.search.provider !== 'static') await warnIfSearchSdkMissing(ctx, config.search.provider);
-
-    if (config.features['social.cards']) await generateSocialCards(ctx, outDir);
-
-    ctx.warnings.flush();
-    console.log(pc.green(`seemore  ${routes.length} pages written to ${relative(options.cwd, outDir) || outDir}`));
-
-    return { outDir, routes: routes.length };
+    return routes.length;
   } finally {
     rmSync(ssrOutDir, { recursive: true, force: true });
   }
+}
+
+/** The routes a protected build serves through its shell: every page, plus the generated index when no page claims `/`. */
+function countRoutes(ctx: SeemoreContext): number {
+  const pages = ctx.pages();
+  return pages.some((page) => page.url === '/') ? pages.length : pages.length + 1;
 }
 
 /**

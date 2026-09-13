@@ -1,0 +1,38 @@
+import { config } from 'virtual:seemore/config';
+import { parseManifest } from '../../shared/auth/crypto.js';
+import { LOCK_MESSAGE, MANIFEST_FILE } from '../../shared/auth/files.js';
+import { indexedDbStore } from '../../shared/auth/store.js';
+
+/**
+ * Whether this is a password-protected build. A compile-time constant the build defines —
+ * `virtual:seemore/config` carries nothing about protection.
+ */
+export function isAuthBuild(): boolean {
+  return import.meta.env.SEEMORE_AUTH === true;
+}
+
+/**
+ * The Lock button: forget the key now rather than when `remember` runs out. The stored key is
+ * deleted, the worker drops the content key it holds in memory, and the reload lands on the
+ * lock shell.
+ */
+export async function lockSite(): Promise<void> {
+  try {
+    const response = await fetch(config.base + MANIFEST_FILE, { cache: 'no-store' });
+    await indexedDbStore().delete(parseManifest(await response.json()).kdf.salt);
+  } catch {
+    // The worker forgets it below as well.
+  }
+
+  const worker = navigator.serviceWorker?.controller;
+  if (worker) {
+    await new Promise<void>((resolve) => {
+      const channel = new MessageChannel();
+      channel.port1.onmessage = () => resolve();
+      worker.postMessage({ type: LOCK_MESSAGE }, [channel.port2]);
+      setTimeout(resolve, 3000);
+    });
+  }
+
+  window.location.reload();
+}

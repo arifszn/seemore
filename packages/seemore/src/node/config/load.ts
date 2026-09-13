@@ -3,7 +3,7 @@ import { dirname, isAbsolute, resolve } from 'node:path';
 import { createJiti } from 'jiti';
 import { z } from 'zod';
 import { normaliseBase } from '../base.js';
-import { FEATURES, resolveFeatures, type FeaturesInput } from './features.js';
+import { FEATURES, resolveFeatures, type FeaturesInput, type ResolvedFeatures } from './features.js';
 import { configSchema, THEMES, type SeemoreConfig, type ResolvedSeemoreConfig, type SearchConfig } from './schema.js';
 
 const CONFIG_NAMES = ['seemore.config.ts', 'seemore.config.mts', 'seemore.config.js', 'seemore.config.mjs'];
@@ -33,9 +33,17 @@ export function resolveConfig(
     'content.action.edit': parsed.editLink !== undefined,
   });
 
+  // Only reached without a config file (see parseOrThrow): 'Docs' is the best name we can know.
+  const title = parsed.title ?? 'Docs';
+
+  const auth =
+    parsed.auth === undefined
+      ? undefined
+      : { id: parsed.auth.id ?? title, remember: rememberSeconds(parsed.auth.remember) };
+  if (auth !== undefined) assertAuthCompatible(features, search);
+
   return {
-    // Only reached without a config file (see parseOrThrow): 'Docs' is the best name we can know.
-    title: parsed.title ?? 'Docs',
+    title,
     description: parsed.description,
     favicon: parsed.favicon,
     base: normaliseBase(parsed.base),
@@ -48,9 +56,39 @@ export function resolveConfig(
     search,
     pageActions: parsed.pageActions,
     exclude: parsed.exclude,
+    auth,
     root: options.root,
     configFile: options.configFile,
   };
+}
+
+const DAY_SECONDS = 86_400;
+
+/** `'12h'` / `'7d'` / `0` → seconds; one day when unset. */
+function rememberSeconds(remember: string | 0 | undefined): number {
+  if (remember === undefined) return DAY_SECONDS;
+  if (remember === 0) return 0;
+  const amount = Number(remember.slice(0, -1));
+  return remember.endsWith('h') ? amount * 3_600 : amount * DAY_SECONDS;
+}
+
+/**
+ * `auth` encrypts everything seemore writes, so an option that publishes page content
+ * anywhere else defeats it. Enforced next to the feature-flag rules, with the fix in the message.
+ */
+function assertAuthCompatible(features: ResolvedFeatures, search: SearchConfig): void {
+  const problems: string[] = [];
+  if (features['social.cards']) {
+    problems.push('`auth` cannot be combined with `social.cards`: the cards would publish page titles as public images. Remove one of them.');
+  }
+  if (search.provider !== 'static') {
+    problems.push(
+      `\`auth\` cannot be combined with \`search.provider: '${search.provider}'\`: the search index would go to a third party in plaintext. Use \`search: 'static'\`, or remove \`auth\`.`,
+    );
+  }
+  if (problems.length > 0) {
+    throw new Error(`Incompatible options in seemore config:\n${problems.map((problem) => `  - ${problem}`).join('\n')}`);
+  }
 }
 
 export interface LoadedConfig {
