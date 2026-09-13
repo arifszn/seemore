@@ -71,29 +71,34 @@ async function submit(): Promise<void> {
     manifest = await fetchManifest();
     kek = await deriveManifestKek(input.value, manifest);
   } catch {
-    return fail("Couldn't reach the site. Try again.");
+    return fail("Couldn't load this site. Check your connection and try again.");
   }
 
   try {
     await unlockManifest(manifest, kek);
   } catch {
-    return fail('Wrong password');
+    return fail('Password is incorrect', true);
   }
 
   try {
     await storeKey(manifest, kek);
     await controlledByWorker();
   } catch {
-    return fail("This browser can't store the key this site needs.");
+    return fail("This browser blocked site storage, so the key can't be saved. Allow site data or try another browser.");
   }
 
   location.reload();
 }
 
-function fail(message: string): void {
+function fail(message: string, shake = false): void {
   button.disabled = false;
   button.textContent = buttonLabel;
   status.textContent = message;
+  if (shake) {
+    form.classList.remove('lock-shake');
+    void form.offsetWidth;
+    form.classList.add('lock-shake');
+  }
   input.focus();
   input.select();
 }

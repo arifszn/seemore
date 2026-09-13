@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router';
-import { Lock, Moon, PanelLeft, Search, Sun } from 'lucide-react';
+import { LogOut, Moon, PanelLeft, Search, Sun } from 'lucide-react';
 import { useSearchContext } from 'fumadocs-ui/contexts/search';
 import { SidebarTrigger } from 'fumadocs-ui/components/sidebar/base';
 import { useTheme } from 'fumadocs-ui/provider/base';
@@ -63,7 +63,7 @@ export function Header() {
       {/* Read directly, not through a helper, so an unprotected bundle folds this away. */}
       {import.meta.env.SEEMORE_AUTH ? (
         <button type="button" className="seemore-lock" aria-label="Lock site" title="Lock site" onClick={() => void lockSite()}>
-          <Lock aria-hidden="true" />
+          <LogOut aria-hidden="true" />
         </button>
       ) : undefined}
 
