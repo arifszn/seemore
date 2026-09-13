@@ -11,7 +11,6 @@
  */
 
 export const KDF_ITERATIONS = 600_000;
-export const MIN_PASSWORD_LENGTH = 12;
 
 /** `SMP1`: the first four bytes of every encrypted file. */
 export const MAGIC = new Uint8Array([0x53, 0x4d, 0x50, 0x31]);
@@ -39,11 +38,6 @@ function subtle(): SubtleCrypto {
 /** A password typed on macOS and on Windows must derive the same key. */
 export function normalisePassword(password: string): string {
   return password.normalize('NFC');
-}
-
-/** Length in Unicode code points, after normalisation. */
-export function passwordLength(password: string): number {
-  return [...normalisePassword(password)].length;
 }
 
 /**

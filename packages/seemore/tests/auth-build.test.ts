@@ -165,7 +165,7 @@ describe('seemore build with auth', () => {
 });
 
 describe('seemore build with auth: failures', () => {
-  it('fails before writing anything when SEEMORE_PASSWORD is missing or short', async () => {
+  it('fails before writing anything when SEEMORE_PASSWORD is missing', async () => {
     const root = mkdtempSync(join(tmpdir(), 'seemore-auth-fail-'));
     const outDir = join(root, 'dist');
     writeFileSync(join(root, 'seemore.config.ts'), "export default { title: 'Vault', auth: true };");
@@ -174,9 +174,6 @@ describe('seemore build with auth: failures', () => {
     try {
       delete process.env.SEEMORE_PASSWORD;
       await expect(build()).rejects.toThrow(/SEEMORE_PASSWORD is not set/);
-
-      process.env.SEEMORE_PASSWORD = 'too short';
-      await expect(build()).rejects.toThrow(/at least 12 characters/);
       expect(existsSync(outDir)).toBe(false);
     } finally {
       delete process.env.SEEMORE_PASSWORD;

@@ -80,26 +80,12 @@ describe('SEEMORE_PASSWORD', () => {
     expect(() => read('')).toThrow(/SEEMORE_PASSWORD is not set/);
   });
 
-  it('needs 12 code points, and never echoes the password', () => {
-    let message = '';
-    try {
-      read('elevenchars');
-    } catch (error) {
-      message = (error as Error).message;
-    }
-    expect(message).toMatch(/at least 12 characters/);
-    expect(message).not.toContain('elevenchars');
-    expect(read('twelve chars')).toBe('twelve chars');
+  it('accepts a password of any length', () => {
+    expect(read('a')).toBe('a');
+    expect(read('🔒')).toBe('🔒');
   });
 
-  it('counts code points, not UTF-16 units', () => {
-    expect(() => read('🔒'.repeat(11))).toThrow(/at least 12/);
-    expect(read('🔒'.repeat(12))).toBe('🔒'.repeat(12));
-  });
-
-  it('counts after NFC normalisation, and returns the normalised password', () => {
-    const decomposed = 'é'.repeat(11); // 22 code points as typed, 11 once composed
-    expect(() => read(decomposed)).toThrow(/at least 12/);
-    expect(read('é'.repeat(12))).toBe('é'.repeat(12));
+  it('returns the password NFC-normalised, as the lock screen derives it', () => {
+    expect(read('e\u0301')).toBe('\u00e9');
   });
 });

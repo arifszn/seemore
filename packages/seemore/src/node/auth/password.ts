@@ -1,4 +1,4 @@
-import { MIN_PASSWORD_LENGTH, normalisePassword, passwordLength } from '../../shared/auth/crypto.js';
+import { normalisePassword } from '../../shared/auth/crypto.js';
 
 export const PASSWORD_ENV = 'SEEMORE_PASSWORD';
 
@@ -6,7 +6,7 @@ export const PASSWORD_ENV = 'SEEMORE_PASSWORD';
  * The site password, from the environment and nowhere else: never the config file, which is
  * committed, and never a CLI flag, which lands in shell history and process listings.
  *
- * Nothing here — or anywhere else — echoes the password, its length, or any part of it.
+ * Nothing here — or anywhere else — echoes the password or any part of it.
  */
 export function readPassword(command: string, env: NodeJS.ProcessEnv = process.env): string {
   const raw = env[PASSWORD_ENV];
@@ -18,13 +18,6 @@ export function readPassword(command: string, env: NodeJS.ProcessEnv = process.e
     );
   }
 
-  // Normalised before counting and before derivation, exactly as the lock screen does.
-  const password = normalisePassword(raw);
-  if (passwordLength(password) < MIN_PASSWORD_LENGTH) {
-    throw new Error(
-      `${PASSWORD_ENV} is too short: \`auth\` needs a password of at least ${MIN_PASSWORD_LENGTH} characters. ` +
-        `Anyone with a copy of the built site can try passwords offline, so its length is the protection.`,
-    );
-  }
-  return password;
+  // Normalised before derivation, exactly as the lock screen does.
+  return normalisePassword(raw);
 }
