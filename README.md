@@ -167,6 +167,12 @@ Add `auth: true` to `seemore.config.ts`. Set the password when you build:
 SEEMORE_PASSWORD='a long passphrase' npx seemore build
 ```
 
+On Windows PowerShell:
+
+```powershell
+$env:SEEMORE_PASSWORD='a long passphrase'; npx seemore build
+```
+
 By default, visitors stay unlocked for one day after their last visit. Change this with `remember`:
 
 ```ts
