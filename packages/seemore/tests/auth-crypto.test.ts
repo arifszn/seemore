@@ -87,10 +87,10 @@ describe('key envelope', () => {
   });
 
   it('derives with PBKDF2-SHA256 at 600,000 iterations by default', async () => {
-    const { manifest } = await createManifest({ password: PASSWORD, id: 'handbook', remember: 0 });
+    const { manifest } = await createManifest({ password: PASSWORD, id: 'handbook', remember: 86_400 });
     expect(manifest.kdf).toMatchObject({ name: 'PBKDF2', hash: 'SHA-256', iterations: 600_000 });
     expect(KDF_ITERATIONS).toBe(600_000);
-    expect(manifest).toMatchObject({ v: 1, remember: 0 });
+    expect(manifest).toMatchObject({ v: 1, remember: 86_400 });
     expect(decodeBase64(manifest.kdf.salt)).toHaveLength(32);
   });
 });

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createManifest, decodeBase64, deriveKek, encryptFile, type AuthManifest } from '../src/shared/auth/crypto.js';
-import { sessionStorageKey } from '../src/shared/auth/files.js';
+import { recordId } from '../src/shared/auth/files.js';
 import type { KeyRecord, KeyStore } from '../src/shared/auth/store.js';
 import { contentType, createAuthWorker, parseRange, type AuthRequest } from '../src/shared/auth/worker.js';
 
@@ -9,6 +9,7 @@ const PASSWORD = 'correct horse battery staple';
 /** The manifest carries its own iteration count; the default is covered in auth-crypto.test.ts. */
 const ITERATIONS = 1_000;
 const HOUR = 3_600_000;
+const LOCK_SHELL = '<!doctype html><html><head><script type="application/json" id="seemore-auth-config">{}</script></head><body>LOCK SHELL</body></html>';
 
 const encode = (text: string) => new TextEncoder().encode(text);
 
@@ -20,28 +21,40 @@ function harness() {
   const files = new Map<string, Uint8Array<ArrayBuffer> | string>();
   const records = new Map<string, KeyRecord>();
   const fetched: string[] = [];
+  const unreachable = new Set<string>();
+  let retired = 0;
   let now = 10 * HOUR;
 
   const store: KeyStore = {
-    get: async (salt) => records.get(salt),
-    put: async (salt, record) => {
-      records.set(salt, record);
+    get: async (id) => records.get(id),
+    put: async (id, record) => {
+      records.set(id, record);
     },
-    delete: async (salt) => {
-      records.delete(salt);
+    delete: async (id) => {
+      records.delete(id);
     },
   };
+
+  const served = (body: Uint8Array<ArrayBuffer> | string, status: number) =>
+    new Response(body, { status, headers: typeof body === 'string' && body.startsWith('<') ? { 'Content-Type': 'text/html' } : {} });
 
   const worker = createAuthWorker({
     scope: SCOPE,
     store,
     now: () => now,
     publicFiles: ['favicon.png'],
+    retire: () => {
+      retired += 1;
+    },
+    // Like a static host: a folder answers with its index.html, anything missing with 404.html.
     fetch: async (url) => {
       const path = decodeURIComponent(new URL(url).pathname.slice(new URL(SCOPE).pathname.length));
       fetched.push(path);
-      const body = files.get(path);
-      return body === undefined ? new Response('not found', { status: 404 }) : new Response(body, { status: 200 });
+      if (unreachable.has(path)) throw new TypeError('Failed to fetch');
+      const body = files.get(path === '' || path.endsWith('/') ? `${path}index.html` : path) ?? files.get(path);
+      if (body !== undefined) return served(body, 200);
+      const fallback = files.get('404.html');
+      return fallback === undefined ? new Response('not found', { status: 404 }) : served(fallback, 404);
     },
   });
 
@@ -54,7 +67,8 @@ function harness() {
       iterations: ITERATIONS,
     });
     files.set('auth.json', JSON.stringify(manifest));
-    files.set('index.html', '<!doctype html><html><head></head><body>LOCK SHELL</body></html>');
+    files.set('index.html', LOCK_SHELL);
+    files.set('404.html', LOCK_SHELL);
     files.set('app.html', await encryptFile(contentKey, 'app.html', encode('<!doctype html><html><head><title>t</title></head><body><div id="root"></div></body></html>')));
     files.set('assets/entry.js', await encryptFile(contentKey, 'assets/entry.js', encode(options.body ?? 'export const build = 1;')));
     files.set('assets/doc.pdf', await encryptFile(contentKey, 'assets/doc.pdf', encode('%PDF-1.4 0123456789')));
@@ -62,18 +76,21 @@ function harness() {
   }
 
   /** What the lock shell stores after a correct password. */
-  async function unlock(manifest: AuthManifest, password = PASSWORD, extra: Partial<KeyRecord> = {}) {
+  async function unlock(manifest: AuthManifest, password = PASSWORD) {
     const kek = await deriveKek(password, decodeBase64(manifest.kdf.salt), manifest.kdf.iterations);
-    records.set(manifest.kdf.salt, { kek, lastSeen: now, ...extra });
+    records.set(recordId(SCOPE, manifest.kdf.salt), { kek, lastSeen: now });
   }
 
   return {
     files,
     records,
     fetched,
+    unreachable,
     worker,
     deploy,
     unlock,
+    record: (manifest: AuthManifest) => records.get(recordId(SCOPE, manifest.kdf.salt)),
+    retired: () => retired,
     advance: (ms: number) => {
       now += ms;
     },
@@ -139,28 +156,12 @@ describe('navigations', () => {
 
     const response = await h.worker.handle(navigation('guide/nested/page/'));
     expect(response.headers.get('Content-Type')).toContain('text/html');
-    const html = await response.text();
-    expect(html).toContain('<div id="root">');
-    expect(html).not.toContain('sessionStorage');
-    expect(h.records.get(manifest.kdf.salt)?.lastSeen).toBe(h.time());
+    expect(await response.text()).toContain('<div id="root">');
+    expect(h.record(manifest)?.lastSeen).toBe(h.time());
 
     // Still inside the window measured from that visit, though past the first one.
     h.advance(HOUR * 0.75);
     expect(await (await h.worker.handle(navigation('guide/'))).text()).toContain('<div id="root">');
-  });
-
-  it('with `remember: 0`, carry the session check before anything else in the head', async () => {
-    const h = harness();
-    const manifest = await h.deploy({ remember: 0 });
-    await h.unlock(manifest, PASSWORD, { session: 'abc123' });
-    h.advance(1_000 * HOUR);
-
-    const html = await (await h.worker.handle(navigation('guide/'))).text();
-    const script = html.indexOf('<script>');
-    expect(script).toBeGreaterThan(-1);
-    expect(script).toBeLessThan(html.indexOf('<title>'));
-    expect(html).toContain(JSON.stringify(sessionStorageKey(manifest.kdf.salt)));
-    expect(html).toContain('"abc123"');
   });
 
   it('serve a file opened directly by its address', async () => {
@@ -169,6 +170,17 @@ describe('navigations', () => {
     const response = await h.worker.handle(navigation('assets/doc.pdf'));
     expect(response.headers.get('Content-Type')).toBe('application/pdf');
     expect(await response.text()).toBe('%PDF-1.4 0123456789');
+  });
+
+  it("neither use nor delete another site's key on the same origin", async () => {
+    const h = harness();
+    const manifest = await h.deploy();
+    const otherKek = await deriveKek('another site password', decodeBase64(manifest.kdf.salt), ITERATIONS);
+    const other = recordId('https://docs.test/other/', manifest.kdf.salt);
+    h.records.set(other, { kek: otherKek, lastSeen: h.time() });
+
+    expect(await (await h.worker.handle(navigation(''))).text()).toContain('LOCK SHELL');
+    expect(h.records.has(other)).toBe(true);
   });
 });
 
@@ -184,7 +196,7 @@ describe('file requests', () => {
     expect(response.status).toBe(200);
     expect(response.headers.get('Content-Type')).toBe('text/javascript; charset=utf-8');
     expect(await response.text()).toBe('export const build = 1;');
-    expect(h.records.get(manifest.kdf.salt)?.lastSeen).toBe(seen);
+    expect(h.record(manifest)?.lastSeen).toBe(seen);
   });
 
   it('are refused while locked', async () => {
@@ -199,10 +211,10 @@ describe('file requests', () => {
     expect((await h.worker.handle(request('assets/gone.js'))).status).toBe(404);
   });
 
-  it('turn a host fallback page served in place of a missing file into a 404', async () => {
+  it('turn the lock shell served with a 200 in place of a missing file into a 404', async () => {
     const h = harness();
     await h.unlock(await h.deploy());
-    h.files.set('assets/stale.js', '<!doctype html><html>fallback</html>');
+    h.files.set('assets/stale.js', LOCK_SHELL);
     expect((await h.worker.handle(request('assets/stale.js'))).status).toBe(404);
   });
 
@@ -229,6 +241,57 @@ describe('file requests', () => {
     expect(response.headers.get('Content-Range')).toBe('bytes 0-7/19');
     expect(await response.text()).toBe('%PDF-1.4');
   });
+
+  it('answer a range past the end with 416', async () => {
+    const h = harness();
+    await h.unlock(await h.deploy());
+    const response = await h.worker.handle(request('assets/doc.pdf', 'bytes=19-'));
+    expect(response.status).toBe(416);
+    expect(response.headers.get('Content-Range')).toBe('bytes */19');
+  });
+});
+
+describe('content that is not the protected site', () => {
+  it('passes another site under the same scope through, locked or unlocked', async () => {
+    const h = harness();
+    const manifest = await h.deploy();
+    h.files.set('other/index.html', '<!doctype html><html><body>OTHER SITE</body></html>');
+    h.files.set('other/app.js', 'console.log("other");');
+
+    for (const step of ['locked', 'unlocked']) {
+      if (step === 'unlocked') await h.unlock(manifest);
+      expect(await (await h.worker.handle(navigation('other/'))).text(), step).toContain('OTHER SITE');
+      expect(await (await h.worker.handle(request('other/app.js'))).text(), step).toBe('console.log("other");');
+    }
+    expect(h.retired()).toBe(0);
+    expect(h.worker.intercepts(navigation(''))).toBe(true);
+  });
+
+  it('after a redeploy without `auth`, passes the plain site through and retires', async () => {
+    const h = harness();
+    await h.unlock(await h.deploy());
+    expect(await (await h.worker.handle(navigation(''))).text()).toContain('<div id="root">');
+
+    h.files.clear();
+    h.files.set('index.html', '<!doctype html><html><body>PLAIN SITE</body></html>');
+    h.files.set('assets/entry.js', 'export const plain = true;');
+
+    expect(await (await h.worker.handle(request('assets/entry.js'))).text()).toBe('export const plain = true;');
+    expect(await (await h.worker.handle(navigation(''))).text()).toContain('PLAIN SITE');
+    expect(h.retired()).toBe(1);
+    expect(h.worker.intercepts(navigation(''))).toBe(false);
+    expect(h.worker.intercepts(request('assets/entry.js'))).toBe(false);
+  });
+
+  it('does not retire when the manifest only failed to load', async () => {
+    const h = harness();
+    await h.deploy();
+    h.files.set('other/index.html', '<!doctype html><html><body>OTHER SITE</body></html>');
+    h.unreachable.add('auth.json');
+
+    expect(await (await h.worker.handle(navigation('other/'))).text()).toContain('OTHER SITE');
+    expect(h.retired()).toBe(0);
+  });
 });
 
 describe('locking', () => {
@@ -252,7 +315,13 @@ describe('parseRange', () => {
     expect(parseRange('bytes=0-5000', 1000)).toEqual([0, 999]);
   });
 
-  it('ignores anything it cannot satisfy exactly, serving the whole file instead', () => {
+  it('marks a range that starts past the end as unsatisfiable', () => {
+    expect(parseRange('bytes=1000-', 1000)).toBe('unsatisfiable');
+    expect(parseRange('bytes=2000-3000', 1000)).toBe('unsatisfiable');
+    expect(parseRange('bytes=-0', 1000)).toBe('unsatisfiable');
+  });
+
+  it('ignores anything else, serving the whole file instead', () => {
     for (const header of [null, 'bytes=500-100', 'bytes=0-1,5-9', 'items=0-1', 'bytes=-']) {
       expect(parseRange(header, 1000), String(header)).toBeUndefined();
     }

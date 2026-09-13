@@ -159,6 +159,7 @@ export function parseManifest(value: unknown): AuthManifest {
     manifest.v !== 1 ||
     typeof manifest.key !== 'string' ||
     typeof manifest.remember !== 'number' ||
+    !(manifest.remember > 0) ||
     typeof manifest.kdf?.salt !== 'string' ||
     typeof manifest.kdf.iterations !== 'number'
   ) {

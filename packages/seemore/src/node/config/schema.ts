@@ -76,7 +76,7 @@ const searchSchema = z.union([
  */
 const pageActionsSchema = z.array(z.enum(ACTION_IDS)).default(['copy-markdown', 'export-html']);
 
-const REMEMBER_FORMS = "expected 0 (only while the tab is open), or a number of hours or days, like '12h' or '7d'.";
+const REMEMBER_FORMS = "expected a number of hours or days, like '12h' or '7d'.";
 
 /**
  * `auth: true`, or `auth: { id?, remember? }`; `false` and absence both mean off. `true` and
@@ -93,7 +93,8 @@ const authSchema = z.preprocess(
         .min(1, { error: 'must not be empty. Leave `id` out to use the site title, or give the site a stable name.' })
         .optional(),
       remember: z
-        .union([z.literal(0), z.string().regex(/^[1-9]\d*[hd]$/, { error: REMEMBER_FORMS })], { error: REMEMBER_FORMS })
+        .string({ error: REMEMBER_FORMS })
+        .regex(/^[1-9]\d*[hd]$/, { error: REMEMBER_FORMS })
         .optional(),
     })
     .optional(),
@@ -152,8 +153,8 @@ export interface AuthOptions {
    * rename the site, so visitors stay unlocked. Changing it logs everyone out.
    */
   id?: string;
-  /** How long a visitor stays unlocked after their last visit: `'12h'`, `'7d'`, or `0` for only while the tab is open. Default `'1d'`. */
-  remember?: 0 | `${number}h` | `${number}d`;
+  /** How long a visitor stays unlocked after their last visit: `'12h'` or `'7d'`. Default `'1d'`. */
+  remember?: `${number}h` | `${number}d`;
 }
 
 export type SearchConfig =

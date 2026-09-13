@@ -6,7 +6,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { runBuild } from '../src/cli/build.js';
 import { assertOutputEncrypted, listFiles, publicFiles } from '../src/node/auth/output.js';
 import { decryptFile, deriveManifestKek, isEncrypted, parseManifest, unlockManifest } from '../src/shared/auth/crypto.js';
-import { PUBLIC_FILES } from '../src/shared/auth/files.js';
+import { PUBLIC_FILES, SHELL_CONFIG_ID } from '../src/shared/auth/files.js';
 
 const FIXTURE = join(import.meta.dirname, 'fixtures', 'site');
 const PASSWORD = 'correct horse battery staple';
@@ -113,6 +113,8 @@ describe('seemore build with auth', () => {
     expect($('h1').text()).toBe(TITLE);
     expect($('meta[name="description"]').attr('content')).toBe(DESCRIPTION);
     expect($('input[type="password"]').length).toBe(1);
+    // The worker tells the lock shell apart from any other page by this element.
+    expect($(`script#${SHELL_CONFIG_ID}`).length).toBe(1);
     expect($('link[rel="icon"]').attr('href')).toMatch(/^data:image\/svg\+xml,/);
   });
 

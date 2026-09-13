@@ -17,6 +17,10 @@ const worker = createAuthWorker({
   fetch: (url, init) => fetch(url, init),
   now: () => Date.now(),
   publicFiles: SEEMORE_AUTH.publicFiles,
+  // Redeployed without `auth`: remove this worker, so the next visit is an ordinary one.
+  retire: async () => {
+    await sw.registration.unregister();
+  },
 });
 
 sw.addEventListener('install', () => {

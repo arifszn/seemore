@@ -6,7 +6,7 @@
  * manifest's key, store the KEK, and reload — the worker then serves the app.
  */
 import { deriveManifestKek, parseManifest, unlockManifest, type AuthManifest } from './crypto.js';
-import { MANIFEST_FILE, WORKER_FILE, sessionStorageKey } from './files.js';
+import { MANIFEST_FILE, SHELL_CONFIG_ID, WORKER_FILE, recordId } from './files.js';
 import { indexedDbStore } from './store.js';
 
 interface ShellConfig {
@@ -18,7 +18,8 @@ const RESUME_KEY = 'seemore-auth:resume';
 
 const element = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
-const config = JSON.parse(element('seemore-auth-config').textContent ?? '{}') as ShellConfig;
+const config = JSON.parse(element(SHELL_CONFIG_ID).textContent ?? '{}') as ShellConfig;
+const scope = new URL(config.base, location.origin).href;
 const form = element<HTMLFormElement>('seemore-auth-form');
 const input = element<HTMLInputElement>('seemore-auth-password');
 const button = element<HTMLButtonElement>('seemore-auth-submit');
@@ -110,12 +111,7 @@ async function fetchManifest(): Promise<AuthManifest> {
 }
 
 async function storeKey(manifest: AuthManifest, kek: CryptoKey): Promise<void> {
-  let session: string | undefined;
-  if (manifest.remember === 0) {
-    session = randomId();
-    sessionStorage.setItem(sessionStorageKey(manifest.kdf.salt), session);
-  }
-  await indexedDbStore().put(manifest.kdf.salt, { kek, lastSeen: Date.now(), session });
+  await indexedDbStore().put(recordId(scope, manifest.kdf.salt), { kek, lastSeen: Date.now() });
 }
 
 /**
@@ -141,7 +137,7 @@ async function resumeAfterHardReload(): Promise<void> {
   if (navigator.serviceWorker.controller !== null) return;
   try {
     const manifest = await fetchManifest();
-    if ((await indexedDbStore().get(manifest.kdf.salt)) === undefined) return;
+    if ((await indexedDbStore().get(recordId(scope, manifest.kdf.salt))) === undefined) return;
     if (Date.now() - Number(sessionStorage.getItem(RESUME_KEY)) < 10_000) return;
     sessionStorage.setItem(RESUME_KEY, String(Date.now()));
     await navigator.serviceWorker.ready;
@@ -153,8 +149,4 @@ async function resumeAfterHardReload(): Promise<void> {
 
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function randomId(): string {
-  return [...crypto.getRandomValues(new Uint8Array(16))].map((byte) => byte.toString(16).padStart(2, '0')).join('');
 }

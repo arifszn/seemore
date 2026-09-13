@@ -36,7 +36,7 @@ export async function runBuild(options: BuildOptions): Promise<{ outDir: string;
   const outDir = resolve(options.cwd, options.outDir ?? 'dist');
   assertSafeOutDir(outDir, options.cwd, contentRoot);
 
-  // Checked before any work, so a missing or short password never leaves a half-built site.
+  // Checked before any work, so a missing password never leaves a half-built site.
   const password = config.auth === undefined ? undefined : readPassword('npx seemore build');
 
   const scan = ctx.source.current();

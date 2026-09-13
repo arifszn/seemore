@@ -62,7 +62,7 @@ page.
 
 ```ts
 auth: true,                                    // remember for 1 day
-auth: { remember: '7d' },                      // '12h', '7d', or 0 for this tab only
+auth: { remember: '7d' },                      // '12h' or '7d'
 auth: { id: 'acme-handbook', remember: '7d' }, // keep access after changing the site title
 ```
 

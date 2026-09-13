@@ -4,13 +4,14 @@
  * Every dependency — the network, the key store, the clock — arrives as an argument, so Node
  * tests drive it without a browser. `sw.ts` is the thin wrapper that wires it to real events.
  *
- * Navigations get the lock shell or the decrypted app; every other request under the scope
- * that is not a public file is fetched, decrypted with the content key held in memory, and
- * answered with the right type — so the app's own imports, images, PDFs and search index load
- * unchanged.
+ * The worker takes over only what the site itself serves: its lock shell, and ciphertext.
+ * Navigations to the site get the lock shell or the decrypted app; its files are decrypted with
+ * the content key held in memory and answered with the right type, so the app's own imports,
+ * images, PDFs and search index load unchanged. Anything else under the scope — another site
+ * sharing the origin, or this site after `auth` was turned off — passes through untouched.
  */
-import { decryptFile, isEncrypted, parseManifest, unlockManifest, type AuthManifest } from './crypto.js';
-import { APP_FILE, LOCK_MESSAGE, MANIFEST_FILE, PUBLIC_FILES, sessionStorageKey } from './files.js';
+import { MAGIC, decryptFile, isEncrypted, parseManifest, unlockManifest, type AuthManifest } from './crypto.js';
+import { APP_FILE, MANIFEST_FILE, PUBLIC_FILES, SHELL_CONFIG_ID, recordId } from './files.js';
 import type { KeyStore } from './store.js';
 
 /** The parts of a `Request` the worker reads; a plain object, because Node cannot build a navigation `Request`. */
@@ -30,13 +31,15 @@ export interface AuthWorkerOptions {
   now: () => number;
   /** Public files beyond {@link PUBLIC_FILES} — the configured favicon. */
   publicFiles?: readonly string[];
+  /** Called once the site is no longer protected (its manifest is gone); `sw.ts` unregisters. */
+  retire?: () => Promise<void> | void;
 }
 
 export interface AuthWorker {
   /** Whether the worker answers this request at all. */
   intercepts(request: AuthRequest): boolean;
   handle(request: AuthRequest): Promise<Response>;
-  /** Forget the stored key and the content key: the Lock button, or a `remember: 0` mismatch. */
+  /** Forget the stored key and the content key: the Lock button. */
   lock(): Promise<void>;
 }
 
@@ -53,8 +56,10 @@ export function createAuthWorker(options: AuthWorkerOptions): AuthWorker {
   // re-derives it from the stored KEK and the manifest.
   let unlocked: Unlocked | undefined;
   let unlocking: Promise<Unlocked | undefined> | undefined;
+  let retired = false;
 
   const urlFor = (path: string) => new URL(path, scope).href;
+  const record = (salt: string) => recordId(scope.href, salt);
 
   function pathOf(url: string): string | undefined {
     const parsed = new URL(url);
@@ -67,10 +72,25 @@ export function createAuthWorker(options: AuthWorkerOptions): AuthWorker {
     }
   }
 
-  async function loadManifest(): Promise<AuthManifest> {
+  /** The manifest, or `undefined` when the host no longer has one. Throws when the host cannot be reached. */
+  async function loadManifest(): Promise<AuthManifest | undefined> {
     const response = await options.fetch(urlFor(MANIFEST_FILE), { cache: 'no-store' });
+    if (response.status === 404 || response.status === 410) return undefined;
     if (!response.ok) throw new Error(`${MANIFEST_FILE} answered ${response.status}.`);
-    return parseManifest(await response.json());
+    try {
+      return parseManifest(await response.json());
+    } catch {
+      // A host fallback page served in place of a missing manifest.
+      return undefined;
+    }
+  }
+
+  /** The site was redeployed without `auth`: stop intercepting, and let `sw.ts` unregister. */
+  async function retire(): Promise<void> {
+    if (retired) return;
+    retired = true;
+    unlocked = undefined;
+    await options.retire?.();
   }
 
   async function lockShell(): Promise<Response> {
@@ -81,7 +101,7 @@ export function createAuthWorker(options: AuthWorkerOptions): AuthWorker {
 
   async function forget(salt: string): Promise<void> {
     unlocked = undefined;
-    await options.store.delete(salt);
+    await options.store.delete(record(salt));
   }
 
   /** The content key, from memory or re-derived from the stored KEK. Concurrent callers share one derivation. */
@@ -90,9 +110,10 @@ export function createAuthWorker(options: AuthWorkerOptions): AuthWorker {
     unlocking ??= (async () => {
       try {
         const manifest = await loadManifest();
-        const record = await options.store.get(manifest.kdf.salt);
-        if (record === undefined) return undefined;
-        const contentKey = await unlockManifest(manifest, record.kek);
+        if (manifest === undefined) return undefined;
+        const stored = await options.store.get(record(manifest.kdf.salt));
+        if (stored === undefined) return undefined;
+        const contentKey = await unlockManifest(manifest, stored.kek);
         unlocked = { salt: manifest.kdf.salt, contentKey };
         return unlocked;
       } catch {
@@ -114,12 +135,18 @@ export function createAuthWorker(options: AuthWorkerOptions): AuthWorker {
   }
 
   async function decrypted(url: string, path: string, range: string | null, cache: RequestCache): Promise<Response> {
+    const response = await options.fetch(url, { cache });
+    if (!response.ok) return response;
+    if (!(await startsEncrypted(response.clone()))) {
+      // The lock shell as a host's fallback for a file that no longer exists, or a file that is
+      // not this site's at all.
+      return (await isLockShell(response.clone())) ? notFound() : response;
+    }
+
     let key = await currentKey();
     if (key === undefined) return new Response(null, { status: 403 });
 
-    let bytes = await fetchCiphertext(url, cache);
-    if (bytes instanceof Response) return bytes;
-
+    let bytes: Uint8Array<ArrayBuffer> | Response = new Uint8Array(await response.arrayBuffer());
     try {
       return respond(await decryptFile(key.contentKey, path, bytes), path, range);
     } catch {
@@ -140,19 +167,35 @@ export function createAuthWorker(options: AuthWorkerOptions): AuthWorker {
   }
 
   async function navigate(request: AuthRequest, path: string): Promise<Response> {
+    // Asked of the network first, so a page that is not this site's is never taken over. Every
+    // route of a protected site answers with the lock shell (`index.html`, `404.html` or
+    // `200.html`); a file opened directly answers with ciphertext.
+    const page = await options.fetch(request.url, { cache: 'no-cache', redirect: 'manual' });
+    const ours = page.ok || page.status === 404 ? (await startsEncrypted(page.clone())) || (await isLockShell(page.clone())) : false;
+    if (!ours) {
+      // Another site sharing the origin, or this site redeployed without `auth`.
+      if ((await loadManifest().catch(() => null)) === undefined) await retire();
+      return page;
+    }
+
     const manifest = await loadManifest();
+    if (manifest === undefined) {
+      await retire();
+      return page;
+    }
+    void page.body?.cancel().catch(() => undefined);
     const salt = manifest.kdf.salt;
 
-    const record = await options.store.get(salt);
-    if (record === undefined) return await lockShell();
+    const stored = await options.store.get(record(salt));
+    if (stored === undefined) return await lockShell();
 
-    if (manifest.remember > 0 && options.now() - record.lastSeen > manifest.remember * 1000) {
+    if (options.now() - stored.lastSeen > manifest.remember * 1000) {
       await forget(salt);
       return await lockShell();
     }
 
     try {
-      unlocked = { salt, contentKey: await unlockManifest(manifest, record.kek) };
+      unlocked = { salt, contentKey: await unlockManifest(manifest, stored.kek) };
     } catch {
       // The stored key no longer opens the manifest: the password changed.
       await forget(salt);
@@ -160,7 +203,7 @@ export function createAuthWorker(options: AuthWorkerOptions): AuthWorker {
     }
 
     // Sliding expiry, measured from the last navigation — never per asset.
-    await options.store.put(salt, { ...record, lastSeen: options.now() });
+    await options.store.put(record(salt), { ...stored, lastSeen: options.now() });
 
     // An address with a file extension may be a file opened directly (a PDF link); anything
     // that does not decrypt as one is a route.
@@ -172,16 +215,13 @@ export function createAuthWorker(options: AuthWorkerOptions): AuthWorker {
     const app = await decrypted(urlFor(APP_FILE), APP_FILE, null, 'no-cache');
     // The app would not open even after a fresh manifest — a deploy caught half-uploaded. The
     // lock shell is a page the visitor can act on; an empty error response is not.
-    if (!app.ok) return await lockShell();
-
-    let html = await app.text();
-    if (manifest.remember === 0) html = injectHeadScript(html, sessionBootstrap(salt, record.session));
-    return new Response(html, { status: 200, headers: htmlHeaders() });
+    if (!app.ok || !isHtml(app)) return await lockShell();
+    return new Response(await app.arrayBuffer(), { status: 200, headers: htmlHeaders() });
   }
 
   return {
     intercepts(request) {
-      if (request.method !== 'GET') return false;
+      if (retired || request.method !== 'GET') return false;
       const path = pathOf(request.url);
       if (path === undefined) return false;
       if (request.navigate) return !(publicFiles.has(path) && !path.endsWith('.html'));
@@ -195,36 +235,38 @@ export function createAuthWorker(options: AuthWorkerOptions): AuthWorker {
     },
 
     async lock() {
-      const salt = unlocked?.salt ?? (await loadManifest()).kdf.salt;
-      await forget(salt);
+      const salt = unlocked?.salt ?? (await loadManifest())?.kdf.salt;
+      unlocked = undefined;
+      if (salt !== undefined) await forget(salt);
     },
   };
 }
 
-/**
- * With `remember: 0` the site stays open only while the unlocking tab does. A worker cannot
- * read `sessionStorage`, so this runs in the page before any module script: if the tab does
- * not hold the session id the unlock wrote, it stops the document, has the worker forget the
- * key, and reloads into the lock shell.
- */
-export function sessionBootstrap(salt: string, session: string | undefined): string {
-  const key = JSON.stringify(sessionStorageKey(salt));
-  const expected = JSON.stringify(session ?? null);
-  const message = JSON.stringify({ type: LOCK_MESSAGE });
-  return (
-    `(function(){var held=null;try{held=sessionStorage.getItem(${key})}catch(e){}` +
-    `if(${expected}!==null&&held===${expected})return;` +
-    `window.stop();document.documentElement.innerHTML="";` +
-    `var gone=false,done=function(){if(!gone){gone=true;location.reload()}};` +
-    `var worker=navigator.serviceWorker&&navigator.serviceWorker.controller;if(!worker)return done();` +
-    `var channel=new MessageChannel();channel.port1.onmessage=done;` +
-    `worker.postMessage(${message},[channel.port2]);setTimeout(done,3000)})();`
-  );
+/** Whether a response body begins with the encrypted-file magic, reading no more than that. */
+async function startsEncrypted(response: Response): Promise<boolean> {
+  const reader = response.body?.getReader();
+  if (reader === undefined) return false;
+  const head: number[] = [];
+  try {
+    while (head.length < MAGIC.length) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      head.push(...value.subarray(0, MAGIC.length - head.length));
+    }
+  } finally {
+    void reader.cancel().catch(() => undefined);
+  }
+  return MAGIC.every((byte, index) => head[index] === byte);
 }
 
-export function injectHeadScript(html: string, script: string): string {
-  const inline = `<script>${script.replace(/<\/script/gi, '<\\/script')}</script>`;
-  return /<head[^>]*>/i.test(html) ? html.replace(/<head[^>]*>/i, (open) => open + inline) : inline + html;
+/** The site's own lock shell, recognised by its config element. */
+async function isLockShell(response: Response): Promise<boolean> {
+  if (!isHtml(response)) return false;
+  return (await response.text()).includes(`id="${SHELL_CONFIG_ID}"`);
+}
+
+function isHtml(response: Response): boolean {
+  return (response.headers.get('Content-Type') ?? '').includes('text/html');
 }
 
 function looksLikeFile(path: string): boolean {
@@ -244,14 +286,18 @@ function respond(bytes: Uint8Array<ArrayBuffer>, path: string, range: string | n
   const headers = new Headers({ 'Content-Type': contentType(path), 'Accept-Ranges': 'bytes' });
   const span = parseRange(range, bytes.length);
   if (span === undefined) return new Response(bytes, { status: 200, headers });
+  if (span === 'unsatisfiable') return new Response(null, { status: 416, headers: { 'Content-Range': `bytes */${bytes.length}` } });
 
   const [start, end] = span;
   headers.set('Content-Range', `bytes ${start}-${end}/${bytes.length}`);
   return new Response(bytes.slice(start, end + 1), { status: 206, headers });
 }
 
-/** A single `bytes=` range, as a PDF viewer asks for. Anything else gets the whole file. */
-export function parseRange(header: string | null, size: number): [number, number] | undefined {
+/**
+ * A single `bytes=` range, as a PDF viewer asks for: the span to send, `'unsatisfiable'` when it
+ * starts past the end, or `undefined` for anything else, which gets the whole file.
+ */
+export function parseRange(header: string | null, size: number): [number, number] | 'unsatisfiable' | undefined {
   const match = header === null ? null : /^bytes=(\d*)-(\d*)$/.exec(header.trim());
   if (match === null || size === 0) return undefined;
   const [, from = '', to = ''] = match;
@@ -259,12 +305,13 @@ export function parseRange(header: string | null, size: number): [number, number
 
   if (from === '') {
     const suffix = Math.min(Number(to), size);
-    return suffix === 0 ? undefined : [size - suffix, size - 1];
+    return suffix === 0 ? 'unsatisfiable' : [size - suffix, size - 1];
   }
 
   const start = Number(from);
-  const end = to === '' ? size - 1 : Math.min(Number(to), size - 1);
-  return start > end ? undefined : [start, end];
+  if (to !== '' && Number(to) < start) return undefined;
+  if (start >= size) return 'unsatisfiable';
+  return [start, to === '' ? size - 1 : Math.min(Number(to), size - 1)];
 }
 
 const CONTENT_TYPES: Record<string, string> = {

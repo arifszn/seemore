@@ -20,14 +20,13 @@ describe('auth config', () => {
   it('resolves `remember` to seconds', () => {
     expect(resolve({ auth: { remember: '12h' } }).auth?.remember).toBe(43_200);
     expect(resolve({ auth: { remember: '7d' } }).auth?.remember).toBe(604_800);
-    expect(resolve({ auth: { remember: 0 } }).auth?.remember).toBe(0);
   });
 
   it('trims `id`, and uses it in place of the title', () => {
     expect(resolve({ title: 'Handbook', auth: { id: '  acme-handbook ' } }).auth?.id).toBe('acme-handbook');
   });
 
-  it.each([['1w'], ['0d'], ['12'], ['1.5h'], [-1], [3600]])('rejects `remember: %j`, naming the accepted forms', (remember) => {
+  it.each([['1w'], ['0d'], ['12'], ['1.5h'], [0], [-1], [3600]])('rejects `remember: %j`, naming the accepted forms', (remember) => {
     expect(() => resolve({ auth: { remember: remember as never } })).toThrow(/auth\.remember[\s\S]*'12h' or '7d'/);
   });
 

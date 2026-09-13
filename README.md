@@ -176,7 +176,7 @@ $env:SEEMORE_PASSWORD='a long passphrase'; npx seemore build
 By default, visitors stay unlocked for one day after their last visit. Change this with `remember`:
 
 ```ts
-auth: { remember: '7d' } // or '12h', or 0 for this tab only
+auth: { remember: '7d' } // or '12h'
 ```
 
 Password protection works only for `seemore build`. To try the lock screen, build and serve `dist/` on `localhost`.

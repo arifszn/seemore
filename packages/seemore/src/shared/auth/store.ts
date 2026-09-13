@@ -1,5 +1,5 @@
 /**
- * The stored key: one IndexedDB record per site, keyed by its salt.
+ * The stored key: one IndexedDB record per site, keyed by its scope and salt ({@link recordId}).
  *
  * IndexedDB rather than `localStorage` because it is the one store a page and a service
  * worker share, and because it holds a `CryptoKey` as the object itself — non-extractable,
@@ -11,14 +11,12 @@ export interface KeyRecord {
   kek: CryptoKey;
   /** Milliseconds since the epoch of the last navigation. */
   lastSeen: number;
-  /** With `remember: 0`: the id the unlocking tab also holds in `sessionStorage`. */
-  session?: string;
 }
 
 export interface KeyStore {
-  get(salt: string): Promise<KeyRecord | undefined>;
-  put(salt: string, record: KeyRecord): Promise<void>;
-  delete(salt: string): Promise<void>;
+  get(id: string): Promise<KeyRecord | undefined>;
+  put(id: string, record: KeyRecord): Promise<void>;
+  delete(id: string): Promise<void>;
 }
 
 const DATABASE = 'seemore-auth';
@@ -49,8 +47,8 @@ export function indexedDbStore(factory: IDBFactory = indexedDB): KeyStore {
   };
 
   return {
-    get: (salt) => run<KeyRecord | undefined>('readonly', (store) => store.get(salt)),
-    put: (salt, record) => run<void>('readwrite', (store) => store.put(record, salt)),
-    delete: (salt) => run<void>('readwrite', (store) => store.delete(salt)),
+    get: (id) => run<KeyRecord | undefined>('readonly', (store) => store.get(id)),
+    put: (id, record) => run<void>('readwrite', (store) => store.put(record, id)),
+    delete: (id) => run<void>('readwrite', (store) => store.delete(id)),
   };
 }

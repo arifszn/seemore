@@ -65,9 +65,8 @@ export function resolveConfig(
 const DAY_SECONDS = 86_400;
 
 /** `'12h'` / `'7d'` / `0` → seconds; one day when unset. */
-function rememberSeconds(remember: string | 0 | undefined): number {
+function rememberSeconds(remember: string | undefined): number {
   if (remember === undefined) return DAY_SECONDS;
-  if (remember === 0) return 0;
   const amount = Number(remember.slice(0, -1));
   return remember.endsWith('h') ? amount * 3_600 : amount * DAY_SECONDS;
 }

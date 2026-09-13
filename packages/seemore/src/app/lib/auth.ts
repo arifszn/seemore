@@ -1,6 +1,6 @@
 import { config } from 'virtual:seemore/config';
 import { parseManifest } from '../../shared/auth/crypto.js';
-import { LOCK_MESSAGE, MANIFEST_FILE } from '../../shared/auth/files.js';
+import { LOCK_MESSAGE, MANIFEST_FILE, recordId } from '../../shared/auth/files.js';
 import { indexedDbStore } from '../../shared/auth/store.js';
 
 /**
@@ -11,7 +11,8 @@ import { indexedDbStore } from '../../shared/auth/store.js';
 export async function lockSite(): Promise<void> {
   try {
     const response = await fetch(config.base + MANIFEST_FILE, { cache: 'no-store' });
-    await indexedDbStore().delete(parseManifest(await response.json()).kdf.salt);
+    const { salt } = parseManifest(await response.json()).kdf;
+    await indexedDbStore().delete(recordId(new URL(config.base, window.location.origin).href, salt));
   } catch {
     // The worker forgets it below as well.
   }

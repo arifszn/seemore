@@ -22,10 +22,16 @@ export const WORKER_FILE = 'sw.js';
 /** The app's HTML template: encrypted, and served by the worker for every navigation. */
 export const APP_FILE = 'app.html';
 
-/** Posted to the service worker to forget the key: the Lock button, and a `remember: 0` mismatch. */
+/** Posted to the service worker by the Lock button, to forget the key. */
 export const LOCK_MESSAGE = 'seemore-auth:lock';
 
-/** The `sessionStorage` key holding a `remember: 0` tab's session id. */
-export function sessionStorageKey(salt: string): string {
-  return `seemore-auth:session:${salt}`;
+/** The id of the lock shell's config element; the worker recognises the lock shell by it. */
+export const SHELL_CONFIG_ID = 'seemore-auth-config';
+
+/**
+ * The stored key's record id: the site's scope and salt, so two protected sites on one origin
+ * never read or delete each other's key.
+ */
+export function recordId(scope: string, salt: string): string {
+  return `${scope} ${salt}`;
 }
