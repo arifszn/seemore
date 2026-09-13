@@ -1,7 +1,7 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Root } from 'fumadocs-core/page-tree';
 import { createSource } from '../src/node/content/source.js';
 import { scan } from '../src/node/content/scan.js';
@@ -176,5 +176,50 @@ describe('index ordering', () => {
     });
     const tree = await createSource({ contentRoot: dir }).getPageTree();
     expect(names(folder(tree, 'Guide').children)).toEqual(['Alpha', 'Overview']);
+  });
+});
+
+describe('icons', () => {
+  /** The serialized tree is what the browser renders: icon React elements arrive as SVG HTML. */
+  async function serializedIcons(files: Record<string, string>): Promise<Record<string, string | undefined>> {
+    const dir = fixture(files);
+    const source = createSource({ contentRoot: dir });
+    const serialized = (await source.serializeTree()) as {
+      data: { name?: unknown; icon?: string; children?: unknown[] };
+    };
+    const icons: Record<string, string | undefined> = {};
+    const visit = (nodes: { name?: unknown; icon?: string; children?: unknown[] }[]): void => {
+      for (const node of nodes) {
+        icons[String(node.name)] = node.icon;
+        if (node.children) visit(node.children as typeof nodes);
+      }
+    };
+    visit([serialized.data]);
+    return icons;
+  }
+
+  it('resolves frontmatter icon names to Lucide icons instead of leaking the name as text', async () => {
+    const icons = await serializedIcons({ 'index.md': '---\ntitle: Home\nicon: Rocket\n---\n' });
+    expect(icons.Home).toContain('<svg');
+    expect(icons.Home).toContain('lucide-rocket');
+  });
+
+  it('resolves a folder icon from its meta.json', async () => {
+    const icons = await serializedIcons({
+      'guide/index.md': '---\ntitle: Guide\n---\n',
+      'guide/meta.json': JSON.stringify({ title: 'Guide', icon: 'BookOpen' }),
+    });
+    expect(icons.Guide).toContain('lucide-book-open');
+  });
+
+  it('leaves the icon empty for an unknown name rather than rendering the name as text', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      const icons = await serializedIcons({ 'index.md': '---\ntitle: Home\nicon: NotAnIcon\n---\n' });
+      expect(icons.Home).toBeUndefined();
+      expect(warn).toHaveBeenCalledWith('[lucide-icons-plugin] Unknown icon detected: NotAnIcon.');
+    } finally {
+      warn.mockRestore();
+    }
   });
 });

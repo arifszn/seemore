@@ -1,4 +1,5 @@
 import { dynamicLoader } from 'fumadocs-core/source';
+import { lucideIconsPlugin } from 'fumadocs-core/source/plugins/lucide-icons';
 import type { Root } from 'fumadocs-core/page-tree';
 import { scan, type ContentPage, type ScanOptions, type ScanResult } from './scan.js';
 
@@ -35,7 +36,7 @@ export function createSource(options: ScanOptions): SeemoreSource {
         cached = undefined;
       },
     },
-    { baseUrl: '/' },
+    { baseUrl: '/', plugins: [lucideIconsPlugin()] },
   );
 
   return {
