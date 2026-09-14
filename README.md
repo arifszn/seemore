@@ -101,7 +101,7 @@ Or invoke the skill by name:
 - **[As a static site](#publish-it-to-the-web)**: `npx seemore build` exports plain HTML you can host anywhere, so it doubles as a docs framework, not just a preview tool.
 
 <p align="center">
-  <video src="https://github.com/user-attachments/assets/248032a6-7e25-4f9f-8d73-089b5302afb0" width="640" controls muted></video>
+  <video src="https://github.com/user-attachments/assets/0a27b76d-f765-47b7-a3de-4b6f3aefbb74" width="640" controls muted></video>
 </p>
 
 ## What you get
@@ -113,6 +113,7 @@ Point seemore at anything already sitting in Markdown (AI-written notes, project
 - **Edit in place**: double-click any block in the preview to fix its Markdown
 - **Editor integration**: one extension covers VS Code, Cursor, Antigravity and other VS Code-compatible editors, remote workspaces included
 - **Documentation framework**: `seemore build` prerenders the whole site to HTML, ready to deploy on any host
+- **Password protection**: protect the built site with one shared password, with no server required
 - **Page actions**: copy a page as Markdown, or export it as one self-contained HTML file to drop into Slack, email or an AI chat
 - **Search built in**: static full-text search with no server and no account, with shareable highlighted results; [Algolia](https://algolia.com) and [Orama Cloud](https://orama.com) drop in when you want a hosted index
 - **Rich Markdown**: GitHub Flavoured Markdown, admonitions, steps, `[[wikilinks]]`, [Mermaid](https://mermaid.js.org) and [D2](https://d2lang.com) diagrams, click-to-zoom images, embedded PDFs
@@ -158,6 +159,32 @@ The result is a `dist/` folder of plain web files: drop it on [Netlify](https://
 > [!TIP]
 > Publishing to GitHub Pages? If your site lives at `username.github.io/my-repo/` rather than the root, tell seemore the subpath once with `base: '/my-repo/'`.
 
+### Password-protect a site
+
+Add `auth: true` to `seemore.config.ts`. Set the password when you build:
+
+```bash
+SEEMORE_PASSWORD='a-long-passphrase' npx seemore build
+```
+
+On Windows PowerShell:
+
+```powershell
+$env:SEEMORE_PASSWORD='a-long-passphrase'; npx seemore build
+```
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/password-protection.png" alt="The lock screen of a password-protected seemore site: the site's icon and title above a password field and an Unlock button" width="560"/>
+</p>
+
+By default, visitors stay unlocked for one day after their last visit. Change this with `remember`:
+
+```ts
+auth: { remember: '7d' } // or '12h'
+```
+
+Password protection works only for `seemore build`. To try the lock screen, build and serve `dist/` on `localhost`.
+
 ### Share a single page to Slack, email
 
 To share a single page instead of a site, the **Actions** button above every page writes one self-contained HTML file (styles inlined, images embedded, diagrams kept) that opens offline from a double-click. The CLI does the same without a browser:
@@ -166,7 +193,7 @@ To share a single page instead of a site, the **Actions** button above every pag
 npx seemore export docs/spec.md   # writes spec.html next to the Markdown
 ```
 
-More on both in [publishing](https://arifszn.github.io/seemore/publishing).
+More on all three in [publishing](https://arifszn.github.io/seemore/publishing).
 
 ## Configuration
 
@@ -188,6 +215,7 @@ export default {
   search: 'static', // or { provider: 'orama-cloud', endpoint, apiKey } / { provider: 'algolia', appId, apiKey, indexName }
   pageActions: ['copy-markdown', 'export-html'],
   exclude: ['drafts/**'],
+  auth: true, // password from SEEMORE_PASSWORD at build time
 };
 ```
 
@@ -269,6 +297,8 @@ Run `seemore --help` for the options, or see the [CLI reference](https://arifszn
 **Does anything leave my machine?** No. The dev server, the build and the export all run locally, with no account and no telemetry. The only network calls are ones you configure yourself, such as a hosted search provider.
 
 **Will it move or rewrite my files?** No. seemore reads your folder where it is. It writes only when you save an inline edit, or when you run `build` or `export`.
+
+**Is the password protection real?** Yes. Site content is encrypted, so a copy of the build cannot be read without the password. There is no per-person access or revocation, and a short password can be guessed offline, so use a long one.
 
 **Is it a preview tool or a docs framework?** Both, from the same folder: `seemore` previews it, the extension renders it beside your editor, and `seemore build` publishes it.
 

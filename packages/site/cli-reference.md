@@ -27,3 +27,22 @@ Options
 (`--out <dir>` chooses a different folder). It needs no browser: diagrams are rendered when the
 exported file is opened. The file is the same one the site's **Actions → Export as HTML** button
 produces, and exporting is refused when `pageActions` leaves out `'export-html'`.
+
+## Password protection
+
+When `auth` is set in `seemore.config.ts`, `seemore build` reads the password from the
+`SEEMORE_PASSWORD` environment variable. There is no password flag. The build fails if the variable
+is missing:
+
+```bash
+SEEMORE_PASSWORD='a-long-passphrase' npx seemore build
+```
+
+On Windows PowerShell:
+
+```powershell
+$env:SEEMORE_PASSWORD='a-long-passphrase'; npx seemore build
+```
+
+Password protection applies only to `seemore build`. The dev server and `seemore export` are not
+protected. See [publishing](./publishing.mdx#password-protection) for setup and limits.

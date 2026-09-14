@@ -1,5 +1,6 @@
 import { useEffect, useState, type ComponentProps } from 'react';
 import { FileText } from 'lucide-react';
+import { isRemoteHref } from '../../shared/base.js';
 
 /**
  * Sibling PDFs render in the browser's own viewer.
@@ -23,6 +24,7 @@ import { FileText } from 'lucide-react';
  */
 export function Pdf({ src, title, ...props }: ComponentProps<'embed'> & { src: string }) {
   const [unsupported, setUnsupported] = useState(false);
+  const file = useDecryptedUrl(src);
 
   useEffect(() => {
     const noPdfViewerApi = 'pdfViewerEnabled' in navigator && !navigator.pdfViewerEnabled;
@@ -34,13 +36,47 @@ export function Pdf({ src, title, ...props }: ComponentProps<'embed'> & { src: s
 
   return (
     <span className={unsupported ? 'seemore-pdf seemore-pdf-unsupported' : 'seemore-pdf'}>
-      <embed src={src} type="application/pdf" title={title} {...props} />
-      <a className="seemore-pdf-fallback" href={src} download>
+      {file === undefined ? undefined : <embed src={file} type="application/pdf" title={title} {...props} />}
+      {/* A blob URL has no file name of its own, so a protected build names the download. */}
+      <a className="seemore-pdf-fallback" href={file ?? src} download={file?.startsWith('blob:') ? src.split('/').pop() : true}>
         <FileText className="seemore-pdf-fallback-icon" aria-hidden="true" />
         <span className="seemore-pdf-fallback-title">Download {title ?? 'PDF'}</span>
       </a>
     </span>
   );
+}
+
+/**
+ * The URL to hand `<embed>`. On a password-protected build the file on the host is ciphertext,
+ * and browsers load `<embed>` without going through the service worker that decrypts — so the
+ * PDF is fetched first, which does go through it, and embedded as a blob. The raw address is
+ * never embedded: WebKit caches that ciphertext response and serves it to later fetches too.
+ */
+function useDecryptedUrl(src: string): string | undefined {
+  // A remote PDF is not on this host, so it was never encrypted — and a cross-origin fetch of
+  // it would usually be refused anyway.
+  const encrypted = import.meta.env.SEEMORE_AUTH && !isRemoteHref(src);
+  const [url, setUrl] = useState<string | undefined>(encrypted ? undefined : src);
+
+  useEffect(() => {
+    if (!encrypted) return;
+    let revoked = false;
+    let blobUrl: string | undefined;
+    void fetch(src)
+      .then((response) => (response.ok ? response.blob() : Promise.reject(new Error(String(response.status)))))
+      .then((blob) => {
+        if (revoked) return;
+        blobUrl = URL.createObjectURL(blob.type === 'application/pdf' ? blob : new Blob([blob], { type: 'application/pdf' }));
+        setUrl(blobUrl);
+      })
+      .catch(() => undefined);
+    return () => {
+      revoked = true;
+      if (blobUrl !== undefined) URL.revokeObjectURL(blobUrl);
+    };
+  }, [src, encrypted]);
+
+  return url;
 }
 
 export default Pdf;

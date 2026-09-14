@@ -356,8 +356,11 @@ function renderRoutesValue(ctx: SeemoreContext): string {
   return `[\n${entries.join('\n')}\n]`;
 }
 
-/** The serialisable slice of the config the browser needs. */
-function clientConfig(ctx: SeemoreContext) {
+/**
+ * The serialisable slice of the config the browser needs. Built field by field, so nothing
+ * reaches the browser by accident — `auth` above all.
+ */
+export function clientConfig(ctx: SeemoreContext) {
   const { config } = ctx;
   return {
     title: config.title,

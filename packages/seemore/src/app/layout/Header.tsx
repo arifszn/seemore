@@ -1,9 +1,10 @@
 import { Link, useLocation } from 'react-router';
-import { Moon, PanelLeft, Search, Sun } from 'lucide-react';
+import { LogOut, Moon, PanelLeft, Search, Sun } from 'lucide-react';
 import { useSearchContext } from 'fumadocs-ui/contexts/search';
 import { SidebarTrigger } from 'fumadocs-ui/components/sidebar/base';
 import { useTheme } from 'fumadocs-ui/provider/base';
 import { config } from 'virtual:seemore/config';
+import { lockSite } from '../lib/auth.js';
 import { useSidebarCollapse } from './Sidebar.js';
 
 export function Header() {
@@ -56,6 +57,13 @@ export function Header() {
           <Search aria-hidden="true" />
           <span>Search</span>
           <kbd>{'⌘K'}</kbd>
+        </button>
+      ) : undefined}
+
+      {/* Read directly, not through a helper, so an unprotected bundle folds this away. */}
+      {import.meta.env.SEEMORE_AUTH ? (
+        <button type="button" className="seemore-lock" aria-label="Lock site" title="Lock site" onClick={() => void lockSite()}>
+          <LogOut aria-hidden="true" />
         </button>
       ) : undefined}
 

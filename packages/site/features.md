@@ -105,6 +105,6 @@ Flags you don't mention are left at their default, so you only ever name the one
 | `content.image.zoom` | on | Click-to-zoom on content images |
 | `search.suggest` | on | Inline query completion |
 | `search.highlight` | on | Highlight the query on the page you land on |
-| `social.cards` | off | Per-page OG images (needs `takumi-js`) |
+| `social.cards` | off | Per-page OG images (needs `takumi-js`; cannot use with `auth`) |
 
-Combinations that can't work together raise a config error naming both flags and the fix.
+Incompatible combinations show a config error with the conflicting options and a fix. `social.cards` cannot be used with [password protection](./publishing.mdx#password-protection), because social cards are public images.

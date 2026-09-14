@@ -24,6 +24,7 @@ export default {
   search: 'static', // or { provider: 'orama-cloud', endpoint, apiKey } / { provider: 'algolia', appId, apiKey, indexName }
   pageActions: ['copy-markdown', 'export-html'],
   exclude: ['drafts/**'],
+  auth: true, // password from SEEMORE_PASSWORD at build time
 };
 ```
 
@@ -39,6 +40,8 @@ Hosted indexes are a drop-in swap whenever you want one: [Orama Cloud](https://o
 search: { provider: 'algolia', appId: '…', apiKey: '…', indexName: '…' },
 ```
 
+Hosted search cannot be combined with `auth`: the provider would receive the page text in plain text.
+
 ## Page actions
 
 `pageActions` decides what the Actions button above every page holds, in order. The default is
@@ -51,3 +54,16 @@ pageActions: ['copy-markdown', 'export-html'],  // the default
 What each action does, and everything an exported file keeps, is on the
 [features](./features.md) page; the CLI equivalent is on the [CLI reference](./cli-reference.md)
 page.
+
+## Password protection
+
+`auth` protects the whole built site with one password. Set the password in the
+`SEEMORE_PASSWORD` environment variable when you build; do not put it in this file.
+
+```ts
+auth: true,                                    // remember for 1 day
+auth: { remember: '7d' },                      // '12h' or '7d'
+auth: { id: 'acme-handbook', remember: '7d' }, // keep access after changing the site title
+```
+
+Setup and limits are on the [publishing](./publishing.mdx#password-protection) page.

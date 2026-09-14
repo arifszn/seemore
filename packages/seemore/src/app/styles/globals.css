@@ -62,7 +62,7 @@
   }
 
   .seemore-search-trigger {
-    @apply ms-auto inline-flex shrink-0 items-center gap-2 rounded-lg border border-fd-border p-2 text-sm text-fd-muted-foreground sm:px-3 sm:py-1.5;
+    @apply ms-auto inline-flex shrink-0 cursor-pointer items-center gap-2 rounded-lg border border-fd-border p-2 text-sm text-fd-muted-foreground sm:px-3 sm:py-1.5;
   }
 
   /* Icon only where there is no room for the label. */
@@ -75,7 +75,8 @@
     @apply rounded border border-fd-border px-1 text-xs;
   }
 
-  .seemore-theme-toggle {
+  .seemore-theme-toggle,
+  .seemore-lock {
     @apply shrink-0;
   }
 
@@ -103,8 +104,9 @@
     @apply h-4 w-4 animate-spin rounded-full border-2 border-fd-muted-foreground/30 border-t-fd-muted-foreground;
   }
 
-  .seemore-theme-toggle {
-    @apply rounded-lg border border-fd-border p-2;
+  .seemore-theme-toggle,
+  .seemore-lock {
+    @apply cursor-pointer rounded-lg border border-fd-border p-2;
   }
 
   .seemore-icon-dark {

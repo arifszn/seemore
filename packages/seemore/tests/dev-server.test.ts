@@ -53,6 +53,25 @@ describe('dev server machine-readable ready line', () => {
     expect(lines.some((line) => line.includes('seemore'))).toBe(true);
     expect(() => JSON.parse(lines.join(''))).toThrow();
   });
+
+  it('stays open with `auth` set, needing no password, and says so once', async () => {
+    contentRoot = mkdtempSync(join(tmpdir(), 'seemore-auth-dev-'));
+    writeFileSync(join(contentRoot, 'a.md'), '# A\n');
+    writeFileSync(join(contentRoot, 'seemore.config.ts'), "export default { title: 'Vault', auth: true };");
+
+    const lines: string[] = [];
+    const spy = vi.spyOn(console, 'log').mockImplementation((line: string) => {
+      lines.push(line);
+    });
+
+    dev = await runDev({ cwd: contentRoot, port: 0 });
+    spy.mockRestore();
+
+    expect(lines.filter((line) => line.includes('auth is build-only'))).toHaveLength(1);
+    const html = await (await fetch(dev.url)).text();
+    expect(html).toContain('<div id="root">');
+    expect(html).not.toContain('seemore-auth');
+  });
 });
 
 describe('dev-only route endpoint', () => {

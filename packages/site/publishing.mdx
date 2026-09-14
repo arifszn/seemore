@@ -49,3 +49,60 @@ The result is a `dist/` folder of plain web files: drop it on [Netlify](https://
 > Publishing to GitHub Pages? If your site lives at `username.github.io/my-repo/` rather than the root, tell seemore the subpath once with `base: '/my-repo/'` (or `--base /my-repo/` on the CLI).
 
 This site is built exactly this way. See its [`seemore.config.ts`](https://github.com/arifszn/seemore/blob/main/packages/site/seemore.config.ts) and the [features](./features.md) page for what publishing gets you by default.
+
+## Password protection
+
+Protect a whole site with one shared password. No server or account is needed. Turn it on in
+`seemore.config.ts`:
+
+```ts
+// seemore.config.ts
+export default {
+  title: 'Acme Handbook',
+  auth: true,
+};
+```
+
+Keep the password out of the config file. `seemore build` reads it from the `SEEMORE_PASSWORD`
+environment variable and refuses to build without one:
+
+```bash
+SEEMORE_PASSWORD='a-long-passphrase' npx seemore build
+```
+
+On Windows PowerShell:
+
+```powershell
+$env:SEEMORE_PASSWORD='a-long-passphrase'; npx seemore build
+```
+
+![The lock screen visitors see: the site's icon and title above a password field and an Unlock button](./assets/password-protection.png)
+
+The build encrypts the site content and search index. The output is still a plain `dist/` folder that
+you can deploy to any of the hosts above.
+
+### Staying unlocked
+
+`remember` sets how long a visitor stays unlocked after their last visit. The default is one day:
+
+```ts
+auth: { remember: '12h' }  // hours
+auth: { remember: '7d' }   // days
+```
+
+Renaming the site logs everyone out once. To avoid that, set a stable `id`; changing `id` logs everyone
+out just like changing the password:
+
+```ts
+auth: { id: 'acme-handbook' }
+```
+
+### Limits
+
+- **No per-person access.** To remove someone's access, change the password and rebuild.
+- **Old builds keep working.** Anyone with an old build and its password can still open it.
+- **HTTPS required.** Protected sites only open over HTTPS, or on `localhost`.
+
+> [!NOTE]
+> Password protection works only for `seemore build`. To try the lock screen, build with the password and serve
+> `dist/` on `localhost`, for example with `npx serve dist` (build with `--base /` if the site sets `base`).

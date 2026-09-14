@@ -60,6 +60,11 @@ export async function runDev(options: DevOptions): Promise<DevServer> {
     ctx.warnings.add(`No Markdown files found under ${contentRoot}. seemore will serve an empty site until there are.`);
   }
 
+  // Password protection is build-only: the dev server stays open, and says so once.
+  if (config.auth !== undefined && options.json !== true) {
+    console.log(pc.dim('seemore  auth is build-only; the dev server is not password-protected'));
+  }
+
   const base = createViteConfig({ ctx, mode: 'dev' });
   const server = await createServer({
     ...base,
