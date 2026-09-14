@@ -9,7 +9,9 @@ const PASSWORD = 'correct horse battery staple';
 /** The manifest carries its own iteration count; the default is covered in auth-crypto.test.ts. */
 const ITERATIONS = 1_000;
 const HOUR = 3_600_000;
-const LOCK_SHELL = '<!doctype html><html><head><script type="application/json" id="seemore-auth-config">{}</script></head><body>LOCK SHELL</body></html>';
+const shell = (base: string, text: string) =>
+  `<!doctype html><html><head><script type="application/json" id="seemore-auth-config">${JSON.stringify({ base })}</script></head><body>${text}</body></html>`;
+const LOCK_SHELL = shell('/handbook/', 'LOCK SHELL');
 
 const encode = (text: string) => new TextEncoder().encode(text);
 
@@ -24,9 +26,20 @@ function harness() {
   const unreachable = new Set<string>();
   let retired = 0;
   let now = 10 * HOUR;
+  let held: { reached: () => void; released: Promise<void> } | undefined;
 
   const store: KeyStore = {
-    get: async (id) => records.get(id),
+    // Reads the record first, then waits if held: a slow IndexedDB read that raced a delete.
+    get: async (id) => {
+      const found = records.get(id);
+      const hold = held;
+      held = undefined;
+      if (hold !== undefined) {
+        hold.reached();
+        await hold.released;
+      }
+      return found;
+    },
     put: async (id, record) => {
       records.set(id, record);
     },
@@ -91,6 +104,14 @@ function harness() {
     unlock,
     record: (manifest: AuthManifest) => records.get(recordId(SCOPE, manifest.kdf.salt)),
     retired: () => retired,
+    /** Hold the next key-store read after it has read the record, until released. */
+    holdNextGet: () => {
+      let reached!: () => void;
+      let release!: () => void;
+      const hasRead = new Promise<void>((resolve) => (reached = resolve));
+      held = { reached, released: new Promise<void>((resolve) => (release = resolve)) };
+      return { hasRead, release };
+    },
     advance: (ms: number) => {
       now += ms;
     },
@@ -283,6 +304,38 @@ describe('content that is not the protected site', () => {
     expect(h.worker.intercepts(request('assets/entry.js'))).toBe(false);
   });
 
+  it('passes a protected site nested under the scope through, so it can show its own lock screen', async () => {
+    const h = harness();
+    const manifest = await h.deploy();
+    h.files.set('other/index.html', shell('/handbook/other/', 'OTHER LOCK SHELL'));
+
+    for (const step of ['locked', 'unlocked']) {
+      if (step === 'unlocked') await h.unlock(manifest);
+      expect(await (await h.worker.handle(navigation('other/'))).text(), step).toContain('OTHER LOCK SHELL');
+    }
+    expect(h.retired()).toBe(0);
+  });
+
+  it('answers other content with the request as the browser made it, Range header included', async () => {
+    const h = harness();
+    await h.unlock(await h.deploy());
+    h.files.set('other/video.mp4', 'plain video bytes');
+
+    const sent = new Response('plai', { status: 206, headers: { 'Content-Range': 'bytes 0-3/17' } });
+    const ranged = { ...request('other/video.mp4', 'bytes=0-3'), send: async () => sent };
+    expect(await h.worker.handle(ranged)).toBe(sent);
+
+    const page = new Response('<!doctype html><html><body>OTHER</body></html>', { headers: { 'Content-Type': 'text/html' } });
+    expect(await h.worker.handle({ ...navigation('other/'), send: async () => page })).toBe(page);
+  });
+
+  it('opens a file directly from the one download it already made', async () => {
+    const h = harness();
+    await h.unlock(await h.deploy());
+    await h.worker.handle(navigation('assets/doc.pdf'));
+    expect(h.fetched.filter((path) => path === 'assets/doc.pdf')).toHaveLength(1);
+  });
+
   it('does not retire when the manifest only failed to load', async () => {
     const h = harness();
     await h.deploy();
@@ -304,6 +357,43 @@ describe('locking', () => {
     expect(h.records.size).toBe(0);
     expect((await h.worker.handle(request('assets/entry.js'))).status).toBe(403);
     expect(await (await h.worker.handle(navigation(''))).text()).toContain('LOCK SHELL');
+  });
+
+  it('keeps a key derivation already under way from bringing the key back', async () => {
+    const h = harness();
+    await h.unlock(await h.deploy());
+    const hold = h.holdNextGet();
+    const pending = h.worker.handle(request('assets/entry.js'));
+    await hold.hasRead;
+
+    await h.worker.lock();
+    hold.release();
+    expect((await pending).status).toBe(403);
+    expect((await h.worker.handle(request('assets/entry.js'))).status).toBe(403);
+  });
+
+  it('keeps a navigation already under way from restoring the stored key', async () => {
+    const h = harness();
+    await h.unlock(await h.deploy());
+    const hold = h.holdNextGet();
+    const pending = h.worker.handle(navigation('guide/'));
+    await hold.hasRead;
+
+    await h.worker.lock();
+    hold.release();
+    expect(await (await pending).text()).toContain('LOCK SHELL');
+    expect(h.records.size).toBe(0);
+    expect((await h.worker.handle(request('assets/entry.js'))).status).toBe(403);
+  });
+
+  it('forgets the content key when a navigation finds the stored key deleted by the page', async () => {
+    const h = harness();
+    await h.unlock(await h.deploy());
+    expect((await h.worker.handle(request('assets/entry.js'))).status).toBe(200);
+
+    h.records.clear();
+    expect(await (await h.worker.handle(navigation(''))).text()).toContain('LOCK SHELL');
+    expect((await h.worker.handle(request('assets/entry.js'))).status).toBe(403);
   });
 });
 

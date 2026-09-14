@@ -38,6 +38,7 @@ sw.addEventListener('fetch', (event) => {
     method: request.method,
     navigate: request.mode === 'navigate',
     range: request.headers.get('Range'),
+    send: () => fetch(request),
   };
   if (!worker.intercepts(described)) return;
   // Anything unexpected falls back to the network, which only ever holds ciphertext.

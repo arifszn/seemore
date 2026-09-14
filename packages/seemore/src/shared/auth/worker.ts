@@ -21,6 +21,11 @@ export interface AuthRequest {
   /** `request.mode === 'navigate'`. */
   navigate: boolean;
   range?: string | null;
+  /**
+   * Fetch the request exactly as the browser made it: headers, credentials and all. Content
+   * that is not this site's is answered with this, untouched.
+   */
+  send?: () => Promise<Response>;
 }
 
 export interface AuthWorkerOptions {
@@ -57,9 +62,17 @@ export function createAuthWorker(options: AuthWorkerOptions): AuthWorker {
   let unlocked: Unlocked | undefined;
   let unlocking: Promise<Unlocked | undefined> | undefined;
   let retired = false;
+  // Bumped whenever the key is forgotten, so work that read the stored key before cannot bring
+  // it back afterwards.
+  let generation = 0;
 
   const urlFor = (path: string) => new URL(path, scope).href;
   const record = (salt: string) => recordId(scope.href, salt);
+
+  /** The request as the browser made it, or a plain fetch of its address where there is none (tests). */
+  const send = (request: AuthRequest) =>
+    request.send?.() ??
+    options.fetch(request.url, request.navigate ? { cache: 'no-cache', redirect: 'manual' } : { cache: 'default' });
 
   function pathOf(url: string): string | undefined {
     const parsed = new URL(url);
@@ -93,6 +106,17 @@ export function createAuthWorker(options: AuthWorkerOptions): AuthWorker {
     await options.retire?.();
   }
 
+  /**
+   * Whose a response is: this site's lock shell (built for this scope — a protected site nested
+   * under it has its own), ciphertext, or `undefined` for anything else.
+   */
+  async function ownership(response: Response): Promise<'shell' | 'ciphertext' | undefined> {
+    if (!response.ok && response.status !== 404) return undefined;
+    if (await startsEncrypted(response.clone())) return 'ciphertext';
+    const base = await shellBase(response.clone());
+    return base !== undefined && new URL(base, scope).href === scope.href ? 'shell' : undefined;
+  }
+
   async function lockShell(): Promise<Response> {
     const response = await options.fetch(urlFor('index.html'), { cache: 'no-cache' });
     if (!response.ok) return response;
@@ -100,6 +124,7 @@ export function createAuthWorker(options: AuthWorkerOptions): AuthWorker {
   }
 
   async function forget(salt: string): Promise<void> {
+    generation += 1;
     unlocked = undefined;
     await options.store.delete(record(salt));
   }
@@ -108,12 +133,15 @@ export function createAuthWorker(options: AuthWorkerOptions): AuthWorker {
   function currentKey(): Promise<Unlocked | undefined> {
     if (unlocked !== undefined) return Promise.resolve(unlocked);
     unlocking ??= (async () => {
+      const started = generation;
       try {
         const manifest = await loadManifest();
         if (manifest === undefined) return undefined;
         const stored = await options.store.get(record(manifest.kdf.salt));
         if (stored === undefined) return undefined;
         const contentKey = await unlockManifest(manifest, stored.kek);
+        // Locked while this was deriving: the key it read has been deleted since.
+        if (generation !== started) return undefined;
         unlocked = { salt: manifest.kdf.salt, contentKey };
         return unlocked;
       } catch {
@@ -134,14 +162,12 @@ export function createAuthWorker(options: AuthWorkerOptions): AuthWorker {
     return isEncrypted(bytes) ? bytes : notFound();
   }
 
-  async function decrypted(url: string, path: string, range: string | null, cache: RequestCache): Promise<Response> {
-    const response = await options.fetch(url, { cache });
+  /** The file in `response` decrypted, a 404 for the lock shell standing in for it, or `response` itself when it is not this site's. */
+  async function decrypted(url: string, path: string, range: string | null, response: Response): Promise<Response> {
     if (!response.ok) return response;
-    if (!(await startsEncrypted(response.clone()))) {
-      // The lock shell as a host's fallback for a file that no longer exists, or a file that is
-      // not this site's at all.
-      return (await isLockShell(response.clone())) ? notFound() : response;
-    }
+    const owner = await ownership(response);
+    if (owner === 'shell') return notFound();
+    if (owner === undefined) return response;
 
     let key = await currentKey();
     if (key === undefined) return new Response(null, { status: 403 });
@@ -166,13 +192,25 @@ export function createAuthWorker(options: AuthWorkerOptions): AuthWorker {
     }
   }
 
+  async function file(request: AuthRequest, path: string): Promise<Response> {
+    if (request.range) {
+      // Only a whole file shows the header that proves it is this site's, and only a whole file
+      // decrypts, so a ranged request is fetched whole first. Anything else is sent as it was
+      // made, Range header included.
+      const whole = await options.fetch(request.url, { cache: 'default' });
+      if (whole.ok && (await startsEncrypted(whole.clone()))) return await decrypted(request.url, path, request.range, whole);
+      void whole.body?.cancel().catch(() => undefined);
+    }
+    return await decrypted(request.url, path, null, await send(request));
+  }
+
   async function navigate(request: AuthRequest, path: string): Promise<Response> {
     // Asked of the network first, so a page that is not this site's is never taken over. Every
-    // route of a protected site answers with the lock shell (`index.html`, `404.html` or
+    // route of a protected site answers with its lock shell (`index.html`, `404.html` or
     // `200.html`); a file opened directly answers with ciphertext.
-    const page = await options.fetch(request.url, { cache: 'no-cache', redirect: 'manual' });
-    const ours = page.ok || page.status === 404 ? (await startsEncrypted(page.clone())) || (await isLockShell(page.clone())) : false;
-    if (!ours) {
+    const page = await send(request);
+    const owner = await ownership(page);
+    if (owner === undefined) {
       // Another site sharing the origin, or this site redeployed without `auth`.
       if ((await loadManifest().catch(() => null)) === undefined) await retire();
       return page;
@@ -183,19 +221,25 @@ export function createAuthWorker(options: AuthWorkerOptions): AuthWorker {
       await retire();
       return page;
     }
-    void page.body?.cancel().catch(() => undefined);
+    if (owner === 'shell') void page.body?.cancel().catch(() => undefined);
     const salt = manifest.kdf.salt;
+    const started = generation;
 
     const stored = await options.store.get(record(salt));
-    if (stored === undefined) return await lockShell();
+    if (stored === undefined) {
+      // Deleted from the page (the Lock button), perhaps before the worker heard about it.
+      unlocked = undefined;
+      return await lockShell();
+    }
 
     if (options.now() - stored.lastSeen > manifest.remember * 1000) {
       await forget(salt);
       return await lockShell();
     }
 
+    let contentKey: CryptoKey;
     try {
-      unlocked = { salt, contentKey: await unlockManifest(manifest, stored.kek) };
+      contentKey = await unlockManifest(manifest, stored.kek);
     } catch {
       // The stored key no longer opens the manifest: the password changed.
       await forget(salt);
@@ -204,15 +248,22 @@ export function createAuthWorker(options: AuthWorkerOptions): AuthWorker {
 
     // Sliding expiry, measured from the last navigation — never per asset.
     await options.store.put(record(salt), { ...stored, lastSeen: options.now() });
+    if (generation !== started) {
+      // Locked while this navigation was unlocking: undo the write that may have restored the key.
+      await options.store.delete(record(salt));
+      return await lockShell();
+    }
+    unlocked = { salt, contentKey };
 
-    // An address with a file extension may be a file opened directly (a PDF link); anything
-    // that does not decrypt as one is a route.
-    if (looksLikeFile(path)) {
-      const file = await decrypted(request.url, path, request.range ?? null, 'default');
-      if (file.ok) return file;
+    if (owner === 'ciphertext') {
+      // A file opened directly (a PDF link). One that does not open with this site's key belongs
+      // to another site, and passes through.
+      const opened = await decrypted(request.url, path, null, page);
+      if (opened.ok) return opened;
+      return opened.status === 403 ? await lockShell() : await send(request);
     }
 
-    const app = await decrypted(urlFor(APP_FILE), APP_FILE, null, 'no-cache');
+    const app = await decrypted(urlFor(APP_FILE), APP_FILE, null, await options.fetch(urlFor(APP_FILE), { cache: 'no-cache' }));
     // The app would not open even after a fresh manifest — a deploy caught half-uploaded. The
     // lock shell is a page the visitor can act on; an empty error response is not.
     if (!app.ok || !isHtml(app)) return await lockShell();
@@ -231,12 +282,14 @@ export function createAuthWorker(options: AuthWorkerOptions): AuthWorker {
     async handle(request) {
       const path = pathOf(request.url) ?? '';
       if (request.navigate) return await navigate(request, path);
-      return await decrypted(request.url, path, request.range ?? null, 'default');
+      return await file(request, path);
     },
 
     async lock() {
-      const salt = unlocked?.salt ?? (await loadManifest())?.kdf.salt;
+      const known = unlocked?.salt;
+      generation += 1;
       unlocked = undefined;
+      const salt = known ?? (await loadManifest())?.kdf.salt;
       if (salt !== undefined) await forget(salt);
     },
   };
@@ -259,19 +312,21 @@ async function startsEncrypted(response: Response): Promise<boolean> {
   return MAGIC.every((byte, index) => head[index] === byte);
 }
 
-/** The site's own lock shell, recognised by its config element. */
-async function isLockShell(response: Response): Promise<boolean> {
-  if (!isHtml(response)) return false;
-  return (await response.text()).includes(`id="${SHELL_CONFIG_ID}"`);
+/** The `base` a seemore lock shell was built for, read from its config element; `undefined` for any other response. */
+async function shellBase(response: Response): Promise<string | undefined> {
+  if (!isHtml(response)) return undefined;
+  const config = new RegExp(`<script[^>]*\\bid="${SHELL_CONFIG_ID}"[^>]*>([^<]*)</script>`).exec(await response.text());
+  if (config === null) return undefined;
+  try {
+    const { base } = JSON.parse(config[1] ?? '') as { base?: unknown };
+    return typeof base === 'string' ? base : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 function isHtml(response: Response): boolean {
   return (response.headers.get('Content-Type') ?? '').includes('text/html');
-}
-
-function looksLikeFile(path: string): boolean {
-  const last = path.split('/').pop() ?? '';
-  return /\.[a-z0-9]+$/i.test(last) && !/\.html?$/i.test(last);
 }
 
 function htmlHeaders(): Headers {
