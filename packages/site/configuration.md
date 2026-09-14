@@ -6,7 +6,7 @@ order: 6
 
 # Configuration
 
-Configuration is optional; a folder with no config file builds correctly in the browser, in your code editor, and when built for publishing. To adjust things, create `seemore.config.ts` next to your content:
+Configuration is optional. A folder with no config file builds correctly in the browser, in your code editor, and when built for publishing. To change settings, create `seemore.config.ts` next to your content:
 
 ```ts
 // seemore.config.ts
@@ -29,7 +29,7 @@ export default {
 };
 ```
 
-`theme` picks one of the twelve built-in colour presets; see the [Themes](./themes.md) page for screenshots of each. For anything else, put your own CSS in `css`; it's appended last, so it wins. See the [features](./features.md) page for the full list of feature flags.
+`theme` picks one of the twelve built-in colour presets. See the [Themes](./themes.md) page for screenshots of each. For anything else, put your own CSS in `css`. seemore appends it last, so it wins. See the [features](./features.md) page for the full list of feature flags.
 
 ## Which files are included
 
@@ -46,9 +46,9 @@ This only applies inside the content folder. Running `npx seemore .github/docs` 
 
 ## Search
 
-The default `search: 'static'` needs no setup, no server and no account: the index is built from your Markdown and queried in the browser, in a Web Worker. `search.suggest` completes your query inline, and `search.highlight` carries the query onto the page you land on (`?h=…`), so search-result links are shareable.
+The default `search: 'static'` needs no setup, no server and no account. seemore builds the index from your Markdown and queries it in the browser, in a Web Worker. `search.suggest` completes your query inline. `search.highlight` carries the query onto the page you land on (`?h=…`), so search-result links are shareable.
 
-Hosted indexes are a drop-in swap whenever you want one: [Orama Cloud](https://orama.com) (`@orama/core`) or [Algolia](https://algolia.com) (`algoliasearch`), each needing nothing but its SDK installed:
+Hosted indexes are a drop-in swap whenever you want one: [Orama Cloud](https://orama.com) (`@orama/core`) or [Algolia](https://algolia.com) (`algoliasearch`). Each needs only its own SDK installed:
 
 ```ts
 search: { provider: 'algolia', appId: '…', apiKey: '…', indexName: '…' },
@@ -59,20 +59,19 @@ Hosted search cannot be combined with `auth`: the provider would receive the pag
 ## Page actions
 
 `pageActions` decides what the Actions button above every page holds, in order. The default is
-both actions; an empty array removes the button:
+both actions. An empty array removes the button:
 
 ```ts
 pageActions: ['copy-markdown', 'export-html'],  // the default
 ```
 
-What each action does, and everything an exported file keeps, is on the
-[features](./features.md) page; the CLI equivalent is on the [CLI reference](./cli-reference.md)
-page.
+The [features](./features.md) page explains what each action does, and everything an exported
+file keeps. The [CLI reference](./cli-reference.md) page covers the CLI equivalent.
 
 ## Password protection
 
 `auth` protects the whole built site with one password. Set the password in the
-`SEEMORE_PASSWORD` environment variable when you build; do not put it in this file.
+`SEEMORE_PASSWORD` environment variable when you build. Do not put it in this file.
 
 ```ts
 auth: true,                                    // remember for 1 day

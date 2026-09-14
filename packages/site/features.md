@@ -6,13 +6,13 @@ order: 8
 
 # Features
 
-Every page arrives with its full text already in it, with no placeholder and no loading skeleton. Pages start loading as soon as you point at a link, and transitions animate, without giving up the plain-files output described under [publishing](./publishing.md). Add, rename, retitle, reorder or delete a file and the running preview updates immediately: no restart, no full reload.
+Every page arrives with its full text already in it. There is no placeholder and no loading skeleton. Pages start loading as soon as you point at a link, and transitions animate, without giving up the plain-files output described under [publishing](./publishing.md). Add, rename, retitle, reorder or delete a file, and the running preview updates at once: no restart, no full reload.
 
-Search works out of the box with no server to run and nothing to pay for; if your site grows past what a no-server search index can carry, the build tells you and points at alternatives. If your site lives under a path like `example.com/my-repo/` rather than the root, set `base` once and links, search and assets all follow.
+Search works out of the box, with no server to run and nothing to pay for. If your site grows past what a no-server search index can carry, the build tells you and points at alternatives. If your site lives under a path like `example.com/my-repo/` rather than the root, set `base` once, and links, search and assets all follow.
 
 ## Edit from the page
 
-While the preview is running, the page is also an editor. Double-click any paragraph, heading, list item, quote or table cell and it opens in place with that block's **Markdown source**: `**bold**` stays `**bold**`, links stay links. Fix the text and hit **Save**: the change is written straight back to the file, and the page hot-reloads exactly as it does for an edit made in your editor. Nothing is written until you say so: clicking away closes the editor without saving, and once you have typed something it stays open rather than discarding your text.
+While the preview is running, the page is also an editor. Double-click any paragraph, heading, list item, quote or table cell, and it opens in place with that block's **Markdown source**: `**bold**` stays `**bold**`, links stay links. Fix the text and press **Save**: seemore writes the change straight back to the file, and the page hot-reloads exactly as it does for an edit made in your editor. seemore writes nothing until you say so. Clicking away closes the editor without saving. Once you have typed something, the editor stays open rather than discarding your text.
 
 It works the same in the [code editor extension](./code-editor.md), whose panel runs the same dev server.
 
@@ -20,7 +20,7 @@ Inline editing is for local previews only. `seemore build` output is static, so 
 
 ## PDF viewer
 
-A PDF referenced with image syntax opens inline in the browser's own viewer, with a download link underneath. A sibling file or a remote URL both work:
+Reference a PDF with image syntax, and it opens inline in the browser's own viewer, with a download link underneath. A sibling file or a remote URL both work:
 
 ```md
 ![sample document](https://pdfobject.com/pdf/sample.pdf)
@@ -56,8 +56,8 @@ Click any content image to zoom in, on by default. Turn it off with `'content.im
 
 An **Actions** button above every page holds actions for the page you are reading:
 
-- **Copy as Markdown**: the page's own Markdown on your clipboard, ready to paste into an AI chat, an issue or another document. It is the source, not a transcription of the rendered page: a GitHub alert is still `> [!NOTE]`, a diagram is still a ```` ```mermaid ```` fence, and an `.mdx` page's components come across as the JSX the author wrote.
-- **Export as HTML**: the page alone, in one self-contained HTML file: styles inlined, images embedded, diagrams kept. It opens offline, from a double-click, ready to share. The same export runs from the CLI as `npx seemore export <file>`, which writes the file next to the Markdown (or into `--out <dir>`). Printing that file, or the live page, strips every bit of chrome and splits nothing across a page break, so the browser's own "Save as PDF" is a PDF away.
+- **Copy as Markdown**: puts the page's own Markdown on your clipboard, ready to paste into an AI chat, an issue or another document. It is the source, not a transcription of the rendered page: a GitHub alert is still `> [!NOTE]`, a diagram is still a ```` ```mermaid ```` fence, and an `.mdx` page's components come across as the JSX the author wrote.
+- **Export as HTML**: writes the page alone into one self-contained HTML file, with styles inlined, images embedded, and diagrams kept. It opens offline, from a double-click, ready to share. The same export runs from the CLI as `npx seemore export <file>`, which writes the file next to the Markdown (or into `--out <dir>`). Printing that file, or the live page, strips away all chrome and never splits content across a page break, so the browser's own "Save as PDF" turns it into a PDF.
 
 Actions are enabled per site, in the order they should appear, in `seemore.config.ts`:
 
@@ -70,11 +70,11 @@ export default {
 };
 ```
 
-Exported files keep the theme toggle, code copy buttons, click-to-zoom and an "On this page" list; they leave behind the sidebar, navbar and search. Like the site, an exported file opens in the reader's own OS theme, not the one the exporter happened to be using, and remembers their toggle choice from then on. Remote images (for example, GitHub URLs) stay remote; everything local is embedded.
+Exported files keep the theme toggle, code copy buttons, click-to-zoom and an "On this page" list. They leave out the sidebar, navbar and search. Like the site, an exported file opens in the reader's own OS theme, not the one used at export time, and remembers the reader's toggle choice from then on. Remote images (for example, GitHub URLs) stay remote. Everything local gets embedded.
 
 ## Password protection
 
-The whole site can sit behind one shared password — no server, no accounts: set `auth: true` in `seemore.config.ts`, build with a `SEEMORE_PASSWORD`, and the output encrypts itself behind a lock screen. See [password protection](./publishing.md#password-protection) for the full setup, including how long visitors stay unlocked.
+Put the whole site behind one shared password, with no server and no accounts. Set `auth: true` in `seemore.config.ts`, build with a `SEEMORE_PASSWORD`, and the output locks itself behind a password screen. See [password protection](./publishing.md#password-protection) for the full setup, including how long a visitor stays unlocked.
 
 ## Feature flags
 
@@ -90,7 +90,7 @@ export default {
 };
 ```
 
-Flags you don't mention are left at their default, so you only ever name the ones you're changing.
+Every flag you do not name keeps its default value. You only ever name the ones you are changing.
 
 | Flag | Default | Effect |
 | --- | --- | --- |
@@ -109,6 +109,6 @@ Flags you don't mention are left at their default, so you only ever name the one
 | `content.image.zoom` | on | Click-to-zoom on content images |
 | `search.suggest` | on | Inline query completion |
 | `search.highlight` | on | Highlight the query on the page you land on |
-| `social.cards` | off | Per-page OG images (needs `takumi-js`; cannot use with `auth`) |
+| `social.cards` | off | Per-page OG images (needs `takumi-js`. Cannot use with `auth`) |
 
 Incompatible combinations show a config error with the conflicting options and a fix. `social.cards` cannot be used with [password protection](./publishing.md#password-protection), because social cards are public images.

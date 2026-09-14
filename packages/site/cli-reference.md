@@ -24,9 +24,9 @@ Options
 ```
 
 `seemore export` renders the page you name and writes one self-contained HTML file next to it
-(`--out <dir>` chooses a different folder). It needs no browser: diagrams are rendered when the
-exported file is opened. The file is the same one the site's **Actions → Export as HTML** button
-produces, and exporting is refused when `pageActions` leaves out `'export-html'`.
+(`--out <dir>` chooses a different folder). It needs no browser: the exported file renders its own
+diagrams when opened. The file matches the one the site's **Actions → Export as HTML** button
+produces. Export fails when `pageActions` leaves out `'export-html'`.
 
 ## Password protection
 

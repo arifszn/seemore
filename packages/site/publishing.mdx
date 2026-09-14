@@ -43,12 +43,12 @@ bunx seemore build  # static export to dist/ for any host
   </CodeBlockTab>
 </CodeBlockTabs>
 
-The result is a `dist/` folder of plain web files: drop it on [Netlify](https://netlify.com), [Surge](https://surge.sh), [Cloudflare Pages](https://pages.cloudflare.com) or [GitHub Pages](https://pages.github.com), or hand it to any web host. Every page is prerendered to its own `index.html`, next to a `404.html` that every static host honours. The host-specific files are written for you too: `_redirects` for Netlify and Cloudflare Pages, `200.html` for Surge, `.nojekyll` for GitHub Pages.
+The result is a `dist/` folder of plain web files. Drop it on [Netlify](https://netlify.com), [Surge](https://surge.sh), [Cloudflare Pages](https://pages.cloudflare.com) or [GitHub Pages](https://pages.github.com), or hand it to any web host. Every page is a separate `index.html`, next to a `404.html` that every static host reads. seemore also writes the files each host needs: `_redirects` for Netlify and Cloudflare Pages, `200.html` for Surge, `.nojekyll` for GitHub Pages.
 
 > [!TIP]
-> Publishing to GitHub Pages? If your site lives at `username.github.io/my-repo/` rather than the root, tell seemore the subpath once with `base: '/my-repo/'` (or `--base /my-repo/` on the CLI).
+> Do you publish to GitHub Pages at `username.github.io/my-repo/`, not at the root? Set the subpath once with `base: '/my-repo/'` (or `--base /my-repo/` on the CLI).
 
-This site is built exactly this way. See its [`seemore.config.ts`](https://github.com/arifszn/seemore/blob/main/packages/site/seemore.config.ts) and the [features](./features.md) page for what publishing gets you by default.
+This site is built the same way. See its [`seemore.config.ts`](https://github.com/arifszn/seemore/blob/main/packages/site/seemore.config.ts) and the [features](./features.md) page for what publishing gives you by default.
 
 ## Password protection
 
@@ -64,7 +64,7 @@ export default {
 ```
 
 Keep the password out of the config file. `seemore build` reads it from the `SEEMORE_PASSWORD`
-environment variable and refuses to build without one:
+environment variable. The build fails if the variable is missing:
 
 ```bash
 SEEMORE_PASSWORD='a-long-passphrase' npx seemore build
@@ -90,8 +90,8 @@ auth: { remember: '12h' }  // hours
 auth: { remember: '7d' }   // days
 ```
 
-Renaming the site logs everyone out once. To avoid that, set a stable `id`; changing `id` logs everyone
-out just like changing the password:
+Renaming the site logs everyone out once. To avoid that, set a stable `id`. Changing `id` logs everyone
+out, just like changing the password:
 
 ```ts
 auth: { id: 'acme-handbook' }
