@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { SerializedPageTree } from 'fumadocs-core/source/client';
 import { runDev, type DevServer } from '../src/cli/dev.js';
+import { isWatchIgnored } from '../src/node/vite/watcher.js';
 
 interface SerializedNode {
   name: string;
@@ -145,5 +146,78 @@ describe('watcher / sidebar refresh cycle', () => {
     const response = await fetch(new URL('/api/search.json', dev.url));
     expect(response.ok).toBe(true);
     expect(await response.text()).toContain('Alpha');
+  });
+});
+
+describe('isWatchIgnored', () => {
+  it('judges only the part of the path below the content root', () => {
+    expect(isWatchIgnored('', false, [])).toBe(false);
+    expect(isWatchIgnored('guide.md', true, [])).toBe(false);
+    expect(isWatchIgnored('.drafts', false, [])).toBe(true);
+    expect(isWatchIgnored('node_modules/pkg/readme.md', true, [])).toBe(true);
+    expect(isWatchIgnored('notes.txt', true, [])).toBe(true);
+  });
+
+  it('opens an excluded folder, and the folders on the way to it, when include reaches it', () => {
+    const include = ['.config/.drafts/**'];
+    expect(isWatchIgnored('.config', false, include)).toBe(false);
+    expect(isWatchIgnored('.config/.drafts', false, include)).toBe(false);
+    expect(isWatchIgnored('.config/.drafts/wip.md', true, include)).toBe(false);
+    expect(isWatchIgnored('.config/.other', false, include)).toBe(true);
+  });
+
+  it('keeps dependency trees closed for an include that starts with a glob', () => {
+    const include = ['**/.notes/**'];
+    expect(isWatchIgnored('a/.notes', false, include)).toBe(false);
+    expect(isWatchIgnored('node_modules', false, include)).toBe(true);
+    expect(isWatchIgnored('.git', false, include)).toBe(true);
+  });
+});
+
+describe('watcher under a content root inside dot and build folders', () => {
+  let parent: string;
+  let contentRoot: string;
+  let dev: DevServer;
+
+  /** Poll the corpus the watcher keeps current, for the same reason as `waitForNames` above. */
+  async function waitForFiles(expected: string[]): Promise<string[]> {
+    const deadline = Date.now() + 20_000;
+    let files: string[] = [];
+    while (Date.now() < deadline) {
+      files = dev.ctx.pages().map((p) => p.file).sort();
+      if (files.join('|') === expected.join('|')) return files;
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+    return files;
+  }
+
+  beforeAll(async () => {
+    parent = mkdtempSync(join(tmpdir(), 'seemore-watch-dot-'));
+    const root = join(parent, '.github', 'build', 'docs');
+    mkdirSync(join(root, '.drafts'), { recursive: true });
+    writeFileSync(join(root, 'alpha.md'), '# Alpha\n');
+    writeFileSync(join(root, 'seemore.config.ts'), "export default { title: 'Dotted', include: ['.drafts'] };");
+
+    dev = await runDev({ cwd: root, port: 0 });
+    contentRoot = dev.ctx.contentRoot;
+  }, 120_000);
+
+  afterAll(async () => {
+    await dev?.close();
+    rmSync(parent, { recursive: true, force: true });
+  });
+
+  it('picks up a created file even though the root sits under .github/build', async () => {
+    writeFileSync(join(contentRoot, 'beta.md'), '# Beta\n');
+    expect(await waitForFiles(['alpha.md', 'beta.md'])).toEqual(['alpha.md', 'beta.md']);
+  });
+
+  it('picks up a file in an included dot folder', async () => {
+    writeFileSync(join(contentRoot, '.drafts', 'wip.md'), '# WIP\n');
+    expect(await waitForFiles(['.drafts/wip.md', 'alpha.md', 'beta.md'])).toEqual([
+      '.drafts/wip.md',
+      'alpha.md',
+      'beta.md',
+    ]);
   });
 });

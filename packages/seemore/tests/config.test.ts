@@ -17,6 +17,11 @@ describe('resolveConfig defaults', () => {
     expect(config.theme).toBe('neutral');
     expect(config.search).toEqual({ provider: 'static' });
     expect(config.exclude).toEqual([]);
+    expect(config.include).toEqual([]);
+  });
+
+  it('passes include through', () => {
+    expect(resolveConfig({ include: ['.drafts'] }, { root: '/tmp/x' }).include).toEqual(['.drafts']);
   });
 
   it('normalises base to leading and trailing slashes', () => {

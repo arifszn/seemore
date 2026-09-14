@@ -56,6 +56,7 @@ export function resolveConfig(
     search,
     pageActions: parsed.pageActions,
     exclude: parsed.exclude,
+    include: parsed.include,
     auth,
     root: options.root,
     configFile: options.configFile,

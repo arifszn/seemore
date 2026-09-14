@@ -129,6 +129,42 @@ describe('excludes', () => {
     expect(files).toEqual(['ok.md']);
   });
 
+  it('brings back folders the defaults skip when include names them', () => {
+    const dir = fixture({
+      'ok.md': '# ok\n',
+      '.drafts/wip.md': '# wip\n',
+      '.drafts/sub/deeper.mdx': '# deeper\n',
+      '.drafts/meta.json': '{ "title": "Drafts" }',
+      '.drafts/notes.txt': 'not markdown\n',
+      'build/notes/a.md': '# a\n',
+      '.other/no.md': '# no\n',
+    });
+    const result = scan({ contentRoot: dir, include: ['.drafts', 'build/notes/**'] });
+    expect(result.pages.map((p) => p.file).sort()).toEqual([
+      '.drafts/sub/deeper.mdx',
+      '.drafts/wip.md',
+      'build/notes/a.md',
+      'ok.md',
+    ]);
+    expect(result.pages.find((p) => p.file === '.drafts/wip.md')!.url).toBe('/drafts/wip');
+    expect(result.files.some((f) => f.type === 'meta' && f.path === '.drafts/meta.json')).toBe(true);
+  });
+
+  it('lets exclude win over include', () => {
+    const dir = fixture({
+      '.drafts/wip.md': '# wip\n',
+      '.drafts/private/secret.md': '# no\n',
+    });
+    const files = scan({ contentRoot: dir, include: ['.drafts/**'], exclude: ['.drafts/private/**'] }).pages;
+    expect(files.map((p) => p.file)).toEqual(['.drafts/wip.md']);
+  });
+
+  it('scans a content root that is itself inside a dot folder', () => {
+    const dir = fixture({ '.github/docs/index.md': '# hi\n', '.github/docs/guide.md': '# guide\n' });
+    const files = scan({ contentRoot: join(dir, '.github', 'docs') }).pages.map((p) => p.file);
+    expect(files.sort()).toEqual(['guide.md', 'index.md']);
+  });
+
   it('drops draft pages from a build but keeps them in dev', () => {
     const dir = fixture({ 'a.md': '---\ndraft: true\n---\n' });
     expect(scan({ contentRoot: dir }).pages).toHaveLength(0);

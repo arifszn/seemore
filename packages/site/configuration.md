@@ -24,11 +24,25 @@ export default {
   search: 'static', // or { provider: 'orama-cloud', endpoint, apiKey } / { provider: 'algolia', appId, apiKey, indexName }
   pageActions: ['copy-markdown', 'export-html'],
   exclude: ['drafts/**'],
-  auth: true, // password from SEEMORE_PASSWORD at build time
+  include: ['.notes'], // dot folders, build/, dist/ and similar are skipped unless listed here
+  auth: true,
 };
 ```
 
 `theme` picks one of the twelve built-in colour presets; see the [Themes](./themes.md) page for screenshots of each. For anything else, put your own CSS in `css`; it's appended last, so it wins. See the [features](./features.md) page for the full list of feature flags.
+
+## Which files are included
+
+Every `.md` and `.mdx` file under the content folder becomes a page, except in folders that are almost never documentation: dot folders such as `.github`, `node_modules`, `dist`, `build`, `out`, `vendor`, `target`, `venv`, `deps`, `Pods` and `bower_components`.
+
+`exclude` skips more, using glob patterns relative to the content folder. `include` brings back something those defaults skip, as a folder name or a glob. `exclude` still wins over `include`:
+
+```ts
+exclude: ['drafts/**'],
+include: ['.notes', 'build/reports/**'],
+```
+
+This only applies inside the content folder. Running `npx seemore .github/docs` works without any config.
 
 ## Search
 

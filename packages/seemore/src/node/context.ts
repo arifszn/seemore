@@ -32,6 +32,7 @@ export function createContext(options: CreateContextOptions): SeemoreContext {
   const source = createSource({
     contentRoot,
     exclude: config.exclude,
+    include: config.include,
     siteTitle: config.title,
     includeDrafts: options.includeDrafts,
   });

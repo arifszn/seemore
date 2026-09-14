@@ -131,6 +131,8 @@ export const configSchema = z.object({
   search: searchSchema.default('static'),
   pageActions: pageActionsSchema,
   exclude: z.array(z.string()).default([]),
+  /** Folders or globs to scan even though a default exclude (dot folders, `build/`, …) skips them. */
+  include: z.array(z.string()).default([]),
   auth: authSchema,
 });
 
@@ -179,6 +181,7 @@ export interface ResolvedSeemoreConfig {
   search: SearchConfig;
   pageActions: ActionId[];
   exclude: string[];
+  include: string[];
   /** Present when the site is password-protected. Nothing here is ever sent to the browser. */
   auth?: { id: string; remember: number };
   /** Directory the config was resolved from — relative paths in it hang off this. */

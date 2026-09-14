@@ -220,7 +220,8 @@ export default {
   search: 'static', // or { provider: 'orama-cloud', endpoint, apiKey } / { provider: 'algolia', appId, apiKey, indexName }
   pageActions: ['copy-markdown', 'export-html'],
   exclude: ['drafts/**'],
-  auth: true, // password from SEEMORE_PASSWORD at build time
+  include: ['.notes'], // dot folders, build/, dist/ and similar are skipped unless listed here
+  auth: true,
 };
 ```
 

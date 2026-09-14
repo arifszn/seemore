@@ -62,6 +62,8 @@ export interface ScanResult {
 export interface ScanOptions {
   contentRoot: string;
   exclude?: string[];
+  /** Globs scanned even when a default exclude covers them; `exclude` still wins. */
+  include?: string[];
   /** Used as the title of a root index page that has no frontmatter title. */
   siteTitle?: string;
   /** Dev keeps drafts so they can be written; the build drops them. */
@@ -70,16 +72,11 @@ export interface ScanOptions {
 
 export function scan(options: ScanOptions): ScanResult {
   const contentRoot = resolve(options.contentRoot);
-  const ignore = [...DEFAULT_EXCLUDES, ...(options.exclude ?? [])];
+  const find = (patterns: string[], keep: RegExp) =>
+    findFiles(contentRoot, patterns, keep, options.exclude ?? [], options.include ?? []);
 
-  const contentFiles = globSync(['**/*.md', '**/*.mdx'], {
-    cwd: contentRoot,
-    ignore,
-    dot: false,
-    absolute: false,
-  }).map(toPosix);
-
-  const metaFiles = globSync(['**/meta.json'], { cwd: contentRoot, ignore, dot: false, absolute: false }).map(toPosix);
+  const contentFiles = find(['**/*.md', '**/*.mdx'], /\.mdx?$/);
+  const metaFiles = find(['**/meta.json'], /(?:^|\/)meta\.json$/);
 
   const { routes, errors, warnings } = resolveRoutes(contentFiles);
 
@@ -132,6 +129,23 @@ export function scan(options: ScanOptions): ScanResult {
   files.push(...synthesiseOrderMeta(pages, metaDirs));
 
   return { files, pages, errors, warnings };
+}
+
+/**
+ * The default walk, plus whatever `include` names. An include is globbed on its own, with dot
+ * segments allowed and only the user's excludes applied, so it can reach into the folders
+ * the defaults skip; `keep` then narrows its matches to the file type being looked for.
+ */
+function findFiles(contentRoot: string, patterns: string[], keep: RegExp, exclude: string[], include: string[]): string[] {
+  const found = new Set(
+    globSync(patterns, { cwd: contentRoot, ignore: [...DEFAULT_EXCLUDES, ...exclude], dot: false }).map(toPosix),
+  );
+  if (include.length > 0) {
+    for (const file of globSync(include, { cwd: contentRoot, ignore: exclude, dot: true }).map(toPosix)) {
+      if (keep.test(file)) found.add(file);
+    }
+  }
+  return [...found];
 }
 
 /**

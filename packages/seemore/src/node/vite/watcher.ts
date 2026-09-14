@@ -1,9 +1,44 @@
+import { relative } from 'node:path';
 import chokidar, { type FSWatcher } from 'chokidar';
 import type { Plugin, ViteDevServer } from 'vite';
 import type { SeemoreContext } from '../context.js';
 import { VIRTUAL } from './plugin.js';
 
 const CONTENT_FILE = /\.(?:mdx?|json)$/i;
+/** The directory half of the scan's default excludes, as path segments. */
+const EXCLUDED_DIR =
+  /(?:^|\/)(?:node_modules|dist|build|out|vendor|target|venv|deps|Pods|bower_components|\.[^/]+)(?:$|\/)/;
+const ALWAYS_EXCLUDED_DIR = /(?:^|\/)(?:node_modules|\.git)(?:$|\/)/;
+const GLOB_CHAR = /[*?[\]{}()!]/;
+
+/**
+ * Whether chokidar can skip a path, given it relative to the content root.
+ *
+ * Relative, because only the segments *below* the root are the site's business: a root at
+ * `~/repo/.github/docs` or `~/build/notes` is not itself excluded, and matching the absolute
+ * path used to silence the whole watcher for one. An excluded directory is still watched when
+ * an `include` reaches into it. An include that starts with a glob (`**\/.notes`) has no
+ * directory to narrow to, so it opens every excluded directory except dependency trees and
+ * `.git`, which are too large to watch on a guess.
+ */
+export function isWatchIgnored(relativePath: string, isFile: boolean, include: string[]): boolean {
+  // chokidar reports native separators, so compare against a normalised path.
+  const rel = relativePath.replace(/\\/g, '/');
+  if (rel !== '' && EXCLUDED_DIR.test(rel) && !include.some((pattern) => reaches(pattern, rel))) return true;
+  return isFile && !CONTENT_FILE.test(rel);
+}
+
+function reaches(pattern: string, rel: string): boolean {
+  const base: string[] = [];
+  for (const segment of pattern.replace(/^\.\//, '').split('/')) {
+    if (GLOB_CHAR.test(segment)) break;
+    base.push(segment);
+  }
+  const dir = base.join('/');
+  if (dir === '') return !ALWAYS_EXCLUDED_DIR.test(rel);
+  // Inside the included folder, or one of the folders on the way down to it.
+  return rel === dir || rel.startsWith(`${dir}/`) || dir.startsWith(`${rel}/`);
+}
 
 /**
  * The watcher/sidebar-refresh cycle.
@@ -27,11 +62,7 @@ export function seemoreWatcherPlugin(ctx: SeemoreContext): Plugin {
           // `ignored` applies to explicitly added paths too, so the config file — which is
           // neither Markdown nor JSON — has to be let through by name.
           if (path === ctx.config.configFile) return false;
-          // chokidar reports native separators, so compare against a normalised path.
-          const posix = path.replace(/\\/g, '/');
-          if (/(?:^|\/)(?:node_modules|\.git|dist|build|out|vendor|target|\.seemore)(?:$|\/)/.test(posix)) return true;
-          if (/(?:^|\/)\.[^/]+/.test(posix)) return true;
-          return stats?.isFile() === true && !CONTENT_FILE.test(posix);
+          return isWatchIgnored(relative(ctx.contentRoot, path), stats?.isFile() === true, ctx.config.include);
         },
       });
 
