@@ -72,6 +72,10 @@ export default {
 
 Exported files keep the theme toggle, code copy buttons, click-to-zoom and an "On this page" list; they leave behind the sidebar, navbar and search. Like the site, an exported file opens in the reader's own OS theme, not the one the exporter happened to be using, and remembers their toggle choice from then on. Remote images (for example, GitHub URLs) stay remote; everything local is embedded.
 
+## Password protection
+
+The whole site can sit behind one shared password — no server, no accounts: set `auth: true` in `seemore.config.ts`, build with a `SEEMORE_PASSWORD`, and the output encrypts itself behind a lock screen. See [password protection](./publishing.md#password-protection) for the full setup, including how long visitors stay unlocked.
+
 ## Feature flags
 
 A set of switches for readers who want fine control, set on the `features` key in `seemore.config.ts`. Name a flag and set it `true` to turn it on, `false` to turn it off.
@@ -107,4 +111,4 @@ Flags you don't mention are left at their default, so you only ever name the one
 | `search.highlight` | on | Highlight the query on the page you land on |
 | `social.cards` | off | Per-page OG images (needs `takumi-js`; cannot use with `auth`) |
 
-Incompatible combinations show a config error with the conflicting options and a fix. `social.cards` cannot be used with [password protection](./publishing.mdx#password-protection), because social cards are public images.
+Incompatible combinations show a config error with the conflicting options and a fix. `social.cards` cannot be used with [password protection](./publishing.md#password-protection), because social cards are public images.

@@ -50,11 +50,13 @@ cd my-docs
 npx seemore   # renders this folder at http://localhost:4040
 ```
 
+`npx seemore` runs seemore without adding it to your repository's dependencies.
+
 Open the address it prints. From there it's live: add, rename, retitle or delete a file and the site updates immediately, navigation and search included.
 
 The [seemore website](https://arifszn.github.io/seemore) is itself a folder of Markdown rendered by seemore. That's what your own folder will look like.
 
-<details>
+<details open>
 <summary><strong>Or ask an AI agent to set it up</strong></summary>
 <br/>
 
@@ -64,6 +66,9 @@ Not comfortable in a terminal? There's an [agent skill](https://github.com/arifs
 
 ```bash
 /plugin marketplace add arifszn/seemore-skill
+```
+
+```bash
 /plugin install seemore
 ```
 

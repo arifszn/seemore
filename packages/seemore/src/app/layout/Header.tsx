@@ -62,7 +62,7 @@ export function Header() {
 
       {/* Read directly, not through a helper, so an unprotected bundle folds this away. */}
       {import.meta.env.SEEMORE_AUTH ? (
-        <button type="button" className="seemore-lock" aria-label="Lock site" title="Lock site" onClick={() => void lockSite()}>
+        <button type="button" className="seemore-lock" aria-label="Sign out" title="Sign out" onClick={() => void lockSite()}>
           <LogOut aria-hidden="true" />
         </button>
       ) : undefined}
