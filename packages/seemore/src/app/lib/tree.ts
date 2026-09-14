@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react';
-import { deserializePageTree } from 'fumadocs-core/source/client';
+import { deserializePageTree, type SerializedPageTree } from 'fumadocs-core/source/client';
 import type * as PageTree from 'fumadocs-core/page-tree';
 import { getTree, subscribeTree } from 'virtual:seemore/tree';
 
@@ -12,7 +12,37 @@ import { getTree, subscribeTree } from 'virtual:seemore/tree';
  */
 export function usePageTree(): PageTree.Root {
   const serialized = useSyncExternalStore(subscribeTree, getTree, getTree);
-  return deserializePageTree(serialized);
+  return resolveTree(serialized);
+}
+
+let current: { serialized: SerializedPageTree; content: string; tree: PageTree.Root } | undefined;
+let revision = 0;
+
+/**
+ * The deserialized tree for a payload, with a root `$id` that moves whenever the tree does.
+ *
+ * fumadocs' `TreeContextProvider` memoises its tree on `root.$id`, and the loader always calls
+ * the root "root" — so without a fresh id a created, renamed or retitled page reaches the
+ * store and never the sidebar. The id only moves when the content differs: the store is
+ * replaced on body edits too, and the sidebar list is keyed on that id, so bumping it for
+ * nothing would remount the list and close every folder the reader opened, on every save.
+ * The first tree keeps its id, so prerendered HTML and hydration agree. Exported for the
+ * tree store test.
+ */
+export function resolveTree(serialized: SerializedPageTree): PageTree.Root {
+  if (current?.serialized === serialized) return current.tree;
+
+  // Measured before deserialising: fumadocs rewrites names and icons into elements in place.
+  const content = JSON.stringify(serialized);
+  if (current?.content === content) {
+    current = { ...current, serialized };
+    return current.tree;
+  }
+
+  const tree = deserializePageTree(serialized);
+  if (current !== undefined) tree.$id = `${tree.$id ?? 'root'}:${++revision}`;
+  current = { serialized, content, tree };
+  return tree;
 }
 
 /**
