@@ -101,7 +101,7 @@ Or invoke the skill by name:
 - **[As a static site](#publish-it-to-the-web)**: `npx seemore build` exports plain HTML you can host anywhere, so it doubles as a docs framework, not just a preview tool.
 
 <p align="center">
-  <video src="https://github.com/user-attachments/assets/4d985e11-ac9d-4b0a-acb4-c57af72d12bc" width="640" controls muted></video>
+  <video src="https://github.com/user-attachments/assets/0a27b76d-f765-47b7-a3de-4b6f3aefbb74" width="640" controls muted></video>
 </p>
 
 ## What you get
