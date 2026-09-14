@@ -7,9 +7,13 @@ import {
   SidebarItem as BaseItem,
   SidebarSeparator as BaseSeparator,
   SidebarViewport,
+  useFolderDepth,
   useSidebar,
 } from 'fumadocs-ui/components/sidebar/base';
 import { createPageTreeRenderer } from 'fumadocs-ui/components/sidebar/page-tree';
+import { useTreePath } from 'fumadocs-ui/contexts/tree';
+import { usePathname } from 'fumadocs-core/framework';
+import type { Folder as FolderNode } from 'fumadocs-core/page-tree';
 import { feature } from '../lib/features.js';
 import { useRouteUrl } from '../router.js';
 
@@ -42,6 +46,55 @@ const styled = {
 };
 
 const renderPageTree = createPageTreeRenderer(styled);
+
+/** fumadocs' own active check, which it does not export: trailing slashes don't count. */
+function isActive(href: string, pathname: string): boolean {
+  const normalise = (url: string) => (url.length > 1 && url.endsWith('/') ? url.slice(0, -1) : url);
+  return normalise(href) === normalise(pathname);
+}
+
+/**
+ * `navigation.sections`: top-level folders read as headed groups rather than collapsible
+ * folders. A custom `Folder` replaces fumadocs' rendering at every depth, so anything deeper
+ * is rebuilt here the way fumadocs renders it — otherwise every nested folder would become an
+ * uncollapsible heading too, and a large one would push the rest of the sidebar away.
+ */
+function SectionFolder({ item, children }: { item: FolderNode; children: ReactNode }) {
+  // Depth of the folder this one sits in; 0 means it is at the top of the tree.
+  const depth = useFolderDepth();
+  const path = useTreePath();
+  const pathname = usePathname();
+
+  if (depth === 0) {
+    return (
+      <BaseFolder collapsible={false} defaultOpen className="seemore-sidebar-folder">
+        <BaseSeparator className="seemore-sidebar-separator">{item.name}</BaseSeparator>
+        <BaseFolderContent className="seemore-sidebar-folder-content">{children}</BaseFolderContent>
+      </BaseFolder>
+    );
+  }
+
+  return (
+    <styled.SidebarFolder collapsible={item.collapsible} active={path.includes(item)} defaultOpen={item.defaultOpen}>
+      {item.index ? (
+        <styled.SidebarFolderLink
+          href={item.index.url}
+          active={isActive(item.index.url, pathname)}
+          external={item.index.external}
+        >
+          {item.icon}
+          {item.name}
+        </styled.SidebarFolderLink>
+      ) : (
+        <styled.SidebarFolderTrigger>
+          {item.icon}
+          {item.name}
+        </styled.SidebarFolderTrigger>
+      )}
+      <styled.SidebarFolderContent>{children}</styled.SidebarFolderContent>
+    </styled.SidebarFolder>
+  );
+}
 
 const COLLAPSE_KEY = 'seemore:sidebar-collapsed';
 const COLLAPSE_ATTR = 'sidebarCollapsed';
@@ -118,15 +171,7 @@ export function Sidebar({ children }: { children?: ReactNode }) {
   // Called during render, never inside `useMemo`: the renderer reads the tree context and
   // calls hooks of its own.
   const rendered = renderPageTree({
-    Folder: feature('navigation.sections')
-      ? ({ item, children }) => (
-          // Top-level entries read as headed groups rather than collapsible folders.
-          <BaseFolder collapsible={false} defaultOpen className="seemore-sidebar-folder">
-            <BaseSeparator className="seemore-sidebar-separator">{item.name}</BaseSeparator>
-            <BaseFolderContent className="seemore-sidebar-folder-content">{children}</BaseFolderContent>
-          </BaseFolder>
-        )
-      : undefined,
+    Folder: feature('navigation.sections') ? SectionFolder : undefined,
   });
 
   return (
