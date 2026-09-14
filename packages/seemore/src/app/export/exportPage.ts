@@ -216,6 +216,42 @@ function buildExportToc(article: Element): Element | undefined {
   return nav;
 }
 
+/**
+ * Radix Tabs keeps only the active panel's content mounted, so the article's DOM alone
+ * misses every inactive tab. Walk each tablist, select each trigger in turn — which also
+ * gives any diagram inside the panel its scroll-into-view — and record the panel's HTML
+ * while it is up. The first trigger is re-selected so the page is left as it was found.
+ */
+async function captureTabPanels(): Promise<Map<string, string>> {
+  const captured = new Map<string, string>();
+  const scrollX = window.scrollX;
+  const scrollY = window.scrollY;
+
+  for (const tablist of document.querySelectorAll('[role="tablist"]')) {
+    const triggers = Array.from(tablist.querySelectorAll<HTMLButtonElement>('button[role="tab"]'));
+    for (const trigger of triggers) {
+      // Radix activates a tab on `mousedown`, not `click` — and a React re-render means
+      // the panel's content appears a tick later, so both sides are handled by hand.
+      trigger.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true, view: window, button: 0 }));
+      const panel = document.getElementById(trigger.getAttribute('aria-controls') ?? '');
+      if (panel === null) continue;
+      await waitFor(() => panel.childElementCount > 0, 15_000);
+      panel.scrollIntoView({ behavior: 'instant', block: 'center' });
+      await waitFor(
+        () =>
+          panel.querySelector('.seemore-mermaid, .seemore-d2') === null ||
+          panel.querySelector('svg, .seemore-mermaid-error, .seemore-d2-error') !== null,
+        15_000,
+      );
+      captured.set(panel.id, panel.innerHTML);
+    }
+    triggers[0]?.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true, view: window, button: 0 }));
+  }
+
+  window.scrollTo(scrollX, scrollY);
+  return captured;
+}
+
 /** The article is the only thing taken, but dev leaves editor affordances inside it. */
 function cleanArticleForExport(article: Element): Element {
   const clone = article.cloneNode(true) as Element;
@@ -237,8 +273,9 @@ function escapeHtml(text: string): string {
 }
 
 /**
- * The exported file's runtime: theme toggle, code copy, heading anchor copy, click-to-zoom —
- * the behaviors kept, at roughly a kilobyte instead of the site bundle. Handed to React in
+ * The exported file's runtime: theme toggle, code copy, heading anchor copy, tabs,
+ * click-to-zoom — the behaviors kept, at roughly a kilobyte instead of the site bundle.
+ * Handed to React in
  * hydration on the live page; here each is a few lines against the static DOM.
  *
  * Kept free of `</script>`-shaped sequences by construction: it is inlined verbatim.
@@ -277,6 +314,27 @@ const RUNTIME = `(function () {
       var original = svg.innerHTML;
       svg.innerHTML = '<polyline points="20 6 9 17 4 12"></polyline>';
       revert = setTimeout(function () { svg.innerHTML = original; }, 1500);
+    });
+  });
+
+  // Tabs are exported as the static Radix markup the live page hydrated; the file wires
+  // them back up by hand — a click selects within its tablist and swaps the panels.
+  document.querySelectorAll('[role="tablist"]').forEach(function (tablist) {
+    var triggers = [].slice.call(tablist.querySelectorAll('button[role="tab"]'));
+    triggers.forEach(function (trigger) {
+      trigger.addEventListener('click', function () {
+        triggers.forEach(function (other) {
+          var active = other === trigger;
+          other.setAttribute('aria-selected', active ? 'true' : 'false');
+          other.setAttribute('data-state', active ? 'active' : 'inactive');
+          other.setAttribute('tabindex', active ? '0' : '-1');
+          var panel = document.getElementById(other.getAttribute('aria-controls') || '');
+          if (panel) {
+            panel.hidden = !active;
+            panel.setAttribute('data-state', active ? 'active' : 'inactive');
+          }
+        });
+      });
     });
   });
 
@@ -398,7 +456,12 @@ export async function exportPageAsHtml(): Promise<void> {
 
   await prepareDiagrams();
 
+  const tabs = await captureTabPanels();
   const clone = cleanArticleForExport(article);
+  for (const [id, html] of tabs) {
+    const panel = clone.querySelector(`[id="${CSS.escape(id)}"]`);
+    if (panel !== null) panel.innerHTML = html;
+  }
   await inlineImages(clone);
 
   const toc = buildExportToc(clone);

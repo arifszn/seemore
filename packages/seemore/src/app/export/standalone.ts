@@ -6,7 +6,7 @@
  * bundled to an IIFE and inlined into the file, finishes the job when the page is opened:
  * each diagram is rendered from the source `pre` the site's own components leave in
  * prerendered output. It also binds the behaviors the export keeps — theme toggle, code
- * copy, click-to-zoom — so the file behaves like the browser-exported one.
+ * copy, tabs, click-to-zoom — so the file behaves like the browser-exported one.
  *
  * The browser export ships a hand-written twin of the behavior half (the `RUNTIME` string
  * in `exportPage.ts`): it needs no diagram half, because its diagrams are already SVG when
@@ -94,6 +94,27 @@ function bindBehaviors(): void {
       svg.innerHTML = '<polyline points="20 6 9 17 4 12"></polyline>';
       revert = setTimeout(() => { svg.innerHTML = original; }, 1500);
     });
+  }
+
+  // Tabs are exported as the static Radix markup the live page hydrated; the file wires
+  // them back up by hand — a click selects within its tablist and swaps the panels.
+  for (const tablist of document.querySelectorAll('[role="tablist"]')) {
+    const triggers = Array.from(tablist.querySelectorAll('button[role="tab"]'));
+    for (const trigger of triggers) {
+      trigger.addEventListener('click', () => {
+        for (const other of triggers) {
+          const active = other === trigger;
+          other.setAttribute('aria-selected', active ? 'true' : 'false');
+          other.setAttribute('data-state', active ? 'active' : 'inactive');
+          other.setAttribute('tabindex', active ? '0' : '-1');
+          const panel = document.getElementById(other.getAttribute('aria-controls') ?? '');
+          if (panel !== null) {
+            panel.hidden = !active;
+            panel.setAttribute('data-state', active ? 'active' : 'inactive');
+          }
+        }
+      });
+    }
   }
 
   // The live site's TOC follows the reader with fumadocs' own scroll tracking; in the file,

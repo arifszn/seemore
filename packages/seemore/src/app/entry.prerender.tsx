@@ -1,7 +1,8 @@
 import { Writable } from 'node:stream';
-import { StrictMode, type ReactNode } from 'react';
+import { StrictMode, type ComponentProps, type ReactNode } from 'react';
 import { renderToPipeableStream } from 'react-dom/server';
 import { MemoryRouter, RouterProvider, createMemoryRouter } from 'react-router';
+import { TabsContent } from 'fumadocs-ui/components/tabs';
 import { config } from 'virtual:seemore/config';
 import { toBasename, withBase } from '../shared/base.js';
 import { ogImagePath } from '../shared/og.js';
@@ -121,6 +122,11 @@ export interface ExportedArticle {
  * single-page export. Rendering the component directly, rather than extracting the
  * article from a full-page render, means no HTML parsing anywhere in the export path.
  *
+ * Tabs render force-mounted: Radix keeps only the active panel's content in the tree, and
+ * a file with three of its four tabs empty is no export at all. Force-mounted panels hide
+ * through fumadocs' own `data-[state=inactive]:hidden` rule, which the stylesheet the
+ * export inlines already carries, and the file's runtime does the switching.
+ *
  * Diagrams are absent here, as in every prerendered page (see `Mermaid.tsx`); the CLI
  * export inlines a runtime that renders them when the file is opened.
  */
@@ -132,12 +138,16 @@ export async function renderArticle(url: string): Promise<ExportedArticle> {
   if (page === undefined) throw new Error(`No page at ${url}.`);
 
   const Content = page.default;
+  const exportComponents = {
+    ...mdxComponents,
+    CodeBlockTab: (props: ComponentProps<typeof TabsContent>) => <TabsContent {...props} forceMount />,
+  };
   // A router is still required: content links go through react-router's `Link`, which
   // reads the routing context. A memory router with just this page is the smallest one.
   const { html, failures } = await renderToHtml(
     <StrictMode>
       <MemoryRouter initialEntries={[withBase(config.base, url)]} basename={toBasename(config.base)}>
-        <Content components={mdxComponents} />
+        <Content components={exportComponents} />
       </MemoryRouter>
     </StrictMode>,
   );
