@@ -83,7 +83,16 @@ function renderToHtml(element: ReactNode): Promise<{ html: string; failures: unk
   });
 }
 
-/** Components an MDX file can use without importing anything. */
+/**
+ * Components an MDX file can use without importing anything.
+ *
+ * Adding one that hides or defers content by default (as `CodeBlockTabs` does — Radix
+ * mounts only the active panel) needs the export path updated in the same change, or the
+ * new content goes missing from every exported file the way the tabs did:
+ * `exportComponents` below, which force-mounts it for the prerender; `captureTabPanels` in
+ * `exportPage.ts`, which harvests it for the browser export; and the runtime that wires the
+ * static markup back up (`RUNTIME` in `exportPage.ts`, `bindBehaviors` in `standalone.ts`).
+ */
 const PROVIDED_COMPONENTS = 'Callout, Card, Cards, CodeBlockTabs, Mermaid, D2 and Pdf';
 
 /**
