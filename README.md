@@ -1,18 +1,17 @@
 <br/>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/arifszn/seemore/main/assets/icon.png" alt="seemore" width="40" height="40">
-  <h1 align="center">seemore</h1>
+  <img src="https://raw.githubusercontent.com/arifszn/seemore/main/assets/logo.png" alt="seemore" width="280">
   <h4 align="center">Let AI write the Markdown. Let seemore show it better — zero config documentation framework.</h4>
   <p align="center">
     <a href="https://www.npmjs.com/package/seemore">
       <img src="https://img.shields.io/npm/v/seemore"/>
     </a>
-    <a href="https://marketplace.visualstudio.com/items?itemName=arifszn.seemore-vscode">
-      <img src="https://img.shields.io/badge/VS_Code-Marketplace-007ACC?logo=visualstudiocode&logoColor=white"/>
-    </a>
     <a href="https://open-vsx.org/extension/arifszn/seemore-vscode">
       <img src="https://img.shields.io/badge/Open_VSX-Registry-C160EF?logo=eclipseide&logoColor=white"/>
+    </a>
+    <a href="https://marketplace.visualstudio.com/items?itemName=arifszn.seemore-vscode">
+      <img src="https://img.shields.io/badge/VS_Code-Marketplace-007ACC?logo=visualstudiocode&logoColor=white"/>
     </a>
     <a href="https://github.com/arifszn/seemore/actions/workflows/ci.yml">
       <img src="https://github.com/arifszn/seemore/actions/workflows/ci.yml/badge.svg"/>
