@@ -38,6 +38,12 @@ A folder of `.md` files has no order. You cannot click a link between files. You
 
 **seemore** points at that folder and renders it as a real site. It does not move your files. It does not need any code.
 
+## Why seemore?
+
+Modern libraries can generate HTML, but that is not the same as previewing an existing project. You should not have to rewrite your Markdown, add a build pipeline, or ask every teammate to learn HTML just to read your docs in a browser.
+
+seemore starts with the folder you already have. Zero configuration means you can open it, see it as a site, and keep working in Markdown. If you stop using it, your files stay exactly where they are. There is nothing to clean up.
+
 <p align="center">
   <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/home.png" alt="The seemore site: a terminal typing npx seemore to serve a folder of notes at localhost:4040, with an arrow pointing to the browser preview" width="640"/>
 </p>
