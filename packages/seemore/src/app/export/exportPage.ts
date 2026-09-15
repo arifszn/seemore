@@ -57,7 +57,23 @@ function waitFor(predicate: () => boolean, timeoutMs: number): Promise<void> {
  * reloads); the build ships a single hashed stylesheet link. Same-origin sheets are inlined
  * — a `file://` page cannot fetch them — and a sheet that is genuinely remote stays linked,
  * the same treaty as remote images.
+ *
+ * Every `<style>` is taken, not just the framework's: diagram libraries (Mermaid, D2) and
+ * Radix inject their own rules at runtime with no marker to select them by, and the export
+ * needs those. The two exceptions are the highlight rule (installed per-navigation, and
+ * meaningless in a static file) and any sheet a browser extension injected into the page —
+ * the latter is not the page's, would not load from a file anyway, and can run to hundreds
+ * of kilobytes; it is spotted by the `chrome-extension:`/`moz-extension:` URLs it carries.
  */
+/**
+ * A stylesheet a browser extension put on the page, told apart by the extension-only URL
+ * scheme it loads its own assets from. Deliberately narrow: it must never match a rule the
+ * site or a library authored, since a false positive silently drops real styling.
+ */
+function isExtensionCss(text: string): boolean {
+  return /\b(?:chrome-extension|moz-extension):\/\//i.test(text);
+}
+
 async function collectCss(): Promise<{ css: string; remoteLinks: string }> {
   const seen = new Set<string>();
   const parts: string[] = [];
@@ -67,7 +83,7 @@ async function collectCss(): Promise<{ css: string; remoteLinks: string }> {
     // The highlight rule is installed per-navigation and means nothing in a static file.
     if (style.id === 'seemore-highlight-style') continue;
     const text = style.textContent ?? '';
-    if (text.trim() === '' || seen.has(text)) continue;
+    if (text.trim() === '' || seen.has(text) || isExtensionCss(text)) continue;
     seen.add(text);
     parts.push(text);
   }
@@ -80,7 +96,9 @@ async function collectCss(): Promise<{ css: string; remoteLinks: string }> {
       continue;
     }
     if (url.origin !== location.origin) {
-      remote.push(link.outerHTML);
+      // An extension's own sheet (`chrome-extension://…`) is not the page's and would not
+      // load in the file anyway; only a genuinely remote http(s) sheet stays linked.
+      if (url.protocol === 'http:' || url.protocol === 'https:') remote.push(link.outerHTML);
       continue;
     }
     const text = await fetch(url.href)
@@ -384,11 +402,17 @@ const RUNTIME = `(function () {
   });
 })();`;
 
+/** The root attributes that still mean something once the page is a standalone file. */
+const KEPT_ROOT_ATTRIBUTES = new Set(['lang', 'dir', 'class']);
+
 function buildExportHtml(article: Element, css: string, remoteLinks: string, favicons: string): string {
-  // The root's attributes ride along (lang, dir, whatever a theme added) minus the theme
-  // class next-themes resolved for *this* screen: THEME_INIT sets that from the reader's
-  // own OS when the file is opened. An emptied class attribute is dropped entirely.
+  // Only the root attributes that mean something in a standalone file ride along: lang,
+  // dir, and class minus the theme class next-themes resolved for *this* screen — THEME_INIT
+  // sets that from the reader's own OS when the file is opened. The rest of the live root is
+  // state for this screen (next-themes' `style="color-scheme: …"`, the sidebar's collapse
+  // flag) or was put there by a browser extension. An emptied class attribute is dropped.
   const attrs = Array.from(document.documentElement.attributes)
+    .filter((attr) => KEPT_ROOT_ATTRIBUTES.has(attr.name))
     .map((attr) => {
       if (attr.name !== 'class') return { name: attr.name, value: attr.value };
       const kept = attr.value
