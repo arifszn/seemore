@@ -45,4 +45,4 @@ $env:SEEMORE_PASSWORD='a-long-passphrase'; npx seemore build
 ```
 
 Password protection applies only to `seemore build`. The dev server and `seemore export` are not
-protected. See [publishing](./publishing.mdx#password-protection) for setup and limits.
+protected. See [publishing](./publishing.mdx#password-protection) for setup.

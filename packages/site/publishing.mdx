@@ -97,12 +97,6 @@ out, just like changing the password:
 auth: { id: 'acme-handbook' }
 ```
 
-### Limits
-
-- **No per-person access.** To remove someone's access, change the password and rebuild.
-- **Old builds keep working.** Anyone with an old build and its password can still open it.
-- **HTTPS required.** Protected sites only open over HTTPS, or on `localhost`.
-
 > [!NOTE]
 > Password protection works only for `seemore build`. To try the lock screen, build with the password and serve
 > `dist/` on `localhost`, for example with `npx serve dist` (build with `--base /` if the site sets `base`).

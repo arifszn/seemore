@@ -79,4 +79,4 @@ auth: { remember: '7d' },                      // '12h' or '7d'
 auth: { id: 'acme-handbook', remember: '7d' }, // keep access after changing the site title
 ```
 
-Setup and limits are on the [publishing](./publishing.mdx#password-protection) page.
+Setup is on the [publishing](./publishing.mdx#password-protection) page.
