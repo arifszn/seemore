@@ -26,10 +26,6 @@ const vscodeDir = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const repoRoot = resolve(vscodeDir, '..', '..');
 const seemoreDir = join(repoRoot, 'packages', 'seemore');
 
-// The docs site plays the same demo video the README does (packages/site/assets/seemore.mp4).
-const SITE_URL = 'https://arifszn.github.io/seemore/';
-const README_VIDEO_UPLOAD = /https:\/\/github\.com\/user-attachments\/assets\/[0-9a-f-]+/g;
-
 function run(command, args, cwd) {
   // npm/pnpm/vsce all resolve to .cmd/.ps1 shims on Windows, which execFileSync can't launch
   // directly — route through the shell there, same as npm scripts do, so PATHEXT resolves them.
@@ -57,27 +53,7 @@ try {
   console.log('seemore-vscode: assembling a clean staging directory...');
   cpSync(join(vscodeDir, 'dist'), join(stagingDir, 'dist'), { recursive: true });
   cpSync(join(vscodeDir, '.vscodeignore'), join(stagingDir, '.vscodeignore'));
-  // GitHub only renders a README <video> whose src is a user-attachments upload, but that URL
-  // 404s for anyone not signed in to GitHub, so the Marketplace page shows an empty player.
-  // The VSIX copy points at the same video on the docs site, which loads for everyone.
-  const readme = readFileSync(join(repoRoot, 'README.md'), 'utf8');
-  const uploads = new Set(readme.match(README_VIDEO_UPLOAD));
-  if (uploads.size !== 1) {
-    throw new Error(`README.md should have one user-attachments video, found ${uploads.size}`);
-  }
-  // Read the URL off the live page rather than pinning it: the site build names the file with
-  // a content hash, so it changes whenever the video does.
-  const site = await fetch(SITE_URL);
-  if (!site.ok) throw new Error(`${SITE_URL} returned ${site.status}`);
-  const siteVideos = new Set((await site.text()).match(/[^"'\s]+\.mp4\b/g));
-  if (siteVideos.size !== 1) {
-    throw new Error(`${SITE_URL} should play one .mp4, found ${siteVideos.size}`);
-  }
-  const siteVideo = new URL([...siteVideos][0], SITE_URL).href;
-  writeFileSync(
-    join(stagingDir, 'README.md'),
-    readme.replaceAll(README_VIDEO_UPLOAD, siteVideo),
-  );
+  cpSync(join(repoRoot, 'README.md'), join(stagingDir, 'README.md'));
   // Shared with the site's default favicon, so it lives at the repo root next to README
   // and LICENSE — but it still has to land at `assets/` here, where `package.json`'s
   // "icon" field points.
