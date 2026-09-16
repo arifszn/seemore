@@ -68,6 +68,18 @@ pageActions: ['copy-markdown', 'export-html'],  // the default
 The [features](./features.md) page explains what each action does, and everything an exported
 file keeps. The [CLI reference](./cli-reference.md) page covers the CLI equivalent.
 
+## Site footer
+
+`footer` adds a footer below every page. `text` is one line of text. `links` is a list of links
+after the text. Both are optional. If you do not set `footer`, the site has no footer:
+
+```ts
+footer: {
+  text: '© 2026 Acme',
+  links: [{ text: 'GitHub', link: 'https://github.com/you/repo' }],
+},
+```
+
 ## Password protection
 
 `auth` protects the whole built site with one password. Set the password in the

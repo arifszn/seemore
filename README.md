@@ -238,7 +238,7 @@ export default {
 | --- | --- | --- |
 | `navigation.instant.prefetch` | on | Load the target page on hover |
 | `navigation.instant.preview` | off | Hover popover showing the target page |
-| `navigation.footer` | on | Previous and next links |
+| `navigation.footer` | on | Previous and next page links. The `footer` key controls the site footer. |
 | `navigation.top` | on | Back-to-top button |
 | `navigation.path` | off | Breadcrumbs |
 | `navigation.sections` | off | Top-level entries as sidebar groups |
