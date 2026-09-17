@@ -812,6 +812,7 @@
 .seemore-shot--video {
   border: none;
   box-shadow: none;
+  margin-bottom: 2.5rem;
 }
 
 .seemore-shot img {
