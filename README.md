@@ -112,7 +112,9 @@ Or call the skill by name:
 - **[In your code editor](#view-in-your-code-editor)**: an extension shows the same site in a panel next to your file, in VS Code and VS Code-compatible editors like Cursor and Antigravity.
 - **[As a static site](#publish-it-to-the-web)**: `npx seemore build` exports plain HTML you can host anywhere. seemore is a docs framework, not only a preview tool.
 
-https://github.com/user-attachments/assets/70335e5e-c0e6-43e9-b8ce-29a43f8c5f68
+<p align="center">
+  <video src="https://github.com/user-attachments/assets/70335e5e-c0e6-43e9-b8ce-29a43f8c5f68" width="640" controls muted></video>
+</p>
 
 ## What you get
 
