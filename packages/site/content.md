@@ -66,7 +66,7 @@ An `.mdx` file can use these without importing anything:
 | `<Mermaid>`, `<D2>` | What a ` ```mermaid ` or ` ```d2 ` code fence compiles to. You can also use it directly |
 | `<Pdf>` | The viewer a linked PDF opens in |
 
-This set stays small on purpose. Markdown has no imports, so **seemore** ships every component to every site, whether a page uses it or not. Each one pairs with something Markdown already expresses. Any other component (fumadocs' `<Tabs>`, `<Accordions>` and `<Files>` among them) fails the build. The error names the file and the component. In a plain `.md` file a tag is not JSX at all: seemore drops the tag and keeps its text. Components need the `.mdx` extension for that reason.
+This set stays small on purpose. Markdown has no imports, so **seemore** ships every component to every site, whether a page uses it or not. Each one pairs with something Markdown already expresses. Any other component (fumadocs' `<Tabs>`, `<Accordions>` and `<Files>` among them) fails the build. The error names the file and the component. In a plain `.md` file a tag is HTML, not JSX: `<Callout>` renders as an unknown element with its text inside, rather than as the component. Components need the `.mdx` extension for that reason.
 
 Code tabs need a `defaultValue`, or the block opens with no tab selected and nothing under it. Leave a blank line around each code fence:
 
