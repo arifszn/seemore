@@ -469,3 +469,57 @@ describe('the code copy button', () => {
     expect(await copyButtons("{ 'content.code.copy': false }")).toBe(0);
   });
 });
+
+describe('HTML written in a Markdown file', () => {
+  /** Renders one content file and returns the emitted page. */
+  async function render(name: string, source: string): Promise<string> {
+    const contentRoot = mkdtempSync(join(tmpdir(), 'seemore-raw-'));
+    const outDir = join(contentRoot, 'out');
+    writeFileSync(join(contentRoot, name), source);
+    writeFileSync(join(contentRoot, 'seemore.config.ts'), `export default { title: 'Raw' };`);
+
+    await runBuild({ cwd: contentRoot, outDir });
+    const html = read(outDir, 'index.html');
+
+    rmSync(contentRoot, { recursive: true, force: true });
+    return html;
+  }
+
+  // A README's centred header is one raw HTML block to CommonMark, blank-line-free from the
+  // opening tag to the closing one. Before `rehype-raw` the whole block was dropped, taking
+  // the logo, the badges and the tagline with it — on seemore's own README, among others.
+  it('renders a block of HTML, rather than dropping it', async () => {
+    const html = await render(
+      'index.md',
+      [
+        '# Title',
+        '',
+        '<p align="center">',
+        '  <img src="https://example.com/logo.png" alt="logo" width="280">',
+        '  <h4 align="center">Tagline text</h4>',
+        '</p>',
+        '',
+        'Body paragraph.',
+        '',
+      ].join('\n'),
+    );
+
+    const $ = load(html);
+    expect($('img[src="https://example.com/logo.png"]')).toHaveLength(1);
+    expect($('h4').text()).toContain('Tagline text');
+    expect($('[align="center"]').length).toBeGreaterThan(0);
+  });
+
+  it('renders an inline tag as an element, not as bare text', async () => {
+    const $ = load(await render('index.md', '# Title\n\nInline <b>bold</b> here.\n'));
+    expect($('b').text()).toBe('bold');
+  });
+
+  // `.mdx` parses HTML as JSX, so it has no raw nodes to reparse. `rehype-raw` must leave it
+  // alone: its tree still carries MDX nodes that a reparse would mangle.
+  it('leaves an .mdx page to the JSX parser', async () => {
+    const $ = load(await render('index.mdx', '# Title\n\n<Callout>Boxed</Callout>\n\nBody.\n'));
+    expect($('body').text()).toContain('Boxed');
+    expect($('body').text()).toContain('Body.');
+  });
+});

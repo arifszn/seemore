@@ -22,6 +22,7 @@ import {
   type SeemoreRemarkOptions,
 } from './remark.js';
 import { rehypeSeemorePositions } from './positions.js';
+import { rehypeSeemoreRawHtml } from './raw.js';
 
 /** The named export `remark-llms` writes the page's Markdown to, read by the copy action. */
 export const MARKDOWN_EXPORT = '_markdown';
@@ -95,5 +96,11 @@ export function createRehypePlugins(options: SeemoreRehypeOptions = {}): Pluggab
     // After `rehype-code`, so a fence Shiki rebuilt is passed over rather than stamped with
     // the position of whatever it replaced.
     ...(options.positions === true ? [rehypeSeemorePositions] : []),
+    // Last, and deliberately. `rehype-raw` reparses the whole document to stitch raw HTML
+    // back together, which costs every node its `data` — including the fence meta
+    // `rehype-code` reads `noCopy` from. Running it here means each plugin above has already
+    // taken what it needs, and the elements it creates are not stamped as editable, which is
+    // right: they have no source range a text editor could be handed.
+    rehypeSeemoreRawHtml,
   ];
 }
