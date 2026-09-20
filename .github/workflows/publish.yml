@@ -23,6 +23,9 @@ jobs:
           cache: pnpm
           registry-url: https://registry.npmjs.org
 
+      # Trusted publishing (OIDC) needs npm >= 11.5.1; node 22 bundles npm 10.x.
+      - run: npm install -g npm@latest
+
       - run: pnpm install --frozen-lockfile
 
       - run: pnpm lint
@@ -43,6 +46,5 @@ jobs:
             exit 1
           fi
 
+      # No NODE_AUTH_TOKEN: npm falls back to OIDC trusted publishing via id-token: write.
       - run: pnpm --filter seemore publish --provenance --access public --no-git-checks
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
