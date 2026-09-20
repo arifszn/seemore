@@ -66,7 +66,7 @@ pageActions: ['copy-markdown', 'export-html'],  // the default
 ```
 
 The [features](./features.md) page explains what each action does, and everything an exported
-file keeps. The [CLI reference](./cli-reference.md) page covers the CLI equivalent.
+file keeps.
 
 ## Site footer
 

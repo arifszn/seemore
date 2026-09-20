@@ -6,9 +6,9 @@ order: 8
 
 # Features
 
-Every page arrives with its full text already in it. There is no placeholder and no loading skeleton. Pages start loading as soon as you point at a link, and transitions animate, without giving up the plain-files output described under [publishing](./publishing.md). Add, rename, retitle, reorder or delete a file, and the running preview updates at once: no restart, no full reload.
+Every page arrives with its full text in it. There is no placeholder and no loading skeleton. Pages start to load as soon as you point at a link. Add, rename, retitle, reorder or delete a file, and the running preview updates at once, with no restart and no full reload.
 
-Search works out of the box, with no server to run and nothing to pay for. If your site grows past what a no-server search index can carry, the build tells you and points at alternatives. If your site lives under a path like `example.com/my-repo/` rather than the root, set `base` once, and links, search and assets all follow.
+Search works with no server to run and nothing to pay for. If your site grows past what a no-server index can carry, the build tells you and names the alternatives.
 
 ## Edit from the page
 
@@ -59,16 +59,7 @@ An **Actions** button above every page holds actions for the page you are readin
 - **Copy as Markdown**: puts the page's own Markdown on your clipboard, ready to paste into an AI chat, an issue or another document. It is the source, not a transcription of the rendered page: a GitHub alert is still `> [!NOTE]`, a diagram is still a ```` ```mermaid ```` fence, and an `.mdx` page's components come across as the JSX the author wrote.
 - **Export as HTML**: writes the page alone into one self-contained HTML file, with styles inlined, images embedded, and diagrams kept. It opens offline, from a double-click, ready to share. The same export runs from the CLI as `npx seemore export <file>`, which writes the file next to the Markdown (or into `--out <dir>`). Printing that file, or the live page, strips away all chrome and never splits content across a page break, so the browser's own "Save as PDF" turns it into a PDF.
 
-Actions are enabled per site, in the order they should appear, in `seemore.config.ts`:
-
-```ts
-// seemore.config.ts
-export default {
-  pageActions: ['copy-markdown', 'export-html'],  // the default
-  // pageActions: ['copy-markdown'],               // one of them
-  // pageActions: [],                              // no button at all
-};
-```
+Actions are enabled per site, in the order they should appear, on the `pageActions` key in [seemore.config.ts](./configuration.md#page-actions).
 
 Exported files keep the theme toggle, code copy buttons, click-to-zoom and an "On this page" list. They leave out the sidebar, navbar and search. Like the site, an exported file opens in the reader's own OS theme, not the one used at export time, and remembers the reader's toggle choice from then on. Remote images (for example, GitHub URLs) stay remote. Everything local gets embedded.
 
