@@ -42,7 +42,7 @@
       "editor/title": [
         {
           "command": "seemore.open",
-          "when": "resourceLangId == markdown",
+          "when": "resourceLangId == markdown || resourceLangId == mdx || resourceExtname == .mdx",
           "group": "navigation@0"
         }
       ],

@@ -49,7 +49,7 @@ export class SeemoreSession {
     this.statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
   }
 
-  /** Editor-title icon: `resourceLangId == markdown`. Always kills and restarts fresh. */
+  /** Editor-title icon: `resourceLangId == markdown` (or `.mdx`). Always kills and restarts fresh. */
   async openFile(uri: vscode.Uri): Promise<void> {
     return this.enqueue(async () => {
       this.cancelCloseTimer();
