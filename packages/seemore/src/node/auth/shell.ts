@@ -79,7 +79,7 @@ function styles(colours: ShellColours): string {
     '[hidden]{display:none!important}',
     'html,body{min-height:100%}',
     'body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:var(--background);color:var(--foreground);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}',
-    '.lock{width:100%;max-width:360px;padding:32px;border:1px solid color-mix(in srgb,var(--foreground) 12%,transparent);border-radius:14px;background:color-mix(in srgb,var(--background) 94%,var(--foreground));box-shadow:0 12px 32px color-mix(in srgb,var(--foreground) 8%,transparent);text-align:center;animation:lock-in .24s ease-out both}',
+    '.lock{width:100%;max-width:360px;padding:32px;border:1px solid color-mix(in srgb,var(--foreground) 12%,transparent);border-radius:8px;background:color-mix(in srgb,var(--background) 94%,var(--foreground));box-shadow:0 12px 32px color-mix(in srgb,var(--foreground) 8%,transparent);text-align:center;animation:lock-in .24s ease-out both}',
     ':root:not(.dark) .lock{background:color-mix(in srgb,var(--background) 92%,white)}',
     '.lock-icon{width:40px;height:40px;margin-bottom:20px}',
     'h1{margin:0;font-size:22px;line-height:1.2;font-weight:650;letter-spacing:-.015em}',
