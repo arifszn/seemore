@@ -23,6 +23,7 @@ import {
 } from './remark.js';
 import { rehypeSeemorePositions } from './positions.js';
 import { rehypeSeemoreRawHtml } from './raw.js';
+import { rehypeSeemoreMedia, type SeemoreMediaOptions } from './media.js';
 
 /** The named export `remark-llms` writes the page's Markdown to, read by the copy action. */
 export const MARKDOWN_EXPORT = '_markdown';
@@ -78,7 +79,7 @@ export function createRemarkPlugins(options: SeemoreRemarkOptions): PluggableLis
   ];
 }
 
-export interface SeemoreRehypeOptions {
+export interface SeemoreRehypeOptions extends SeemoreMediaOptions {
   /**
    * Stamp each editable block with its source range, for the browser's inline editor.
    * Dev only: a static build has no server to write an edit back to.
@@ -86,7 +87,7 @@ export interface SeemoreRehypeOptions {
   positions?: boolean;
 }
 
-export function createRehypePlugins(options: SeemoreRehypeOptions = {}): PluggableList {
+export function createRehypePlugins(options: SeemoreRehypeOptions): PluggableList {
   return [
     // A fence in a language Shiki has no grammar for (anything an AI dreamt up) is plain code
     // on the page, not a dead one: `plaintext` is special-cased by Shiki and never needs
@@ -102,5 +103,8 @@ export function createRehypePlugins(options: SeemoreRehypeOptions = {}): Pluggab
     // taken what it needs, and the elements it creates are not stamped as editable, which is
     // right: they have no source range a text editor could be handed.
     rehypeSeemoreRawHtml,
+    // After `rehype-raw`, the first point where a `.md` file's hand-written `<video>` is an
+    // element rather than a string.
+    () => rehypeSeemoreMedia(options),
   ];
 }

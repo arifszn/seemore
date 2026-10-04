@@ -12,7 +12,7 @@ Works with both `.md` and `.mdx`.
 - `[[wikilinks]]`, including `[[Page|label]]` and `[[Page#Heading]]`. Use these to link pages without getting relative paths right
 - Relative `.md` links resolve to working links automatically
 - **[Mermaid](https://mermaid.js.org)** and **[D2](https://d2lang.com)** diagrams, both rendered live in the browser straight from a ` ```mermaid ` or ` ```d2 ` code fence
-- Sibling images inlined as hashed assets with click-to-zoom, sibling PDFs open in the browser's own viewer
+- Sibling images inlined as hashed assets with click-to-zoom, sibling PDFs open in the browser's own viewer, and sibling files in a `<video>`, `<audio>`, `<source>` or `<track>` tag bundled the same way
 - Frontmatter keys are validated
 
 ## Code blocks
