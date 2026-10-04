@@ -57,7 +57,11 @@ export function createViteConfig({ ctx, mode, outDir, ssrOutDir, auth = false }:
       getResolver: () => ctx.resolver(),
       onWarning: (message) => ctx.warnings.add(message),
     }),
-    rehypePlugins: createRehypePlugins({ positions: mode === 'dev' && ctx.config.features['content.edit'] }),
+    rehypePlugins: createRehypePlugins({
+      contentRoot: ctx.contentRoot,
+      onWarning: (message) => ctx.warnings.add(message),
+      positions: mode === 'dev' && ctx.config.features['content.edit'],
+    }),
     // MDX compiles its own JSX. Vite's builtin transform infers a file's language from its
     // extension and does not know `.md`/`.mdx`, so leaving JSX in the output would fail to
     // parse. The output is plain JS against the automatic runtime, so nothing downstream has
