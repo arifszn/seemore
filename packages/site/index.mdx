@@ -5,10 +5,16 @@ order: 1
 ---
 
 import promo from './assets/seemore.mp4';
+import { version } from '../seemore/package.json';
 
 <div className="seemore-landing">
 
 <div className="seemore-hero">
+
+<a className="seemore-version-badge" href="https://www.npmjs.com/package/seemore">
+  <span className="seemore-version-badge-dot"></span>
+  {`v${version}`}
+</a>
 
 <h1 className="seemore-hero-title">
   Let AI write the Markdown.<br />

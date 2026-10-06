@@ -14,6 +14,34 @@
   padding-block: 1.5rem 2.5rem;
 }
 
+.seemore-version-badge {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  border: 1px solid var(--color-fd-border);
+  border-radius: 999px;
+  padding: 0.1rem 0.5rem;
+  background: var(--color-fd-card);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.6875rem;
+  line-height: 1.4;
+  color: var(--color-fd-muted-foreground);
+  text-decoration: none !important;
+  transition: border-color 0.15s ease;
+}
+
+.seemore-version-badge:hover {
+  border-color: var(--color-fd-muted-foreground);
+}
+
+.seemore-version-badge-dot {
+  width: 0.35rem;
+  height: 0.35rem;
+  border-radius: 999px;
+  background: #22c55e;
+}
+
 .seemore-hero-title {
   margin: 0;
   font-size: clamp(2.25rem, 5vw + 1rem, 3.25rem);
