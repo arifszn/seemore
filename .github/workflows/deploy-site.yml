@@ -6,6 +6,7 @@ on:
     paths:
       - 'packages/site/**'
       - 'packages/seemore/src/**'
+      - 'packages/seemore/package.json'
       - '.github/workflows/deploy-site.yml'
   workflow_dispatch:
 
