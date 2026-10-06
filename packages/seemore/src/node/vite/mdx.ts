@@ -1,4 +1,6 @@
-import type { PluggableList } from 'unified';
+import type { Root } from 'mdast';
+import type { PluggableList, Processor, Transformer } from 'unified';
+import type { VFile } from 'vfile';
 import remarkFrontmatter from 'remark-frontmatter';
 import { remarkLLMs } from 'fumadocs-core/mdx-plugins/remark-llms';
 import {
@@ -51,7 +53,9 @@ export function createRemarkPlugins(options: SeemoreRemarkOptions): PluggableLis
     // frontmatter strip is the one thing that must come first — its keys are metadata, not
     // content. Heading ids stay off: `## Title [#title]` is noise in a paste.
     remarkSeemoreMarkdownSource,
-    [remarkLLMs, { as: MARKDOWN_EXPORT, headingIds: false }],
+    function (this: Processor) {
+      return remarkSeemoreLLMs.call(this, options);
+    },
     remarkHeading,
     remarkAdmonition,
     remarkDirectiveAdmonition,
@@ -77,6 +81,41 @@ export function createRemarkPlugins(options: SeemoreRemarkOptions): PluggableLis
     () => remarkSeemoreWikilinks(options),
     () => remarkSeemoreLinks(options),
   ];
+}
+
+/**
+ * `remark-llms`, made non-fatal. Its stringifier recurses once per nesting level, and a deep
+ * enough tree (a few hundred levels of emphasis, from a long run of `*`) overflows the stack
+ * well before the renderer would. The snapshot only feeds the copy action, so losing it must
+ * not lose the page: the file's own source, frontmatter dropped, is copied instead.
+ */
+function remarkSeemoreLLMs(this: Processor, options: SeemoreRemarkOptions): Transformer<Root, Root> {
+  const snapshot = remarkLLMs.call(this, { as: MARKDOWN_EXPORT, headingIds: false }) as (
+    tree: Root,
+    file: VFile,
+  ) => void;
+
+  return (tree, file) => {
+    try {
+      snapshot(tree, file);
+    } catch (error) {
+      options.onWarning(
+        `Could not convert ${file.path} back to Markdown for copying (${(error as Error).message}); the raw file is copied instead.`,
+      );
+      // An `html` node stringifies verbatim, so the export carries the source as written.
+      const fallback: Root = { type: 'root', children: [{ type: 'html', value: sourceOf(tree, file) }] };
+      snapshot(fallback, file);
+      tree.children.unshift(...fallback.children.slice(0, -1));
+    }
+  };
+}
+
+/** The file's text after its frontmatter block, which is metadata, not content. */
+function sourceOf(tree: Root, file: VFile): string {
+  const source = String(file.value);
+  const yaml = tree.children[0]?.type === 'yaml' ? tree.children[0] : undefined;
+  const end = yaml?.position?.end.offset;
+  return end === undefined ? source : source.slice(end).trimStart();
 }
 
 export interface SeemoreRehypeOptions extends SeemoreMediaOptions {
