@@ -6,7 +6,7 @@ order: 5
 
 # Content
 
-Works with both `.md` and `.mdx`.
+Works with `.md`, `.markdown` and `.mdx`.
 
 - GitHub Flavoured Markdown, admonitions (note / tip / warning boxes), step-by-step lists, and colour-highlighted code blocks
 - `[[wikilinks]]`, including `[[Page|label]]` and `[[Page#Heading]]`. Use these to link pages without getting relative paths right

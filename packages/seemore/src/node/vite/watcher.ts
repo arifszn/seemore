@@ -4,7 +4,7 @@ import type { Plugin, ViteDevServer } from 'vite';
 import type { SeemoreContext } from '../context.js';
 import { VIRTUAL } from './plugin.js';
 
-const CONTENT_FILE = /\.(?:mdx?|json)$/i;
+const CONTENT_FILE = /\.(?:mdx?|markdown|json)$/i;
 /** The directory half of the scan's default excludes, as path segments. */
 const EXCLUDED_DIR =
   /(?:^|\/)(?:node_modules|dist|build|out|vendor|target|venv|deps|Pods|bower_components|\.[^/]+)(?:$|\/)/;
@@ -118,7 +118,7 @@ export async function handleContentChange(
   await reloadVirtual(server, VIRTUAL.routes);
 
   // A body edit is a plain MDX swap; the component is replaced and scroll position kept.
-  if (event === 'change' && /\.mdx?$/i.test(path)) {
+  if (event === 'change' && /\.(?:mdx?|markdown)$/i.test(path)) {
     await reloadFile(server, path);
   }
 }

@@ -3,7 +3,7 @@ import { isRemoteHref, withBase } from '../base.js';
 import type { ContentPage } from './scan.js';
 import { slugifySegment, toPosix } from './slug.js';
 
-const CONTENT_EXT = /\.mdx?$/i;
+const CONTENT_EXT = /\.(?:mdx?|markdown)$/i;
 
 export interface ResolvedLink {
   /** The href to emit. Unchanged from the input when nothing needed resolving. */

@@ -1,4 +1,4 @@
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { load } from 'cheerio';
@@ -137,5 +137,48 @@ describe('the export toc', () => {
   it('leaves a page without headed sections alone', () => {
     const html = '<h1>Title</h1><p>no sections</p>';
     expect(withExportToc(html)).toBe(html);
+  });
+});
+
+describe('seemore export --root and --out-file', () => {
+  let site: string;
+
+  beforeAll(() => {
+    site = mkdtempSync(join(tmpdir(), 'seemore-export-root-'));
+    mkdirSync(join(site, 'guide'));
+    writeFileSync(join(site, 'index.md'), '# Home\n');
+    writeFileSync(join(site, 'guide', 'intro.md'), '# Intro\n\nSee [home](../index.md).\n');
+  });
+
+  afterAll(() => {
+    rmSync(site, { recursive: true, force: true });
+  });
+
+  it('exports against the named root, so links outside the file\'s folder resolve', async () => {
+    const outFile = join(site, 'out', 'Chosen Name.html');
+    await runExport({ cwd: site, file: 'guide/intro.md', root: '.', outFile });
+
+    const $ = load(readFileSync(outFile, 'utf8'));
+    expect($('a:contains("home")').attr('href')).toBe('/');
+  });
+
+  it('writes to the exact path --out-file names', async () => {
+    const outFile = join(site, 'out', 'renamed.html');
+    await runExport({ cwd: site, file: 'index.md', outFile });
+
+    expect(existsSync(outFile)).toBe(true);
+    expect(existsSync(join(site, 'out', 'index.html'))).toBe(false);
+  });
+
+  it('refuses a root that does not contain the file', async () => {
+    await expect(
+      runExport({ cwd: site, file: 'index.md', root: 'guide', outFile: join(site, 'out', 'x.html') }),
+    ).rejects.toThrow(/not inside the root/);
+  });
+
+  it('refuses --out together with --out-file', async () => {
+    await expect(
+      runExport({ cwd: site, file: 'index.md', out: 'out', outFile: join(site, 'out', 'x.html') }),
+    ).rejects.toThrow(/cannot be combined/);
   });
 });

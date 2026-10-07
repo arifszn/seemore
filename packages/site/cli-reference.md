@@ -18,13 +18,17 @@ Options
   --json                 print one machine-readable JSON line instead of the summary (dev only)
   --config <path>        path to seemore.config.ts
   --out <dir>            build output directory (default: dist); for export, where the HTML file is written
+  --out-file <path>      export only: the exact file to write, instead of --out
+  --root <dir>           export only: the site the file belongs to (default: the file's folder)
   --base <path>          subpath the site is served from, e.g. /my-repo/
   -h, --help             show this message
   -v, --version          show the version
 ```
 
 `seemore export` renders the page you name and writes one self-contained HTML file next to it
-(`--out <dir>` chooses a different folder). It needs no browser: the exported file renders its own
+(`--out <dir>` chooses a different folder, `--out-file <path>` an exact file name). The file's own
+folder is treated as the site; `--root <dir>` names a wider one, so links to pages outside that
+folder resolve as they do on the site. It needs no browser: the exported file renders its own
 diagrams when opened. The file matches the one the site's **Actions → Export as HTML** button
 produces. Export fails when `pageActions` leaves out `'export-html'`.
 
