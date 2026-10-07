@@ -51,12 +51,32 @@ mac:
   identity: '-'
   hardenedRuntime: false
   notarize: false
-  extraResources: &stage
-    - from: build/stage
+  extraResources:
+    - &stage
+      from: build/stage
       to: .
       filter:
         - '**/*'
         - seemore/node_modules/**/*
+    # Compiled by the beforePack hook (§13); signed with the app.
+    - from: build/native
+      to: .
+      filter: [default-handler]
+  # Markdown files (§13), by content type rather than `fileAssociations`, which writes only
+  # the deprecated CFBundleTypeExtensions. The system declares net.daringfireball.markdown
+  # (.md, .markdown); .mdx has no system type, so it is imported here.
+  extendInfo:
+    CFBundleDocumentTypes:
+      - CFBundleTypeName: Markdown document
+        CFBundleTypeRole: Viewer
+        LSHandlerRank: Default
+        LSItemContentTypes: [net.daringfireball.markdown, dev.seemore.mdx]
+    UTImportedTypeDeclarations:
+      - UTTypeIdentifier: dev.seemore.mdx
+        UTTypeDescription: MDX document
+        UTTypeConformsTo: [public.plain-text]
+        UTTypeTagSpecification:
+          public.filename-extension: [mdx]
 
 dmg:
   artifactName: seemore-${version}-mac-${arch}.${ext}
@@ -81,7 +101,10 @@ linux:
       arch: [x64]
   executableName: seemore-desktop
   category: Development
-  extraResources: *stage
+  extraResources: [*stage]
+  # The desktop file's MimeType (§13). Not `fileAssociations.mimeType`: that also installs a
+  # mime definition of its own, redefining the system's text/markdown.
+  mimeTypes: [text/markdown]
 
 appImage:
   artifactName: seemore-${version}.${ext}

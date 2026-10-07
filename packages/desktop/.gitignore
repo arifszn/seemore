@@ -1,4 +1,5 @@
-# Output of scripts/stage-seemore.mjs, scripts/pack-cli.mjs and electron-builder
+# Output of scripts/stage-seemore.mjs, scripts/pack-cli.mjs, the beforePack hook and electron-builder
 build/stage/
 build/archive/
+build/native/
 release/

@@ -1,6 +1,7 @@
 /** The application menu (DESKTOP-SPEC §4.4, §5). Rebuilt when the recents change. */
 import { basename } from 'node:path';
 import { app, BrowserWindow, Menu, type MenuItemConstructorOptions } from 'electron';
+import { currentDefaultHandlerPlatform, makeDefaultHandler } from './defaultHandler.js';
 import type { DesktopApp } from './desktopApp.js';
 import type { RecentEntry } from './recents.js';
 import type { Updater } from './update/updater.js';
@@ -10,7 +11,7 @@ export const MENU_IDS = { export: 'export-page', build: 'build-site' } as const;
 export function buildMenu(desktop: DesktopApp, recents: readonly RecentEntry[], updater: Updater | undefined): void {
   const isMac = process.platform === 'darwin';
 
-  // In the app menu on macOS, under Help elsewhere (§10.1). Disabled when running from source.
+  // In the app menu on macOS, under Help elsewhere (§10.1, §13). Disabled when running from source.
   const ready = updater?.readyVersion;
   const updateItems: MenuItemConstructorOptions[] = [
     ...(ready === undefined ? [] : [{ label: `Restart to Update to ${ready}`, click: () => void updater?.restart() }]),
@@ -21,6 +22,13 @@ export function buildMenu(desktop: DesktopApp, recents: readonly RecentEntry[], 
       enabled: updater !== undefined,
       checked: updater?.autoCheck ?? false,
       click: (item) => updater?.setAutoCheck(item.checked),
+    },
+    { type: 'separator' },
+    // §13. Disabled when running from source, and in an AppImage.
+    {
+      label: 'Make seemore the Default for Markdown…',
+      enabled: currentDefaultHandlerPlatform() !== undefined,
+      click: () => void makeDefaultHandler(),
     },
   ];
   const focused = () => BrowserWindow.getFocusedWindow() ?? undefined;
