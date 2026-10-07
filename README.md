@@ -42,7 +42,7 @@ A folder of `.md` files has no order. You cannot click a link between files. You
 **seemore** points at that folder and renders it as a real site. Other docs frameworks need a project first: a scaffold, a config file, a `docs/` layout, and a build step in your repo. seemore needs only a folder that already exists. It does not move your files, and it does not need any code. If you stop using seemore, your files stay where they are.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/two-ways.png" alt="Two ways to use seemore: a notes folder opened as a site in the desktop app, next to a terminal running npx seemore" width="640"/>
+  <video src="https://github.com/user-attachments/assets/10f105c9-924e-4a89-bcba-4d46eefe928d" width="640" controls muted></video>
 </p>
 
 ## Quick start
@@ -108,10 +108,6 @@ Or call the skill by name:
 ```
 
 </details>
-
-<p align="center">
-  <video src="https://github.com/user-attachments/assets/10f105c9-924e-4a89-bcba-4d46eefe928d" width="640" controls muted></video>
-</p>
 
 ## What you get
 
