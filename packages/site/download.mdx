@@ -5,6 +5,9 @@ order: 3
 ---
 
 import { useEffect, useState } from 'react';
+import macNotOpened from './assets/macos-not-opened.png';
+import macOpenAnyway from './assets/macos-open-anyway.png';
+import macConfirm from './assets/macos-confirm.png';
 
 export const RELEASES = 'https://github.com/arifszn/seemore/releases/latest';
 
@@ -142,9 +145,17 @@ Open a folder or a `.md` file as a site in its own window. You do not need a ter
 
 The first time you open the app, macOS blocks it. To allow it:
 
-1. Open **seemore**, then close the message.
-2. Go to **System Settings** > **Privacy & Security** and click **Open Anyway**.
-3. Click **Open Anyway** again and enter your password.
+1. Open **seemore**. macOS does not open it. Click **Done**, not **Move to Bin**.
+
+   <img className="seemore-step-shot seemore-step-shot-dialog" src={macNotOpened} alt="The macOS message: seemore Not Opened, with the buttons Done and Move to Bin" />
+
+2. Go to **System Settings** > **Privacy & Security**. Under **Security**, click **Open Anyway**.
+
+   <img className="seemore-step-shot" src={macOpenAnyway} alt="Privacy & Security settings, with the message seemore was blocked to protect your Mac and the Open Anyway button" />
+
+3. macOS asks again. Click **Open Anyway**, not the blue **Move to Bin** button, then enter your password.
+
+   <img className="seemore-step-shot seemore-step-shot-dialog" src={macConfirm} alt="The macOS message: Open seemore?, with the buttons Move to Bin, Open Anyway and Done" />
 
 You do this only once.
 

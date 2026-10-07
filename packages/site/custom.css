@@ -871,6 +871,19 @@
   font-weight: 700;
 }
 
+.seemore-install .seemore-step-shot {
+  display: block;
+  max-width: 100%;
+  margin: 0.75rem 0 1rem;
+  border: 1px solid var(--color-fd-border);
+  border-radius: 0.75rem;
+}
+
+/* The two macOS dialogs, at their own size (2x screenshots shown at 1x), not stretched. */
+.seemore-install .seemore-step-shot-dialog {
+  width: 252px;
+}
+
 .seemore-download-footer {
   margin-top: 2rem !important;
   font-size: 0.875rem;
