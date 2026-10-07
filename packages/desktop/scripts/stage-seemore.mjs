@@ -12,7 +12,8 @@
  *   `prepack`), extracted as `node_modules/seemore`.
  * - Its dependencies: `pnpm deploy --prod`, which installs from the workspace lockfile
  *   without resolving anything again. `node-linker=hoisted` gives a flat tree with no
- *   symlinks, the layout `npm install` produced. Deploy's own copy of seemore is not used:
+ *   symlinks, the layout `npm install` produced; `package-import-method=copy` makes its
+ *   files real copies, not hard links into pnpm's store. Deploy's own copy of seemore is not used:
  *   it leaves out `dist/`, which is gitignored.
  *
  * Then `trim-seemore.mjs` removes source maps, type definitions and docs (§9).
@@ -78,6 +79,11 @@ try {
       '--frozen-lockfile',
       '--config.inject-workspace-packages=true',
       '--config.node-linker=hoisted',
+      // Copies, not links into pnpm's store: on Windows pnpm hard-links, and the store shares
+      // one file among every package with identical content, so the tree had hard links to
+      // itself, on which tar stalled when packing the Windows archive (§9). Links would also
+      // let the trim, or anything else writing to the stage, change the store.
+      '--config.package-import-method=copy',
       deployDir,
     ],
     repoRoot,
