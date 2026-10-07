@@ -1,0 +1,3 @@
+# Output of scripts/stage-seemore.mjs and electron-builder
+build/stage/
+release/
