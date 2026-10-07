@@ -31,7 +31,11 @@ export function createUpdater(hooks: { jobsRunning: () => boolean; onChange: () 
     ui: {
       ask: async (message, detail, buttons, cancelId) =>
         (await dialog.showMessageBox({ type: 'info', message, detail, buttons, defaultId: 0, cancelId })).response,
-      inform: (message, detail, isError) => void dialog.showMessageBox({ type: isError ? 'error' : 'info', message, detail }),
+      inform: (message, detail, isError) => {
+        const controller = new AbortController();
+        void dialog.showMessageBox({ type: isError ? 'error' : 'info', message, detail, signal: controller.signal });
+        return () => controller.abort();
+      },
       openExternal: (url) => void shell.openExternal(url),
     },
   });

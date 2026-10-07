@@ -13,7 +13,8 @@ import { CHECK_INTERVAL_MS, LAUNCH_DELAY_MS, parseUpdateState, shouldCheck, shou
 export interface UpdaterUi {
   /** Resolves to the index of the chosen button. */
   ask(message: string, detail: string, buttons: string[], cancelId: number): Promise<number>;
-  inform(message: string, detail?: string, isError?: boolean): void;
+  /** Shows a notice without waiting for it; the returned function closes it. */
+  inform(message: string, detail?: string, isError?: boolean): () => void;
   openExternal(url: string): void;
 }
 
@@ -110,8 +111,14 @@ export class Updater {
         if (manual) this.options.ui.inform(`seemore ${version} failed verification earlier and was not downloaded again.`, undefined, true);
         return;
       }
-      if (manual) this.options.ui.inform(`Downloading seemore ${version}.`, 'You will be asked to restart once it is ready.');
-      const path = await this.options.platform.download(version);
+      // Closed when the download ends, or a quick one leaves it under the prompt or error.
+      const closeNotice = manual ? this.options.ui.inform(`Downloading seemore ${version}.`, 'You will be asked to restart once it is ready.') : undefined;
+      let path: string;
+      try {
+        path = await this.options.platform.download(version);
+      } finally {
+        closeNotice?.();
+      }
       this.ready = { version, path };
       this.state.staged = this.ready;
       this.save();

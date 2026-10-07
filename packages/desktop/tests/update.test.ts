@@ -113,6 +113,9 @@ describe('Updater', () => {
   let answers: number[];
   let asked: string[];
   let told: string[];
+  let closed: string[];
+  /** What `closed` held when each prompt opened. */
+  let closedAtAsk: string[][];
   let opened: string[];
   let jobs: boolean;
 
@@ -123,6 +126,8 @@ describe('Updater', () => {
     answers = [];
     asked = [];
     told = [];
+    closed = [];
+    closedAtAsk = [];
     opened = [];
     jobs = false;
   });
@@ -131,9 +136,13 @@ describe('Updater', () => {
   const ui: UpdaterUi = {
     ask: async (message) => {
       asked.push(message);
+      closedAtAsk.push([...closed]);
       return answers.shift() ?? 2;
     },
-    inform: (message) => void told.push(message),
+    inform: (message) => {
+      told.push(message);
+      return () => void closed.push(message);
+    },
     openExternal: (url) => void opened.push(url),
   };
   const make = () =>
@@ -158,6 +167,22 @@ describe('Updater', () => {
     await make().check('manual');
     expect(told).toEqual(['seemore 1.1.0 is the latest version.']);
     expect(platform.downloads).toEqual([]);
+  });
+
+  it('closes the Downloading notice of a manual check before the prompt or the error', async () => {
+    await make().check('manual');
+    await settle();
+    expect(told).toEqual(['Downloading seemore 1.2.0.']);
+    expect(closedAtAsk).toEqual([['Downloading seemore 1.2.0.']]);
+
+    told = [];
+    closed = [];
+    platform.version = '1.3.0';
+    platform.failDownload = new VerificationError('sha512 checksum mismatch');
+    const updater = make();
+    await updater.check('manual');
+    expect(told).toEqual(['Downloading seemore 1.3.0.', 'Could not check for updates.']);
+    expect(closed).toEqual(['Downloading seemore 1.3.0.']);
   });
 
   it('Later keeps the update ready for the menu; Skip deletes it and stops automatic offers', async () => {
