@@ -13,6 +13,10 @@ body {
 }
 p {
   margin: 0;
+  max-width: 70vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 15px;
   font-weight: 500;
 }
