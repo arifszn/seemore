@@ -76,9 +76,8 @@ describe('decideNavigation', () => {
     expect(decideNavigation('http://localhost:4101/', own).action).toBe('external');
   });
 
-  it('routes a dropped file to open', () => {
-    const file = resolve('docs', 'a.md');
-    expect(decideNavigation(pathToFileURL(file).href, own)).toEqual({ action: 'open-path', path: file });
+  it('never navigates to a file', () => {
+    expect(decideNavigation(pathToFileURL(resolve('docs', 'a.md')).href, own).action).toBe('deny');
   });
 
   it('sends web and mail links out, and drops every other scheme', () => {
@@ -94,8 +93,13 @@ describe('decideNewWindow', () => {
   it('never opens an app window', () => {
     expect(decideNewWindow('https://example.com/').action).toBe('external');
     expect(decideNewWindow('http://localhost:4100/page').action).toBe('external');
-    expect(decideNewWindow('file:///etc/hosts').action).toBe('deny');
     expect(decideNewWindow('smb://server/share').action).toBe('deny');
+    expect(decideNewWindow('not a url').action).toBe('deny');
+  });
+
+  it('routes a dropped file to open', () => {
+    const file = resolve('docs', 'a.md');
+    expect(decideNewWindow(pathToFileURL(file).href)).toEqual({ action: 'open-path', path: file });
   });
 });
 

@@ -61,12 +61,12 @@ export function createSiteWindow(options: SiteWindowOptions): BrowserWindow {
     const decision = decideNavigation(details.url, options.origin() ?? '');
     if (decision.action === 'allow') return;
     details.preventDefault();
-    if (decision.action === 'open-path') options.onOpenPath(decision.path);
     if (decision.action === 'external') void shell.openExternal(decision.url);
   });
 
   webContents.setWindowOpenHandler(({ url }) => {
     const decision = decideNewWindow(url);
+    if (decision.action === 'open-path') options.onOpenPath(decision.path);
     if (decision.action === 'external') void shell.openExternal(decision.url);
     return { action: 'deny' };
   });

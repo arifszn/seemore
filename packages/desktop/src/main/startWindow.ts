@@ -5,7 +5,7 @@
  */
 import { join } from 'node:path';
 import { BrowserWindow, ipcMain } from 'electron';
-import { decideNavigation } from './policy.js';
+import { decideNewWindow } from './policy.js';
 import type { RecentEntry } from './recents.js';
 
 export interface StartActions {
@@ -63,15 +63,16 @@ export function createStartWindow(actions: Pick<StartActions, 'recents' | 'onOpe
   startWindows.add(id);
   window.once('closed', () => startWindows.delete(id));
 
-  window.webContents.on('will-navigate', (details) => {
-    details.preventDefault();
-    const decision = decideNavigation(details.url, '');
+  window.webContents.on('will-navigate', (details) => details.preventDefault());
+  // A dropped file arrives as a new window (policy.ts); nothing else on this page opens one.
+  window.webContents.setWindowOpenHandler(({ url }) => {
+    const decision = decideNewWindow(url);
     if (decision.action === 'open-path') {
       actions.onOpenPath(decision.path);
       window.close();
     }
+    return { action: 'deny' };
   });
-  window.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
 
   void window.loadFile(join(__dirname, 'index.html'), {
     query: { recents: JSON.stringify(actions.recents()) },
