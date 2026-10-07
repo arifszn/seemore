@@ -1,3 +1,4 @@
+import type { ChildProcess } from 'node:child_process';
 import { mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -8,8 +9,19 @@ describe('spawnDevServer', () => {
   let scriptDir: string;
 
   afterEach(() => {
-    if (scriptDir) rmSync(scriptDir, { recursive: true, force: true });
+    // Retries: a child that spawnDevServer killed itself (the timeout case) can still hold
+    // the folder as its cwd for a moment, and Windows refuses to delete it until it exits.
+    if (scriptDir) rmSync(scriptDir, { recursive: true, force: true, maxRetries: 10 });
   });
+
+  /** Kills the server and waits for it to exit: on Windows its cwd can't be deleted before. */
+  function stop(child: ChildProcess): Promise<void> {
+    if (child.exitCode !== null || child.signalCode !== null) return Promise.resolve();
+    return new Promise((resolve) => {
+      child.once('exit', () => resolve());
+      child.kill();
+    });
+  }
 
   function script(body: string): string {
     scriptDir = mkdtempSync(join(tmpdir(), 'seemore-vscode-devproc-'));
@@ -28,7 +40,7 @@ describe('spawnDevServer', () => {
     try {
       expect(result.ready).toEqual({ url: 'http://localhost:9999/', port: 9999, contentRoot: scriptDir, pageCount: 2 });
     } finally {
-      result.process.kill();
+      await stop(result.process);
     }
   });
 
@@ -40,7 +52,7 @@ describe('spawnDevServer', () => {
 
     try {
       const result = await spawnDevServer({ cliEntry, root });
-      result.process.kill();
+      await stop(result.process);
       expect(realpathSync(result.ready.contentRoot)).toBe(realpathSync(root));
     } finally {
       rmSync(root, { recursive: true, force: true });
@@ -60,7 +72,7 @@ describe('spawnDevServer', () => {
       expect(result.process.stdout.readableFlowing).toBe(true);
       expect(result.process.stderr.listenerCount('data')).toBe(0);
     } finally {
-      result.process.kill();
+      await stop(result.process);
     }
   });
 

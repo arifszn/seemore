@@ -22,7 +22,8 @@ export function appPublicKey() {
   const source = readFileSync(join(desktopDir, 'src', 'main', 'update', 'feedKey.ts'), 'utf8');
   const pem = /-----BEGIN PUBLIC KEY-----[\s\S]*?-----END PUBLIC KEY-----/.exec(source)?.[0];
   if (pem === undefined) throw new Error('feedKey.ts holds no public key.');
-  return `${pem}\n`;
+  // A Windows checkout gives the file CRLF line endings; the compiled key has LF.
+  return `${pem.replace(/\r\n/g, '\n')}\n`;
 }
 
 const sha256 = (file) => createHash('sha256').update(readFileSync(file)).digest('hex');
