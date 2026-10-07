@@ -7,7 +7,7 @@ import { defineConfig } from 'tsup';
  * module, and one format keeps the two alike.
  */
 export default defineConfig({
-  entry: { main: 'src/main/index.ts' },
+  entry: { main: 'src/main/index.ts', 'preload-start': 'src/preload/start.ts' },
   format: ['cjs'],
   target: 'node22',
   platform: 'node',
