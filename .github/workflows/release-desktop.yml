@@ -1,0 +1,177 @@
+name: Release desktop
+
+# DESKTOP-SPEC §14.3. A desktop-vX.Y.Z tag builds every platform, then publishes one GitHub
+# Release with all assets, the checksums and the signed macOS feed. A tag with a prerelease
+# suffix (desktop-v1.2.0-beta.1) publishes a prerelease, which releases/latest ignores.
+
+on:
+  push:
+    tags: ['desktop-v*']
+
+concurrency:
+  group: release-desktop-${{ github.ref }}
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      prerelease: ${{ steps.version.outputs.prerelease }}
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Check the tag matches the version in packages/desktop/package.json
+        id: version
+        shell: bash
+        run: |
+          tag="${GITHUB_REF_NAME#desktop-v}"
+          version="$(node -p "require('./packages/desktop/package.json').version")"
+          if [ "$tag" != "$version" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match packages/desktop/package.json version $version." >&2
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if [[ "$version" == *-* ]]; then echo "prerelease=true"; else echo "prerelease=false"; fi >> "$GITHUB_OUTPUT"
+
+      - run: pnpm install --frozen-lockfile
+
+      # `@seemore/host`, bundled into the app, imports from seemore's built entry.
+      - run: pnpm --filter seemore build
+
+      - run: pnpm --filter @seemore/host --filter seemore-desktop lint
+
+      - run: pnpm --filter @seemore/host --filter seemore-desktop typecheck
+
+      - run: pnpm --filter @seemore/host --filter seemore-desktop test
+
+  build:
+    needs: verify
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          # Each on its own architecture: the staged CLI's native binaries are those of the
+          # machine that installs them (§14.2).
+          - id: mac-arm64
+            os: macos-15
+            args: --mac --arm64
+          - id: mac-x64
+            os: macos-15-intel
+            args: --mac --x64
+          - id: win-x64
+            os: windows-2025
+            args: --win --x64
+          - id: linux-x64
+            os: ubuntu-24.04
+            args: --linux --x64
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Builds and packs seemore, deploys its dependencies from pnpm-lock.yaml, trims (§9).
+      - run: pnpm --filter seemore-desktop stage
+
+      # Appended to the package script's electron-builder command.
+      - run: pnpm --filter seemore-desktop package ${{ matrix.args }}
+
+      - name: Verify the signature and launch the app
+        if: runner.os == 'macOS'
+        working-directory: packages/desktop
+        shell: bash
+        run: |
+          app="$(ls -d release/mac*/seemore.app | head -1)"
+          codesign --verify --deep --strict "$app"
+          node scripts/smoke-mac.mjs "$app"
+
+      # latest-mac.yml is left out: macOS updates through the signed latest-mac.json the
+      # release job writes (§10.3), and the two macOS builds would each upload their own.
+      - uses: actions/upload-artifact@v5
+        with:
+          name: desktop-${{ matrix.id }}
+          if-no-files-found: error
+          path: |
+            packages/desktop/release/*.zip
+            packages/desktop/release/*.dmg
+            packages/desktop/release/*.exe
+            packages/desktop/release/*.exe.blockmap
+            packages/desktop/release/*.AppImage
+            packages/desktop/release/*.deb
+            packages/desktop/release/latest.yml
+            packages/desktop/release/latest-linux.yml
+
+  release:
+    needs: [verify, build]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - uses: actions/download-artifact@v5
+        with:
+          pattern: desktop-*
+          path: assets
+          merge-multiple: true
+
+      - name: Write checksums
+        working-directory: assets
+        shell: bash
+        run: |
+          for f in *.zip *.dmg *.exe *.AppImage *.deb; do
+            sha256sum "$f" | cut -d' ' -f1 > "$f.sha256"
+          done
+
+      # Fails if the secret doesn't match the public key compiled into the app.
+      - name: Sign the macOS feed
+        env:
+          DESKTOP_UPDATE_KEY: ${{ secrets.DESKTOP_UPDATE_KEY }}
+          VERSION: ${{ needs.verify.outputs.version }}
+        run: |
+          node packages/desktop/scripts/sign-feed.mjs "$VERSION" \
+            "assets/seemore-$VERSION-mac-arm64.zip" "assets/seemore-$VERSION-mac-x64.zip" \
+            assets/latest-mac.json
+
+      # A draft until every upload has succeeded, so nobody sees a release with missing files.
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.verify.outputs.version }}
+          PRERELEASE: ${{ needs.verify.outputs.prerelease }}
+        shell: bash
+        run: |
+          tag="desktop-v$VERSION"
+          flags=(--draft --verify-tag --title "seemore desktop $VERSION" --notes "")
+          [ "$PRERELEASE" = "true" ] && flags+=(--prerelease)
+          gh release create "$tag" "${flags[@]}" assets/*
+          if [ "$PRERELEASE" = "true" ]; then
+            gh release edit "$tag" --draft=false
+          else
+            gh release edit "$tag" --draft=false --latest
+          fi
