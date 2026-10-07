@@ -61,7 +61,9 @@ jobs:
     permissions:
       contents: read
     strategy:
-      fail-fast: true
+      # Every platform reports, so one run shows every failure; the release job still
+      # needs them all.
+      fail-fast: false
       matrix:
         include:
           # Each on its own architecture: the staged CLI's native binaries are those of the

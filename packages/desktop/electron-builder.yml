@@ -100,6 +100,8 @@ linux:
     - target: deb
       arch: [x64]
   executableName: seemore-desktop
+  # The deb's Maintainer field, required; package.json's author has no email.
+  maintainer: Ariful Alam <arifszn@users.noreply.github.com>
   category: Development
   extraResources: [*stage]
   # The desktop file's MimeType (§13). Not `fileAssociations.mimeType`: that also installs a
