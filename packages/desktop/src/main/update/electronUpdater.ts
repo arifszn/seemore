@@ -4,11 +4,12 @@
  * build, and keeps its own download cache, so a staged update is restored by checking and
  * downloading again without fetching the file.
  */
-import electronUpdater from 'electron-updater';
+// A named import: the bundle is CJS (tsup.config.ts) and electron-updater sets `__esModule`,
+// so a default import comes out `undefined` and the app dies at startup with no window.
+import { autoUpdater } from 'electron-updater';
 import { type PlatformUpdater, type Staged, VerificationError } from './platform.js';
 
 export function createElectronUpdater(): PlatformUpdater {
-  const { autoUpdater } = electronUpdater;
   autoUpdater.autoDownload = false;
   // Quitting normally never installs (§10.1); only Restart to Update does.
   autoUpdater.autoInstallOnAppQuit = false;
