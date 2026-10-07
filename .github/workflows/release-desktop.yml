@@ -141,9 +141,12 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      # No pnpm here, so none of setup-node's caching, which turns itself on from the
+      # packageManager field in package.json and then fails to find pnpm.
       - uses: actions/setup-node@v5
         with:
           node-version: 22
+          package-manager-cache: false
 
       - uses: actions/download-artifact@v5
         with:
