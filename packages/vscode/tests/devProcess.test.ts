@@ -8,11 +8,29 @@ import { spawnDevServer } from '../src/devProcess.js';
 describe('spawnDevServer', () => {
   let scriptDir: string;
 
-  afterEach(() => {
-    // Retries: a child that spawnDevServer killed itself (the timeout case) can still hold
-    // the folder as its cwd for a moment, and Windows refuses to delete it until it exits.
-    if (scriptDir) rmSync(scriptDir, { recursive: true, force: true, maxRetries: 10 });
+  afterEach(async () => {
+    if (scriptDir) await removeWhenFree(scriptDir);
   });
+
+  /**
+   * Deletes a test folder. On Windows a server killed by spawnDevServer itself (the timeout
+   * case, which hands the test no process to wait for) can hold the folder as its cwd for a
+   * while, so this waits without blocking, and leaves the temp folder behind rather than
+   * failing a test over cleanup.
+   */
+  async function removeWhenFree(dir: string): Promise<void> {
+    for (let waited = 0; ; waited += 200) {
+      try {
+        rmSync(dir, { recursive: true, force: true });
+        return;
+      } catch (error) {
+        const code = (error as NodeJS.ErrnoException).code;
+        if (code !== 'EBUSY' && code !== 'EPERM') throw error;
+        if (waited >= 10_000) return;
+        await new Promise((resolve) => setTimeout(resolve, 200));
+      }
+    }
+  }
 
   /** Kills the server and waits for it to exit: on Windows its cwd can't be deleted before. */
   function stop(child: ChildProcess): Promise<void> {
