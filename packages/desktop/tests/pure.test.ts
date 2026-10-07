@@ -2,6 +2,7 @@ import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { pathsFromArgv } from '../src/main/argv.js';
+import { defaultHandlerPlatform, shouldOfferDefault } from '../src/main/defaultHandler.js';
 import { allowPermission, decideNavigation, decideNewWindow } from '../src/main/policy.js';
 import { addRecent, MAX_RECENTS, parseRecents } from '../src/main/recents.js';
 import { resolveTarget } from '../src/main/target.js';
@@ -147,5 +148,22 @@ describe('WindowRegistry', () => {
     registry.remove(1);
     expect(registry.roots()).toEqual(['/b']);
     expect(registry.root(1)).toBeUndefined();
+  });
+});
+
+describe('default handler', () => {
+  it('is offered only where Make Default can work', () => {
+    expect(defaultHandlerPlatform('darwin', true, undefined)).toBe('darwin');
+    expect(defaultHandlerPlatform('win32', true, undefined)).toBe('win32');
+    expect(defaultHandlerPlatform('linux', true, undefined)).toBe('linux');
+    expect(defaultHandlerPlatform('linux', true, '/home/me/seemore.AppImage')).toBeUndefined();
+    expect(defaultHandlerPlatform('darwin', false, undefined)).toBeUndefined();
+  });
+
+  it('asks once, and not on a launch that opened a path', () => {
+    expect(shouldOfferDefault(undefined, false)).toBe(true);
+    expect(shouldOfferDefault({ asked: true }, false)).toBe(false);
+    expect(shouldOfferDefault(undefined, true)).toBe(false);
+    expect(shouldOfferDefault({ asked: 'yes' }, false)).toBe(true);
   });
 });

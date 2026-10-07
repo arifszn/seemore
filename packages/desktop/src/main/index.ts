@@ -4,6 +4,7 @@
  */
 import { app, session } from 'electron';
 import { pathsFromArgv } from './argv.js';
+import { offerDefaultHandler } from './defaultHandler.js';
 import { DesktopApp } from './desktopApp.js';
 import { prepareCliWithProgress } from './preparing.js';
 import { installPermissionHandlers } from './siteWindow.js';
@@ -15,8 +16,11 @@ if (process.env.SEEMORE_USER_DATA !== undefined) app.setPath('userData', process
 let desktop: DesktopApp | undefined;
 /** Paths that arrive before `ready`: Finder launches the app and then sends `open-file`. */
 const pending: string[] = [];
+/** Whether any path has been opened since launch: the default-handler prompt skips such launches (§13). */
+let openedPath = false;
 
 const openPath = (path: string) => {
+  openedPath = true;
   if (desktop === undefined) pending.push(path);
   else void desktop.open(path);
 };
@@ -53,6 +57,7 @@ if (!app.requestSingleInstanceLock()) {
     const paths = [...pathsFromArgv(process.argv, process.cwd(), app.isPackaged), ...pending.splice(0)];
     if (paths.length === 0) await desktop.restoreSession();
     else for (const path of paths) await desktop.open(path);
+    void offerDefaultHandler(() => openedPath || paths.length > 0);
 
     // macOS keeps running with no windows; the dock icon brings back a start screen.
     app.on('activate', () => desktop?.focusOrStart());
