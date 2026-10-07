@@ -4,6 +4,12 @@
  */
 import { join } from 'node:path';
 import { app } from 'electron';
+// Inlined at build time. `scripts/stage-seemore.mjs` packs the same workspace package, so a
+// build expects exactly the CLI it ships.
+import { version } from '../../../seemore/package.json';
+
+/** The seemore version this build was made with; the bundled CLI must match it (§6). */
+export const EXPECTED_CLI_VERSION: string = version;
 
 function seemoreDir(): string {
   return app.isPackaged

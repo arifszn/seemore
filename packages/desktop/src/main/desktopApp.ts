@@ -6,9 +6,8 @@ import { existsSync, statSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { basename, dirname, join, resolve } from 'node:path';
 import { app, BrowserWindow, dialog, Menu, shell, utilityProcess } from 'electron';
-import { buildDevArgs, canonicalise, checkCliVersion, hasSeemoreConfig, readCliVersion } from '@seemore/host';
-import pkg from '../../package.json';
-import { cliEntry, cliPackageJson } from './cli.js';
+import { buildDevArgs, canonicalise, hasSeemoreConfig, readCliVersion } from '@seemore/host';
+import { cliEntry, cliPackageJson, EXPECTED_CLI_VERSION } from './cli.js';
 import { readJson, writeJson } from './jsonStore.js';
 import { openBuildSheet, registerBuildHandlers } from './buildSheet.js';
 import { type Job, startJob } from './jobs.js';
@@ -506,13 +505,20 @@ export class DesktopApp {
       });
   }
 
-  /** §6: checked once, before the first server starts; a mismatch means a broken install. */
+  /**
+   * §6: checked once, before the first server starts. The bundled CLI must be the version
+   * this build was made with; anything else is a broken install or, from source, a stale stage.
+   */
   private checkCliOnce(): void {
     if (this.cliChecked) return;
-    const check = checkCliVersion(readCliVersion(cliPackageJson()), pkg.seemore.minCliVersion);
-    if (!check.ok) {
-      const hint = app.isPackaged ? '' : ' Run `pnpm --filter seemore-desktop stage` to stage it.';
-      throw new Error(`${check.message}${hint}`);
+    const found = readCliVersion(cliPackageJson());
+    if (found !== EXPECTED_CLI_VERSION) {
+      const problem =
+        found === undefined
+          ? 'The bundled seemore CLI could not be read.'
+          : `The bundled seemore CLI is ${found}, but this app was built with ${EXPECTED_CLI_VERSION}.`;
+      const hint = app.isPackaged ? ' Reinstall the app.' : ' Run `pnpm --filter seemore-desktop stage` to stage it.';
+      throw new Error(`${problem}${hint}`);
     }
     this.cliChecked = true;
   }

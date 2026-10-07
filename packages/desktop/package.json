@@ -12,9 +12,6 @@
     "directory": "packages/desktop"
   },
   "main": "./dist/main.js",
-  "seemore": {
-    "minCliVersion": "1.12.16"
-  },
   "scripts": {
     "build": "tsup",
     "dev": "tsup && electron .",
