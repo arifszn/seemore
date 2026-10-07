@@ -14,7 +14,7 @@ import { type Job, startJob } from './jobs.js';
 import { buildMenu, MENU_IDS } from './menu.js';
 import { addRecent, parseRecents, type RecentEntry } from './recents.js';
 import { type Lease, ServerRegistry } from './serverRegistry.js';
-import { createSiteWindow, type SavedBounds } from './siteWindow.js';
+import { createSiteWindow, type SavedBounds, showOpening } from './siteWindow.js';
 import { createStartWindow, registerStartHandlers } from './startWindow.js';
 import { resolveTarget } from './target.js';
 import { createUpdater } from './update/index.js';
@@ -31,6 +31,8 @@ interface SiteRecord {
   rootGoneReported: boolean;
   /** From `/__seemore/site`, refreshed on every page load (§11 item 3). */
   site?: SiteInfo;
+  /** Settles once the first server start succeeds or fails; the window shows meanwhile (§5). */
+  starting?: Promise<void>;
 }
 
 interface SiteInfo {
@@ -144,18 +146,23 @@ export class DesktopApp {
   /** Launch with no path: reopen the windows that were open at quit, or the start screen. */
   async restoreSession(): Promise<void> {
     const missing: string[] = [];
-    for (const entry of this.windowsFile.session) {
-      if (!existsSync(entry.root)) {
-        missing.push(entry.root);
-        continue;
-      }
-      try {
-        const record = await this.createSite(entry.root);
-        void record.window.loadURL(`${record.origin}${entry.path}`);
-      } catch (error) {
-        this.showError(`Could not reopen ${entry.root}.`, error);
-      }
-    }
+    // All at once, each window with its own loading page (§5); a copy, since every window
+    // created rewrites the session.
+    const entries = [...this.windowsFile.session];
+    await Promise.all(
+      entries.map(async (entry) => {
+        if (!existsSync(entry.root)) {
+          missing.push(entry.root);
+          return;
+        }
+        try {
+          const record = await this.createSite(entry.root);
+          if (record !== undefined) void loadQuietly(record.window, `${record.origin}${entry.path}`);
+        } catch (error) {
+          this.showError(`Could not reopen ${entry.root}.`, error);
+        }
+      }),
+    );
     if (missing.length > 0) {
       void dialog.showMessageBox({
         type: 'warning',
@@ -163,7 +170,8 @@ export class DesktopApp {
         detail: missing.join('\n'),
       });
     }
-    if (this.records.size === 0) this.newWindow();
+    // A failed restore already left a start screen when it closed the last window.
+    if (BrowserWindow.getAllWindows().length === 0) this.newWindow();
   }
 
   /** File > New Window: a start screen. */
@@ -202,7 +210,7 @@ export class DesktopApp {
     if (record === undefined) return;
     try {
       const copy = await this.createSite(record.root);
-      void copy.window.loadURL(`${copy.origin}${record.lastPath}`);
+      if (copy !== undefined) void loadQuietly(copy.window, `${copy.origin}${record.lastPath}`);
     } catch (error) {
       this.showError(`Could not open another window on ${record.root}.`, error);
     }
@@ -299,9 +307,13 @@ export class DesktopApp {
         this.showError(`Could not open ${target.root}.`, error);
         return;
       }
+      if (record === undefined) return;
     } else {
       if (record.window.isMinimized()) record.window.restore();
       record.window.focus();
+      // A window restored at launch may still be on its loading page.
+      await record.starting;
+      if (record.window.isDestroyed() || record.origin === undefined) return;
     }
 
     if (target.kind === 'folder') {
@@ -361,6 +373,8 @@ export class DesktopApp {
 
   /** `/__seemore/site`, read afresh: a config edit changes it mid-session (§11 item 3). */
   private async refreshSite(record: SiteRecord): Promise<SiteInfo | undefined> {
+    // The loading or error page: no server to ask.
+    if (record.origin === undefined) return record.site;
     try {
       const res = await fetch(`${record.origin}/__seemore/site`);
       if (!res.ok) return record.site;
@@ -401,17 +415,18 @@ export class DesktopApp {
     }
   }
 
-  /** A window on `root`, with a lease on its server. The caller loads the first page. */
-  private async createSite(root: string): Promise<SiteRecord> {
+  /**
+   * A window on `root`, shown at once with the loading page, then a lease on its server (§5).
+   * The caller loads the first page. Undefined when the window was closed before the server
+   * was ready. A server that fails to start closes the window and rejects.
+   */
+  private async createSite(root: string): Promise<SiteRecord | undefined> {
     this.checkCliOnce();
-    const lease = await this.servers.acquire(root);
-    console.log(`seemore: ${root} at ${lease.server.origin}`);
-
     const record: SiteRecord = {
       window: undefined as never,
       root,
-      lease,
-      origin: lease.server.origin,
+      lease: undefined,
+      origin: undefined,
       lastPath: '/',
       rootGoneReported: false,
     };
@@ -452,7 +467,38 @@ export class DesktopApp {
       else writeJson(this.paths.windows, this.windowsFile);
     });
 
+    showOpening(record.window, root);
     this.saveSession();
+
+    const acquiring = this.servers.acquire(root);
+    record.starting = acquiring.then(
+      () => undefined,
+      () => undefined,
+    );
+    let lease: Lease;
+    try {
+      lease = await acquiring;
+    } catch (error) {
+      if (!record.window.isDestroyed()) {
+        // Out of the session first: a failed root shouldn't come back on the next launch.
+        this.records.delete(id);
+        this.windows.remove(id);
+        this.saveSession();
+        // Closing the last window quits on Windows and Linux; leave the start screen instead.
+        if (BrowserWindow.getAllWindows().length === 1) this.newWindow();
+        record.window.destroy();
+      }
+      throw error;
+    }
+    // Closed while the server started: the grace timer (§6) applies as for any closed window.
+    if (record.window.isDestroyed()) {
+      lease.release();
+      return undefined;
+    }
+    console.log(`seemore: ${root} at ${lease.server.origin}`);
+    record.lease = lease;
+    record.origin = lease.server.origin;
+    this.updateMenuState();
     this.noticeManyServers();
     return record;
   }
@@ -478,11 +524,19 @@ export class DesktopApp {
   }
 
   private async restart(record: SiteRecord): Promise<void> {
+    showOpening(record.window, record.root);
     try {
-      record.lease = await this.servers.acquire(record.root);
-      record.origin = record.lease.server.origin;
+      const lease = await this.servers.acquire(record.root);
+      if (record.window.isDestroyed()) {
+        lease.release();
+        return;
+      }
+      record.lease = lease;
+      record.origin = lease.server.origin;
+      this.updateMenuState();
       await loadQuietly(record.window, `${record.origin}${record.lastPath}`);
     } catch (error) {
+      if (!record.window.isDestroyed()) void record.window.loadFile(join(__dirname, 'error.html'));
       this.showError(`Could not restart the server for ${record.root}.`, error);
     }
   }

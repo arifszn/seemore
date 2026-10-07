@@ -2,7 +2,7 @@ import { spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { basename, join } from 'node:path';
 import { _electron as electron, type ElectronApplication, type Page } from 'playwright';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { packCli } from '../../scripts/pack-cli.mjs';
@@ -76,6 +76,16 @@ const open = (target: string, newWindow = false) =>
 const recorded = (key: 'dialogs' | 'opened') =>
   app!.evaluate((_electron, name) => (globalThis as Record<string, unknown>)[name] as string[], key);
 
+/**
+ * A site window's own page, once it is on the server. Not `firstWindow()`: until the site
+ * loads, the window's "Opening…" overlay (§5) is a page of its own, closed when the site loads.
+ */
+async function sitePage(except: Page[] = []): Promise<Page> {
+  const find = () => app!.windows().find((w) => w.url().startsWith('http') && !except.includes(w));
+  await expect.poll(() => find() !== undefined, { timeout: 60_000 }).toBe(true);
+  return find()!;
+}
+
 async function settled(page: Page, pathname: string): Promise<void> {
   await page.waitForURL((url) => url.pathname === pathname);
   await page.waitForSelector('article h1, h1');
@@ -84,7 +94,7 @@ async function settled(page: Page, pathname: string): Promise<void> {
 describe('desktop app', () => {
   it('opens a folder as a site, titled by the folder and the page', async () => {
     await launch(site);
-    const page = await app!.firstWindow();
+    const page = await sitePage();
     await settled(page, '/');
 
     const title = () => app!.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0]!.getTitle());
@@ -96,7 +106,7 @@ describe('desktop app', () => {
 
   it('shows a file from inside an open site in that site’s window', async () => {
     await launch(site);
-    const page = await app!.firstWindow();
+    const page = await sitePage();
     await settled(page, '/');
 
     await open(join(site, 'guide', 'intro.md'));
@@ -106,14 +116,14 @@ describe('desktop app', () => {
 
   it('lands on the home page and explains when the file is excluded', async () => {
     await launch(join(site, 'secret.md'));
-    const page = await app!.firstWindow();
+    const page = await sitePage();
     await settled(page, '/');
     await expect.poll(() => recorded('dialogs')).toContainEqual(expect.stringMatching(/secret\.md isn't part of this site/));
   });
 
   it('sends a hand-written external link to the browser and stays put', async () => {
     await launch(join(site, 'links.mdx'));
-    const page = await app!.firstWindow();
+    const page = await sitePage();
     await settled(page, '/links');
 
     // Through the DOM: Playwright's click would wait for a navigation the app cancels.
@@ -124,7 +134,7 @@ describe('desktop app', () => {
 
   it('never opens a window for window.open; the URL goes to the browser', async () => {
     await launch(join(site, 'links.mdx'));
-    const page = await app!.firstWindow();
+    const page = await sitePage();
     await settled(page, '/links');
 
     await page.click('#popup');
@@ -134,7 +144,7 @@ describe('desktop app', () => {
 
   it('lets a page write to the clipboard, the one permission it has', async () => {
     await launch(site);
-    const page = await app!.firstWindow();
+    const page = await sitePage();
     await settled(page, '/');
 
     await page.bringToFront();
@@ -151,34 +161,45 @@ describe('desktop app', () => {
     expect(denied).toBe('denied');
   });
 
+  it('shows a window with an opening page at once, removed when the site loads', async () => {
+    await launch(site);
+    const opening = () => app!.windows().find((w) => w.url().includes('opening.html'));
+    await expect.poll(() => opening() !== undefined, { timeout: 10_000 }).toBe(true);
+    expect(await opening()!.textContent('#label')).toBe(`Opening ${basename(site)}…`);
+
+    const page = await sitePage();
+    await settled(page, '/');
+    await expect.poll(() => opening() === undefined).toBe(true);
+    expect(await app!.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().map((w) => w.contentView.children.length))).toEqual([0]);
+  });
+
   it('opens a second window on the same server', async () => {
     await launch(site);
-    const page = await app!.firstWindow();
+    const page = await sitePage();
     await settled(page, '/');
 
-    const second = app!.waitForEvent('window');
     await open(site, true);
-    const other = await second;
+    const other = await sitePage([page]);
     await settled(other, '/');
     expect(new URL(other.url()).origin).toBe(new URL(page.url()).origin);
   });
 
   it('reopens the last session’s windows on a launch with no path', async () => {
     await launch(site);
-    const page = await app!.firstWindow();
+    const page = await sitePage();
     await settled(page, '/');
     await open(join(site, 'guide', 'intro.md'));
     await settled(page, '/guide/intro');
     await app!.close();
 
     await launch();
-    const restored = await app!.firstWindow();
+    const restored = await sitePage();
     await settled(restored, '/guide/intro');
   });
 
   it('hands a second launch’s path, relative to its own cwd, to the running app', async () => {
     await launch(site);
-    const page = await app!.firstWindow();
+    const page = await sitePage();
     await settled(page, '/');
 
     const electronPath = createRequire(import.meta.url)('electron') as unknown as string;
@@ -202,7 +223,7 @@ describe('desktop app', () => {
 
   it('offers a restart when the server crashes, and comes back on a new server', async () => {
     await launch(site);
-    const page = await app!.firstWindow();
+    const page = await sitePage();
     await settled(page, '/');
     const before = new URL(page.url()).origin;
 
@@ -219,7 +240,7 @@ describe('desktop app', () => {
 
   it('exports the current page as HTML, against the window’s root', async () => {
     await launch(join(site, 'guide', 'intro.md'));
-    const page = await app!.firstWindow();
+    const page = await sitePage();
     await settled(page, '/guide/intro');
 
     const out = join(workDir, 'Chosen Name.html');
@@ -240,7 +261,7 @@ describe('desktop app', () => {
   it('does not export from a site whose pageActions leave it out', async () => {
     writeFileSync(join(site, 'seemore.config.ts'), "export default { title: 'E2E', pageActions: [] };\n");
     await launch(site);
-    const page = await app!.firstWindow();
+    const page = await sitePage();
     await settled(page, '/');
 
     const asked = await app!.evaluate(async ({ BrowserWindow, dialog }) => {
@@ -260,7 +281,7 @@ describe('desktop app', () => {
   it('builds the site from the sheet, with the password passed to that build only', async () => {
     writeFileSync(join(site, 'seemore.config.ts'), "export default { title: 'E2E', auth: true };\n");
     await launch(site);
-    const page = await app!.firstWindow();
+    const page = await sitePage();
     await settled(page, '/');
 
     const sheetOpened = app!.waitForEvent('window');
@@ -287,7 +308,7 @@ describe('desktop app', () => {
   it('renders mermaid and D2 diagrams with the trimmed CLI', async () => {
     writeFileSync(join(site, 'diagrams.md'), '# Diagrams\n\n```mermaid\ngraph TD\n  A --> B\n```\n\n```d2\nx -> y\n```\n');
     await launch(join(site, 'diagrams.md'));
-    const page = await app!.firstWindow();
+    const page = await sitePage();
     await settled(page, '/diagrams');
 
     await page.waitForSelector('.seemore-mermaid svg', { timeout: 60_000 });
@@ -301,10 +322,7 @@ describe('desktop app', () => {
     const { sha256 } = await packCli(join(APP_DIR, 'build', 'stage', 'seemore'), archiveDir, { quality: 1 });
     await launchWithEnv({ SEEMORE_CLI_ARCHIVE: archiveDir }, site);
     // The first window is the one showing the unpacking; the site's comes after it.
-    await expect
-      .poll(() => app!.windows().find((w) => w.url().startsWith('http')) !== undefined, { timeout: 60_000 })
-      .toBe(true);
-    const page = app!.windows().find((w) => w.url().startsWith('http'))!;
+    const page = await sitePage();
     await settled(page, '/');
 
     const unpacked = join(userData, 'cli', sha256.slice(0, 16));

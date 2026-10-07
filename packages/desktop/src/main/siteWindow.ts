@@ -2,8 +2,8 @@
  * A window showing one site: the dev server's page loaded directly, sandboxed, with no preload
  * (DESKTOP-SPEC §8). Navigation, new windows and permissions follow `policy.ts`.
  */
-import { basename } from 'node:path';
-import { BrowserWindow, type Rectangle, shell } from 'electron';
+import { basename, join } from 'node:path';
+import { BrowserWindow, nativeTheme, type Rectangle, shell, WebContentsView } from 'electron';
 import { allowPermission, decideNavigation, decideNewWindow } from './policy.js';
 
 export interface SavedBounds extends Partial<Rectangle> {
@@ -31,6 +31,8 @@ export function createSiteWindow(options: SiteWindowOptions): BrowserWindow {
     y: bounds?.y,
     title: basename(root),
     show: false,
+    // The loading page's background (start.css), so the window never flashes white.
+    backgroundColor: nativeTheme.shouldUseDarkColors ? '#1c1c1e' : '#ffffff',
     webPreferences: {
       sandbox: true,
       contextIsolation: true,
@@ -50,7 +52,9 @@ export function createSiteWindow(options: SiteWindowOptions): BrowserWindow {
 
   window.on('page-title-updated', (event, title) => {
     event.preventDefault();
-    window.setTitle(title === '' ? basename(root) : `${basename(root)} - ${title}`);
+    // The loading and error pages are ours, not the site's: the folder name alone.
+    const local = webContents.getURL().startsWith('file:');
+    window.setTitle(title === '' || local ? basename(root) : `${basename(root)} - ${title}`);
   });
 
   webContents.on('will-navigate', (details) => {
@@ -68,6 +72,62 @@ export function createSiteWindow(options: SiteWindowOptions): BrowserWindow {
   });
 
   return window;
+}
+
+const openings = new WeakMap<BrowserWindow, () => void>();
+
+/**
+ * What a site window shows while its server starts and its first page loads (§5): a spinner
+ * and "Opening <root>…", a local page in the asar. An overlay, not the window's own page:
+ * navigating from that page to the server's origin blanks the window until the site paints,
+ * which on a first run is Vite's whole first compile. The window shows once the overlay has
+ * painted; the next load in the window's own page to finish or fail removes it.
+ */
+export function showOpening(window: BrowserWindow, root: string): void {
+  if (openings.has(window)) return;
+  const view = new WebContentsView({
+    webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false, webSecurity: true },
+  });
+  // Kept: `view.webContents` reads undefined once the window destroys the view.
+  const overlay = view.webContents;
+  view.setBackgroundColor(nativeTheme.shouldUseDarkColors ? '#1c1c1e' : '#ffffff');
+  overlay.on('will-navigate', (details) => details.preventDefault());
+  overlay.setWindowOpenHandler(() => ({ action: 'deny' }));
+  const fit = () => {
+    const { width, height } = window.getContentBounds();
+    view.setBounds({ x: 0, y: 0, width, height });
+  };
+  fit();
+  window.on('resize', fit);
+  window.contentView.addChildView(view);
+
+  const { webContents } = window;
+  const hide = () => {
+    if (openings.get(window) !== hide) return;
+    openings.delete(window);
+    webContents.off('did-finish-load', hide);
+    webContents.off('did-fail-load', failed);
+    if (window.isDestroyed()) return;
+    window.off('resize', fit);
+    window.contentView.removeChildView(view);
+    if (!overlay.isDestroyed()) overlay.close();
+    webContents.focus();
+  };
+  // -3 is ERR_ABORTED: a load replaced by the next one, not a failure. Subframes don't count.
+  const failed = (_event: Electron.Event, code: number, _description: string, _url: string, isMainFrame: boolean) => {
+    if (isMainFrame && code !== -3) hide();
+  };
+  openings.set(window, hide);
+  webContents.on('did-finish-load', hide);
+  webContents.on('did-fail-load', failed);
+  window.once('closed', () => {
+    if (!overlay.isDestroyed()) overlay.close();
+  });
+
+  overlay.once('did-finish-load', () => {
+    if (!window.isDestroyed() && !window.isVisible()) window.show();
+  });
+  void overlay.loadFile(join(__dirname, 'opening.html'), { query: { name: basename(root) } }).catch(() => undefined);
 }
 
 /**
