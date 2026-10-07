@@ -31,6 +31,7 @@
     "electron-updater": "6.8.9",
     "oxlint": "^1.80.0",
     "playwright": "1.63.0",
+    "tar": "7.5.22",
     "tsup": "8.5.1",
     "typescript": "5.9.3",
     "vitest": "4.1.11"

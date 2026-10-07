@@ -5,6 +5,7 @@
 import { app, session } from 'electron';
 import { pathsFromArgv } from './argv.js';
 import { DesktopApp } from './desktopApp.js';
+import { prepareCliWithProgress } from './preparing.js';
 import { installPermissionHandlers } from './siteWindow.js';
 import { offerMoveToApplications } from './update/index.js';
 
@@ -40,6 +41,11 @@ if (!app.requestSingleInstanceLock()) {
     installPermissionHandlers(session.defaultSession);
     // Moving relaunches the app from Applications; this instance just quits (§10.3).
     if (await offerMoveToApplications()) return;
+    // Windows unpacks the CLI on its first launch after an install or update (§9).
+    if (!(await prepareCliWithProgress())) {
+      app.quit();
+      return;
+    }
     desktop = new DesktopApp();
     // End-to-end tests drive `open()` directly instead of through OS dialogs.
     if (process.env.SEEMORE_E2E === '1') (globalThis as { seemoreDesktop?: DesktopApp }).seemoreDesktop = desktop;
@@ -53,6 +59,7 @@ if (!app.requestSingleInstanceLock()) {
   });
 
   app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') app.quit();
+    // Not while starting: closing the window that shows the CLI unpacking is no reason to quit.
+    if (process.platform !== 'darwin' && desktop !== undefined) app.quit();
   });
 }

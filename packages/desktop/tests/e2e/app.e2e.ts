@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { _electron as electron, type ElectronApplication, type Page } from 'playwright';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { packCli } from '../../scripts/pack-cli.mjs';
 
 const APP_DIR = join(import.meta.dirname, '..', '..');
 
@@ -35,10 +36,14 @@ afterEach(async () => {
 });
 
 async function launch(...paths: string[]): Promise<ElectronApplication> {
+  return launchWithEnv({}, ...paths);
+}
+
+async function launchWithEnv(env: Record<string, string>, ...paths: string[]): Promise<ElectronApplication> {
   app = await electron.launch({
     args: [APP_DIR, ...paths],
     cwd: '/',
-    env: { ...process.env, SEEMORE_USER_DATA: userData, SEEMORE_E2E: '1' } as Record<string, string>,
+    env: { ...process.env, SEEMORE_USER_DATA: userData, SEEMORE_E2E: '1', ...env } as Record<string, string>,
   });
   // Dialogs would block the run; record them and answer with the default (or a set) button.
   await app.evaluate(({ dialog, shell }) => {
@@ -288,5 +293,22 @@ describe('desktop app', () => {
     await page.waitForSelector('.seemore-mermaid svg', { timeout: 60_000 });
     await page.waitForSelector('.seemore-d2 svg', { timeout: 60_000 });
     expect(await page.$('.seemore-mermaid-error, .seemore-d2-error')).toBeNull();
+  });
+
+  // Windows' packaged path (§9), run here through SEEMORE_CLI_ARCHIVE.
+  it('unpacks the CLI archive on first launch and serves the site from it', async () => {
+    const archiveDir = join(workDir, 'archive');
+    const { sha256 } = await packCli(join(APP_DIR, 'build', 'stage', 'seemore'), archiveDir, { quality: 1 });
+    await launchWithEnv({ SEEMORE_CLI_ARCHIVE: archiveDir }, site);
+    // The first window is the one showing the unpacking; the site's comes after it.
+    await expect
+      .poll(() => app!.windows().find((w) => w.url().startsWith('http')) !== undefined, { timeout: 60_000 })
+      .toBe(true);
+    const page = app!.windows().find((w) => w.url().startsWith('http'))!;
+    await settled(page, '/');
+
+    const unpacked = join(userData, 'cli', sha256.slice(0, 16));
+    expect(existsSync(join(unpacked, 'node_modules', 'seemore', 'dist', 'cli', 'index.js'))).toBe(true);
+    expect(app!.windows().filter((w) => w.url().startsWith('file:') && w.url().endsWith('preparing.html'))).toHaveLength(0);
   });
 });

@@ -1,3 +1,4 @@
-# Output of scripts/stage-seemore.mjs and electron-builder
+# Output of scripts/stage-seemore.mjs, scripts/pack-cli.mjs and electron-builder
 build/stage/
+build/archive/
 release/

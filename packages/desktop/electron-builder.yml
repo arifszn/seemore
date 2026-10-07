@@ -20,15 +20,13 @@ npmRebuild: false
 electronLanguages: [en-US]
 icon: ../../assets/icon.png
 
-# The staged CLI (scripts/stage-seemore.mjs) goes to resources/seemore/, outside the asar.
-# electron-builder drops a node_modules at the root of a source, and keeps a nested one only
-# when the filter names it; hence the extra stage/ level.
-extraResources:
-  - from: build/stage
-    to: .
-    filter:
-      - '**/*'
-      - seemore/node_modules/**/*
+# The staged CLI (scripts/stage-seemore.mjs), outside the asar. macOS and Linux copy it to
+# resources/seemore/ (`extraResources` under mac and linux). electron-builder drops a
+# node_modules at the root of a source, and keeps a nested one only when the filter names it;
+# hence the extra stage/ level. Windows ships it as one archive the app unpacks on first
+# launch (scripts/pack-cli.mjs, run by this hook): NSIS can't write or delete paths past
+# MAX_PATH, and the CLI has some.
+beforePack: scripts/before-pack.cjs
 
 # camelCase keys, as in electron-builder's FuseOptionsV1 (§8).
 electronFuses:
@@ -53,6 +51,12 @@ mac:
   identity: '-'
   hardenedRuntime: false
   notarize: false
+  extraResources: &stage
+    - from: build/stage
+      to: .
+      filter:
+        - '**/*'
+        - seemore/node_modules/**/*
 
 dmg:
   artifactName: seemore-${version}-mac-${arch}.${ext}
@@ -61,6 +65,10 @@ win:
   target:
     - target: nsis
       arch: [x64]
+  extraResources:
+    - from: build/archive
+      to: .
+      filter: [seemore-cli.tar.br, seemore-cli.json]
 
 nsis:
   artifactName: seemore-Setup-${version}.${ext}
@@ -73,6 +81,7 @@ linux:
       arch: [x64]
   executableName: seemore-desktop
   category: Development
+  extraResources: *stage
 
 appImage:
   artifactName: seemore-${version}.${ext}
