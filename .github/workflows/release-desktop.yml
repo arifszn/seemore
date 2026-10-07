@@ -151,11 +151,11 @@ jobs:
       - uses: actions/download-artifact@v5
         with:
           pattern: desktop-*
-          path: assets
+          path: release-assets
           merge-multiple: true
 
       - name: Write checksums
-        working-directory: assets
+        working-directory: release-assets
         shell: bash
         run: |
           for f in *.zip *.dmg *.exe *.AppImage *.deb; do
@@ -169,8 +169,8 @@ jobs:
           VERSION: ${{ needs.verify.outputs.version }}
         run: |
           node packages/desktop/scripts/sign-feed.mjs "$VERSION" \
-            "assets/seemore-$VERSION-mac-arm64.zip" "assets/seemore-$VERSION-mac-x64.zip" \
-            assets/latest-mac.json
+            "release-assets/seemore-$VERSION-mac-arm64.zip" "release-assets/seemore-$VERSION-mac-x64.zip" \
+            release-assets/latest-mac.json
 
       # A draft until every upload has succeeded, so nobody sees a release with missing files.
       - name: Publish the release
@@ -183,7 +183,7 @@ jobs:
           tag="desktop-v$VERSION"
           flags=(--draft --verify-tag --title "seemore desktop $VERSION" --notes "")
           [ "$PRERELEASE" = "true" ] && flags+=(--prerelease)
-          gh release create "$tag" "${flags[@]}" assets/*
+          gh release create "$tag" "${flags[@]}" release-assets/*
           if [ "$PRERELEASE" = "true" ]; then
             gh release edit "$tag" --draft=false
           else
