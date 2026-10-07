@@ -1,5 +1,7 @@
 import { existsSync } from 'node:fs';
 import { dirname, relative, resolve } from 'node:path';
+import { nameToEmoji } from 'gemoji';
+import { findAndReplace } from 'mdast-util-find-and-replace';
 import { visit } from 'unist-util-visit';
 import type { Blockquote, Code, Image, Paragraph, PhrasingContent, Root, Text, Yaml } from 'mdast';
 import type { Transformer } from 'unified';
@@ -133,6 +135,42 @@ export function remarkSeemoreWikilinks(options: SeemoreRemarkOptions): Transform
       parent.children.splice(index, 1, ...replacement);
       return index + replacement.length;
     });
+  };
+}
+
+const SHORTCODE = /:(\+1|[-\w]+):/g;
+
+/**
+ * Slack's names for the colored circles and squares, which GitHub spells without `large_`
+ * (`:yellow_circle:`). They are what status legends copied out of Slack are written in.
+ */
+const SLACK_SHORTCODES: Record<string, string> = {
+  large_orange_circle: '🟠',
+  large_yellow_circle: '🟡',
+  large_green_circle: '🟢',
+  large_purple_circle: '🟣',
+  large_brown_circle: '🟤',
+  large_red_square: '🟥',
+  large_orange_square: '🟧',
+  large_yellow_square: '🟨',
+  large_green_square: '🟩',
+  large_blue_square: '🟦',
+  large_purple_square: '🟪',
+  large_brown_square: '🟫',
+};
+
+/**
+ * `:white_check_mark:` becomes ✅, from GitHub's own gemoji dataset, as GitHub renders it.
+ *
+ * Only text nodes are touched, so a shortcode in inline code or a fence stays as written,
+ * and an unknown `:name:` is left alone rather than eaten.
+ */
+export function remarkSeemoreEmoji(): Transformer<Root, Root> {
+  return (tree) => {
+    findAndReplace(tree, [
+      SHORTCODE,
+      (_: string, name: string) => nameToEmoji[name] ?? SLACK_SHORTCODES[name] ?? false,
+    ]);
   };
 }
 

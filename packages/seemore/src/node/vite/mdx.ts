@@ -18,6 +18,7 @@ import {
   remarkSeemoreAlerts,
   remarkSeemoreAssets,
   remarkSeemoreD2,
+  remarkSeemoreEmoji,
   remarkSeemoreLinks,
   remarkSeemoreMarkdownSource,
   remarkSeemoreWikilinks,
@@ -78,6 +79,8 @@ export function createRemarkPlugins(options: SeemoreRemarkOptions): PluggableLis
     remarkMdxMermaid,
     // Rewrites ```d2 fences to <D2 chart="…" />, mermaid's sibling for D2 diagrams.
     remarkSeemoreD2,
+    // After the copy snapshot, so a paste keeps the shortcodes the author typed.
+    remarkSeemoreEmoji,
     () => remarkSeemoreWikilinks(options),
     () => remarkSeemoreLinks(options),
   ];
