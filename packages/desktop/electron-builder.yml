@@ -1,0 +1,77 @@
+# DESKTOP-SPEC §9. Every build runs with `--publish never`; the release job uploads (§14.3).
+appId: dev.seemore.desktop
+productName: seemore
+copyright: Copyright © Ariful Alam
+
+directories:
+  output: release
+  buildResources: build
+
+# tsup bundles everything the app imports into dist/, so there are no runtime dependencies
+# to collect and nothing native to rebuild.
+files:
+  - dist/**/*
+  - '!dist/**/*.map'
+  - package.json
+npmRebuild: false
+icon: ../../assets/icon.png
+
+# The staged CLI (scripts/stage-seemore.mjs) goes to resources/seemore/, outside the asar.
+# electron-builder drops a node_modules at the root of a source, and keeps a nested one only
+# when the filter names it; hence the extra stage/ level.
+extraResources:
+  - from: build/stage
+    to: .
+    filter:
+      - '**/*'
+      - seemore/node_modules/**/*
+
+# camelCase keys, as in electron-builder's FuseOptionsV1 (§8).
+electronFuses:
+  runAsNode: false
+  enableNodeOptionsEnvironmentVariable: false
+  enableNodeCliInspectArguments: false
+  enableEmbeddedAsarIntegrityValidation: true
+  onlyLoadAppFromAsar: true
+  resetAdHocDarwinSignature: true
+
+# Needed for latest.yml, latest-linux.yml and app-update.yml, though nothing is published here.
+publish:
+  provider: github
+  owner: arifszn
+  repo: seemore
+
+mac:
+  target: [zip, dmg]
+  category: public.app-category.developer-tools
+  artifactName: seemore-${version}-mac-${arch}.${ext}
+  # Ad-hoc: Apple Silicon won't run unsigned native code. No Developer ID, no notarization.
+  identity: '-'
+  hardenedRuntime: false
+  notarize: false
+
+dmg:
+  artifactName: seemore-${version}-mac-${arch}.${ext}
+
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+
+nsis:
+  artifactName: seemore-Setup-${version}.${ext}
+
+linux:
+  target:
+    - target: AppImage
+      arch: [x64]
+    - target: deb
+      arch: [x64]
+  executableName: seemore-desktop
+  category: Development
+
+appImage:
+  artifactName: seemore-${version}.${ext}
+
+deb:
+  artifactName: seemore_${version}_amd64.${ext}

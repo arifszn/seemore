@@ -8,6 +8,8 @@
  * the tarball into a directory pnpm has never touched. The CLI runs from disk with its real
  * dependency tree, native binaries included, so no workspace symlink may reach a release.
  *
+ * Then `trim-seemore.mjs` removes source maps, type definitions and docs (§9).
+ *
  * The extra `stage/` level is required: electron-builder always drops a `node_modules` at the
  * root of an `extraResources` source, and keeps a nested one only when a filter names it.
  */
@@ -16,6 +18,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { trim } from './trim-seemore.mjs';
 
 const desktopDir = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const repoRoot = resolve(desktopDir, '..', '..');
@@ -46,5 +49,8 @@ try {
 } finally {
   rmSync(packDir, { recursive: true, force: true });
 }
+
+const { files, bytes } = trim(stageDir);
+console.log(`seemore-desktop: trimmed ${files} files, ${(bytes / 1048576).toFixed(1)} MB.`);
 
 console.log(`seemore-desktop: staged seemore@${version}.`);

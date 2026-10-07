@@ -276,4 +276,17 @@ describe('desktop app', () => {
     expect(await sheet.textContent('#log')).not.toBe('');
     expect(await app!.evaluate(() => process.env.SEEMORE_PASSWORD)).toBeUndefined();
   });
+
+  // The staged CLI is trimmed (scripts/trim-seemore.mjs); the two largest client-side
+  // dependencies must still load from it.
+  it('renders mermaid and D2 diagrams with the trimmed CLI', async () => {
+    writeFileSync(join(site, 'diagrams.md'), '# Diagrams\n\n```mermaid\ngraph TD\n  A --> B\n```\n\n```d2\nx -> y\n```\n');
+    await launch(join(site, 'diagrams.md'));
+    const page = await app!.firstWindow();
+    await settled(page, '/diagrams');
+
+    await page.waitForSelector('.seemore-mermaid svg', { timeout: 60_000 });
+    await page.waitForSelector('.seemore-d2 svg', { timeout: 60_000 });
+    expect(await page.$('.seemore-mermaid-error, .seemore-d2-error')).toBeNull();
+  });
 });
