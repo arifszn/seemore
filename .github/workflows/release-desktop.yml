@@ -7,6 +7,8 @@ name: Release desktop
 on:
   push:
     tags: ['desktop-v*']
+  # A dry run from any branch: verify and build, but never the release job.
+  workflow_dispatch:
 
 concurrency:
   group: release-desktop-${{ github.ref }}
@@ -36,7 +38,7 @@ jobs:
         run: |
           tag="${GITHUB_REF_NAME#desktop-v}"
           version="$(node -p "require('./packages/desktop/package.json').version")"
-          if [ "$tag" != "$version" ]; then
+          if [ "$GITHUB_REF_TYPE" = "tag" ] && [ "$tag" != "$version" ]; then
             echo "Tag $GITHUB_REF_NAME does not match packages/desktop/package.json version $version." >&2
             exit 1
           fi
@@ -95,6 +97,12 @@ jobs:
 
       # Appended to the package script's electron-builder command.
       - run: pnpm --filter seemore-desktop package ${{ matrix.args }}
+        shell: bash
+
+      - name: List the packaged outputs
+        if: always()
+        shell: bash
+        run: ls -la packages/desktop/release packages/desktop/build/archive 2>&1 || true
 
       - name: Verify the signature and launch the app
         if: runner.os == 'macOS'
@@ -123,6 +131,7 @@ jobs:
 
   release:
     needs: [verify, build]
+    if: github.ref_type == 'tag'
     runs-on: ubuntu-24.04
     permissions:
       contents: write

@@ -23,6 +23,17 @@ exports.default = async function beforePack(context) {
   if (context.electronPlatformName !== 'win32') return;
   const { packCli } = await import('./pack-cli.mjs');
   console.log('seemore-desktop: packing the staged CLI for Windows...');
-  const { sha256 } = await packCli(join(desktopDir, 'build', 'stage', 'seemore'), join(desktopDir, 'build', 'archive'));
-  console.log(`seemore-desktop: packed seemore-cli.tar.br (${sha256.slice(0, 16)})`);
+  // If the archive's streams stall, Node drains its event loop and exits 0 with nothing
+  // packed, and electron-builder with it (seen on the first CI run). Make that a failure.
+  const drained = () => {
+    console.error('seemore-desktop: exited while packing the CLI; nothing was packed.');
+    process.exitCode = 1;
+  };
+  process.once('beforeExit', drained);
+  try {
+    const { sha256 } = await packCli(join(desktopDir, 'build', 'stage', 'seemore'), join(desktopDir, 'build', 'archive'));
+    console.log(`seemore-desktop: packed seemore-cli.tar.br (${sha256.slice(0, 16)})`);
+  } finally {
+    process.off('beforeExit', drained);
+  }
 };
