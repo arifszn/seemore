@@ -110,7 +110,7 @@ Or call the skill by name:
 </details>
 
 <p align="center">
-  <video src="https://github.com/user-attachments/assets/dd8280d2-fc8a-47c9-b2db-b1a1ccde81ce" width="640" controls muted></video>
+  <video src="https://github.com/user-attachments/assets/10f105c9-924e-4a89-bcba-4d46eefe928d" width="640" controls muted></video>
 </p>
 
 ## What you get
