@@ -20,6 +20,17 @@ describe('toRoute: path → URL', () => {
     expect(toRoute('guide/api.mdx').url).toBe('/guide/api');
   });
 
+  it('treats .markdown the same as .md', () => {
+    expect(toRoute('guide/api.markdown').url).toBe('/guide/api');
+    expect(toRoute('guide/index.markdown').isIndex).toBe(true);
+  });
+
+  it('reports a .md and a .markdown file of the same name as a duplicate route', () => {
+    const { routes, errors } = resolveRoutes(['notes.md', 'notes.markdown']);
+    expect(routes).toEqual([]);
+    expect(errors[0]).toContain('Duplicate route /notes');
+  });
+
   it('slugifies every directory segment, not only the basename', () => {
     expect(toRoute('Getting Started/First Steps.md').url).toBe('/getting-started/first-steps');
   });

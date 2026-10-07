@@ -1,8 +1,9 @@
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname } from 'node:path';
 import type { Plugin, ViteDevServer } from 'vite';
 import { withBase } from '../base.js';
+import { loadConfig } from '../config/load.js';
 import type { SeemoreContext } from '../context.js';
 import { buildSearchIndex } from '../search/build.js';
 import { toPosix } from '../content/slug.js';
@@ -183,6 +184,39 @@ export function seemorePlugin({ ctx, serveSearch = false }: SeemorePluginOptions
         res.end(JSON.stringify({ url: withBase(ctx.config.base, page.url) }));
       });
 
+      // The inverse of the route endpoint: which source file a URL renders. A host that only
+      // knows the address its window is on (the desktop app's Export) asks here.
+      devServer.middlewares.use((req, res, next) => {
+        const [path = '', query = ''] = (req.url ?? '').split('?');
+        if (path !== '/__seemore/page') return next();
+
+        const url = new URLSearchParams(query).get('url');
+        if (url === null) return send(res, 400, { error: 'Missing "url" query parameter.' });
+
+        const route = routeOf(url, ctx.config.base);
+        const page = ctx.pages().find((p) => p.url === route);
+        if (page === undefined) return send(res, 404, { error: `No page is served at ${url}.` });
+        return send(res, 200, { file: page.absPath });
+      });
+
+      // The parts of the config a host acts on, read afresh on every request: a config edit
+      // during the session reloads the page but not the server's own copy of these values,
+      // and a host cannot evaluate a TypeScript config itself. `auth` is a yes or no, never
+      // the settings behind it.
+      devServer.middlewares.use((req, res, next) => {
+        const path = (req.url ?? '').split('?')[0] ?? '';
+        if (path !== '/__seemore/site') return next();
+
+        const configFile = ctx.config.configFile;
+        void loadConfig({
+          root: ctx.contentRoot,
+          configPath: configFile !== undefined && existsSync(configFile) ? configFile : undefined,
+        }).then(
+          ({ config }) => send(res, 200, { base: config.base, pageActions: config.pageActions, auth: config.auth !== undefined }),
+          (error: unknown) => send(res, 500, { error: error instanceof Error ? error.message : String(error) }),
+        );
+      });
+
       // Reads and writes one block of a page's Markdown, for the browser's inline editor.
       //
       // Dev-only for the obvious reason — a static build has no server — and behind a
@@ -211,12 +245,39 @@ export function seemorePlugin({ ctx, serveSearch = false }: SeemorePluginOptions
   };
 }
 
+/**
+ * A page URL as a route: base, query, hash and any trailing slash removed, so it can be
+ * compared with `page.url`.
+ */
+function routeOf(url: string, base: string): string {
+  let path: string;
+  try {
+    path = decodeURIComponent(new URL(url, 'http://localhost').pathname);
+  } catch {
+    return url;
+  }
+  if (base !== '/') {
+    if (path === base.slice(0, -1)) path = '/';
+    else if (path.startsWith(base)) path = path.slice(base.length - 1);
+  }
+  return path.length > 1 ? path.replace(/\/+$/, '') : path;
+}
+
 /** Reads and writes a block of Markdown, addressed by source offsets. */
 const SOURCE_ENDPOINT = '/__seemore/source';
 
 async function handleSource(ctx: SeemoreContext, req: IncomingMessage, res: ServerResponse): Promise<void> {
   if (req.method === 'GET') return handleSourceRead(ctx, req, res);
-  if (req.method === 'PUT') return handleSourceWrite(ctx, req, res);
+  if (req.method === 'PUT') {
+    // Vite's CORS default admits any localhost origin, so another dev server open in the same
+    // browser, or another site in the desktop app, could otherwise write here. A request
+    // without an `Origin` (a host calling from Node) is not a browser's, and passes.
+    const origin = req.headers.origin;
+    if (origin !== undefined && origin !== `http://${req.headers.host ?? ''}`) {
+      return send(res, 403, { error: 'Writes are only accepted from this site\'s own pages.' });
+    }
+    return handleSourceWrite(ctx, req, res);
+  }
 
   res.setHeader('Allow', 'GET, PUT');
   return send(res, 405, { error: `${req.method ?? 'This method'} is not allowed here.` });

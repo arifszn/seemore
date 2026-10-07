@@ -200,3 +200,67 @@ describe('the dev server source endpoint', () => {
     expect(response.headers.get('content-type')).not.toContain('application/json');
   });
 });
+
+describe('the source endpoint only takes writes from its own pages', () => {
+  let contentRoot: string;
+  let dev: DevServer | undefined;
+
+  afterEach(async () => {
+    await dev?.close();
+    dev = undefined;
+    if (contentRoot) rmSync(contentRoot, { recursive: true, force: true });
+  });
+
+  const markdown = '# Title\n\nFirst para.\n';
+  const start = markdown.indexOf('First para.');
+  const end = start + 'First para.'.length;
+
+  const setup = async () => {
+    contentRoot = mkdtempSync(join(tmpdir(), 'seemore-origin-'));
+    writeFileSync(join(contentRoot, 'page.md'), markdown);
+    dev = await runDev({ cwd: contentRoot, port: 0 });
+    const origin = new URL(dev.url).origin;
+    const file = join(contentRoot, 'page.md');
+    const put = (headers: Record<string, string>) =>
+      fetch(`${origin}/__seemore/source`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', ...headers },
+        body: JSON.stringify({ file, start, end, expected: 'First para.', text: 'Changed.' }),
+      });
+    return { origin, file, put };
+  };
+
+  it('refuses a write from another localhost origin, and leaves the file alone', async () => {
+    const { file, put } = await setup();
+
+    const res = await put({ Origin: 'http://localhost:9999' });
+    expect(res.status).toBe(403);
+    expect(readFileSync(file, 'utf8')).toBe(markdown);
+  });
+
+  it('accepts a write from its own origin', async () => {
+    const { origin, file, put } = await setup();
+
+    expect((await put({ Origin: origin })).status).toBe(200);
+    expect(readFileSync(file, 'utf8')).toBe('# Title\n\nChanged.\n');
+  });
+
+  it('accepts a write with no Origin, as a host calling from Node sends', async () => {
+    const { put } = await setup();
+    expect((await put({})).status).toBe(200);
+  });
+
+  it('answers a cross-origin preflight without CORS headers', async () => {
+    const { origin } = await setup();
+
+    const res = await fetch(`${origin}/__seemore/source`, {
+      method: 'OPTIONS',
+      headers: {
+        Origin: 'http://localhost:9999',
+        'Access-Control-Request-Method': 'PUT',
+        'Access-Control-Request-Headers': 'content-type',
+      },
+    });
+    expect(res.headers.get('access-control-allow-origin')).toBeNull();
+  });
+});

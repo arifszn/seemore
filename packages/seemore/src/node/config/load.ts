@@ -4,9 +4,8 @@ import { createJiti } from 'jiti';
 import { z } from 'zod';
 import { normaliseBase } from '../base.js';
 import { FEATURES, resolveFeatures, type FeaturesInput, type ResolvedFeatures } from './features.js';
+import { CONFIG_NAMES } from './names.js';
 import { configSchema, THEMES, type SeemoreConfig, type ResolvedSeemoreConfig, type SearchConfig } from './schema.js';
-
-const CONFIG_NAMES = ['seemore.config.ts', 'seemore.config.mts', 'seemore.config.js', 'seemore.config.mjs'];
 
 export interface LoadConfigOptions {
   /**

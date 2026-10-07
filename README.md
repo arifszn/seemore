@@ -234,7 +234,7 @@ The [themes page](https://arifszn.github.io/seemore/themes) shows all twelve.
 
 ## Content
 
-Works with both `.md` and `.mdx`. **[Mermaid](https://mermaid.js.org)** and **[D2](https://d2lang.com)** diagrams render live in the browser, straight from a ` ```mermaid ` or ` ```d2 ` code fence:
+Works with `.md`, `.markdown` and `.mdx`. **[Mermaid](https://mermaid.js.org)** and **[D2](https://d2lang.com)** diagrams render live in the browser, straight from a ` ```mermaid ` or ` ```d2 ` code fence:
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/diagrams.png" alt="A mermaid code fence on the Diagrams page, with the flowchart it produces below: folder of .md into seemore, then a live site and static HTML" width="640"/>

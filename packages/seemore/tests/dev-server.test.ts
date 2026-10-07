@@ -2,7 +2,9 @@ import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { compile } from '@mdx-js/mdx';
 import { runDev, type DevReady, type DevServer } from '../src/cli/dev.js';
+import { rehypeSeemoreRawHtml } from '../src/node/vite/raw.js';
 
 describe('dev server machine-readable ready line', () => {
   let contentRoot: string;
@@ -193,5 +195,106 @@ describe('config discovery when a directory is given', () => {
     dev = await runDev({ cwd: workspace, dir: 'site', configPath: 'custom.config.ts', port: 0 });
 
     expect(dev.ctx.config.title).toBe('Named By Flag');
+  });
+});
+
+describe('dev-only page and site endpoints', () => {
+  let contentRoot: string;
+  let dev: DevServer | undefined;
+
+  afterEach(async () => {
+    await dev?.close();
+    dev = undefined;
+    if (contentRoot) rmSync(contentRoot, { recursive: true, force: true });
+  });
+
+  const start = async (config: string) => {
+    contentRoot = mkdtempSync(join(tmpdir(), 'seemore-page-'));
+    mkdirSync(join(contentRoot, 'guide'));
+    writeFileSync(join(contentRoot, 'index.md'), '# Home\n');
+    writeFileSync(join(contentRoot, 'guide', 'intro.md'), '# Intro\n');
+    writeFileSync(join(contentRoot, 'seemore.config.ts'), config);
+    dev = await runDev({ cwd: contentRoot, port: 0 });
+    contentRoot = dev.ctx.contentRoot;
+    return new URL(dev.url).origin;
+  };
+
+  const page = (origin: string, url: string) =>
+    fetch(`${origin}/__seemore/page?url=${encodeURIComponent(url)}`);
+
+  it('maps a URL, base included, back to its source file', async () => {
+    const origin = await start("export default { title: 'Docs', base: '/docs/' };");
+
+    for (const url of ['/docs/guide/intro', '/docs/guide/intro/', '/docs/guide/intro?x=1#top']) {
+      const res = await page(origin, url);
+      expect(res.status).toBe(200);
+      expect(await res.json()).toEqual({ file: join(contentRoot, 'guide', 'intro.md') });
+    }
+    for (const url of ['/docs/', '/docs']) {
+      expect(await (await page(origin, url)).json()).toEqual({ file: join(contentRoot, 'index.md') });
+    }
+  });
+
+  it('404s for a URL no page is served at, and 400s without one', async () => {
+    const origin = await start("export default { title: 'Docs' };");
+
+    expect((await page(origin, '/nope')).status).toBe(404);
+    expect((await fetch(`${origin}/__seemore/page`)).status).toBe(400);
+  });
+
+  it('reports base, pageActions and whether auth is set, never its settings', async () => {
+    const origin = await start(
+      "export default { title: 'Docs', base: '/docs/', pageActions: ['copy-markdown'], auth: { id: 'vault' } };",
+    );
+
+    const res = await fetch(`${origin}/__seemore/site`);
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ base: '/docs/', pageActions: ['copy-markdown'], auth: true });
+  });
+
+  it('reads the config afresh, so an edit during the session shows up', async () => {
+    const origin = await start("export default { title: 'Docs' };");
+    expect(((await (await fetch(`${origin}/__seemore/site`)).json()) as { auth: boolean }).auth).toBe(false);
+
+    writeFileSync(join(contentRoot, 'seemore.config.ts'), "export default { title: 'Docs', pageActions: [] };");
+    expect(await (await fetch(`${origin}/__seemore/site`)).json()).toMatchObject({ pageActions: [] });
+  });
+});
+
+describe('.markdown pages', () => {
+  let contentRoot: string;
+  let dev: DevServer | undefined;
+
+  afterEach(async () => {
+    await dev?.close();
+    dev = undefined;
+    if (contentRoot) rmSync(contentRoot, { recursive: true, force: true });
+  });
+
+  it('are scanned and routed like .md', async () => {
+    contentRoot = mkdtempSync(join(tmpdir(), 'seemore-markdown-ext-'));
+    writeFileSync(join(contentRoot, 'index.md'), '# Home\n');
+    writeFileSync(join(contentRoot, 'notes.markdown'), '# Notes\n\nPress <kbd>K</kbd>.\n');
+
+    dev = await runDev({ cwd: contentRoot, port: 0 });
+    contentRoot = dev.ctx.contentRoot;
+    const file = join(contentRoot, 'notes.markdown');
+
+    const res = await fetch(`${new URL(dev.url).origin}/__seemore/route?file=${encodeURIComponent(file)}`);
+    expect(await res.json()).toEqual({ url: '/notes' });
+  });
+
+  it('get their raw HTML rendered, as .md does and .mdx does not', async () => {
+    const render = async (path: string) =>
+      String(
+        await compile(
+          { value: 'Press <kbd>K</kbd>.\n', path },
+          { format: 'md', rehypePlugins: [rehypeSeemoreRawHtml], jsx: true },
+        ),
+      );
+
+    expect(await render('/site/notes.markdown')).toContain('<_components.kbd>');
+    expect(await render('/site/notes.md')).toContain('<_components.kbd>');
+    expect(await render('/site/notes.mdx')).not.toContain('<_components.kbd>');
   });
 });

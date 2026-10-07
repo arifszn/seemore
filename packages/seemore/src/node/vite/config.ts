@@ -126,6 +126,9 @@ export function createViteConfig({ ctx, mode, outDir, ssrOutDir, auth = false }:
     },
 
     server: {
+      // Off rather than Vite's default, which admits every localhost origin: the dev server
+      // has a write endpoint, and its own pages are the only callers it means to answer.
+      cors: false,
       fs: {
         // The content root is normally *outside* the Vite root, and files outside `allow`
         // 404 silently — the single most likely cause of "the watcher does nothing".
@@ -211,7 +214,7 @@ function contentHmrPlugin(): Plugin {
     name: 'seemore:content-hmr',
     apply: 'serve',
     transform(code, id) {
-      if (!/\.mdx?(?:$|\?)/.test(id)) return null;
+      if (!/\.(?:mdx?|markdown)(?:$|\?)/.test(id)) return null;
       return { code: `${code}\nif (import.meta.hot) import.meta.hot.accept();\n`, map: null };
     },
   };

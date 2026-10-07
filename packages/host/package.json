@@ -1,0 +1,26 @@
+{
+  "name": "@seemore/host",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Code shared by the hosts that run the seemore CLI: the VS Code extension and the desktop app. Bundled into each, never published.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "oxlint --deny-warnings src tests"
+  },
+  "dependencies": {
+    "seemore": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^26.4.0",
+    "oxlint": "^1.80.0",
+    "typescript": "5.9.3",
+    "vitest": "4.1.11"
+  }
+}

@@ -46,7 +46,7 @@ export function rehypeSeemoreRawHtml(): Transformer<Root, Root> {
     // Vite ids arrive with a query string (`?import`, an HMR timestamp), so match the
     // extension inside the path rather than trusting `file.extname` to have been parsed off.
     const path = file.path ?? '';
-    if (!/\.md(?:$|\?)/.test(path)) return tree;
+    if (!/\.(?:md|markdown)(?:$|\?)/.test(path)) return tree;
 
     return transform(tree, file);
   };

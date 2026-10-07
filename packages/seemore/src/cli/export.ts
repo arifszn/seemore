@@ -1,5 +1,5 @@
 import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync, mkdirSync } from 'node:fs';
-import { basename, dirname, extname, join, relative, resolve } from 'node:path';
+import { basename, dirname, extname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { tmpdir } from 'node:os';
 import pc from 'picocolors';
 import { build as viteBuild } from 'vite';
@@ -17,6 +17,10 @@ export interface ExportOptions {
   file: string;
   /** Directory to write the HTML into; default is next to the source file. */
   out?: string;
+  /** Exact path to write the HTML to, for a name chosen elsewhere. Not combined with `out`. */
+  outFile?: string;
+  /** Content root to export against; default is the file's own folder. Must contain the file. */
+  root?: string;
   configPath?: string;
   base?: string;
 }
@@ -35,10 +39,17 @@ export async function runExport(options: ExportOptions): Promise<void> {
   if (!existsSync(target) || !statSync(target).isFile()) {
     throw new Error(`No such file: ${options.file}`);
   }
+  if (options.out !== undefined && options.outFile !== undefined) {
+    throw new Error('--out and --out-file cannot be combined: --out names a directory, --out-file the exact file.');
+  }
 
-  // The file decides the site: its folder is the content root, exactly as `seemore <dir>`
-  // would treat that folder for the whole site.
-  const contentRoot = resolveContentRoot(options.cwd, dirname(target));
+  // By default the file decides the site: its folder is the content root, exactly as
+  // `seemore <dir>` would treat that folder for the whole site. `--root` names a wider site
+  // instead, so the export's links agree with the site the page is being read in.
+  const contentRoot = resolveContentRoot(options.cwd, options.root ?? dirname(target));
+  if (options.root !== undefined && !isInside(canonicalise(target), contentRoot)) {
+    throw new Error(`${options.file} is not inside the root ${options.root}.`);
+  }
   const loaded = await loadConfig({ root: contentRoot, configPath: resolveConfigPath(options) });
   const config = {
     ...loaded.config,
@@ -81,9 +92,13 @@ export async function runExport(options: ExportOptions): Promise<void> {
 
     const html = assemble({ article, css, runtime, config, outDir, contentRoot, template });
 
-    const filename = `${basename(target).replace(/\.(?:md|mdx)$/i, '')}.html`;
+    const filename = `${basename(target).replace(/\.(?:md|markdown|mdx)$/i, '')}.html`;
     const targetPath =
-      options.out === undefined ? join(dirname(target), filename) : join(resolve(options.cwd, options.out), filename);
+      options.outFile !== undefined
+        ? resolve(options.cwd, options.outFile)
+        : options.out === undefined
+          ? join(dirname(target), filename)
+          : join(resolve(options.cwd, options.out), filename);
 
     if (existsSync(targetPath)) {
       console.log(pc.yellow(`seemore  replacing existing ${relative(options.cwd, targetPath) || targetPath}`));
@@ -97,6 +112,11 @@ export async function runExport(options: ExportOptions): Promise<void> {
     rmSync(outDir, { recursive: true, force: true });
     rmSync(ssrOutDir, { recursive: true, force: true });
   }
+}
+
+function isInside(file: string, dir: string): boolean {
+  const path = relative(dir, file);
+  return path !== '' && path !== '..' && !path.startsWith(`..${sep}`) && !isAbsolute(path);
 }
 
 /** The one stylesheet the client build emits; a build with none has nothing to style with. */
