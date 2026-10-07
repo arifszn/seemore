@@ -14,6 +14,10 @@ files:
   - '!dist/**/*.map'
   - package.json
 npmRebuild: false
+# English only, to save 12 MB compressed: Chromium's built-in text and navigator.language
+# are English. `en-US` keeps macOS's en.lproj (matched as a prefix) and en-US.pak elsewhere;
+# `en` alone would delete en-US.pak on Windows and Linux.
+electronLanguages: [en-US]
 icon: ../../assets/icon.png
 
 # The staged CLI (scripts/stage-seemore.mjs) goes to resources/seemore/, outside the asar.
