@@ -4,54 +4,10 @@
  * live at a time.
  */
 import { type ChildProcessByStdio, spawn } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import type { Readable } from 'node:stream';
 import { createInterface } from 'node:readline';
-
-export interface DevReady {
-  url: string;
-  port: number;
-  contentRoot: string;
-  pageCount: number;
-}
-
-/**
- * `seemore --json`'s ready line is the only stdout this reads structurally; anything else
- * (a warning, a stray log from a dependency) is just not that line. Validated by shape, not
- * merely "is it JSON", so a truncated or unrelated line can't be mistaken for readiness.
- */
-export function parseReadyLine(line: string): DevReady | undefined {
-  let value: unknown;
-  try {
-    value = JSON.parse(line);
-  } catch {
-    return undefined;
-  }
-
-  if (typeof value !== 'object' || value === null) return undefined;
-  const candidate = value as Record<string, unknown>;
-  if (typeof candidate.url !== 'string') return undefined;
-  if (typeof candidate.port !== 'number') return undefined;
-  if (typeof candidate.contentRoot !== 'string') return undefined;
-  if (typeof candidate.pageCount !== 'number') return undefined;
-
-  return {
-    url: candidate.url,
-    port: candidate.port,
-    contentRoot: candidate.contentRoot,
-    pageCount: candidate.pageCount,
-  };
-}
-
-/** `--port 0` always: the OS assigns an ephemeral port, so nothing can collide. */
-export function buildDevArgs(root: string): string[] {
-  return [root, '--port', '0', '--no-open', '--json'];
-}
-
-/**
- * A CLI too old to know `--json` never prints a line {@link parseReadyLine} accepts. This
- * timeout is how that surfaces as a real error instead of a permanently blank panel.
- */
-export const DEV_READY_TIMEOUT_MS = 15_000;
+import { buildDevArgs, DEV_READY_TIMEOUT_MS, type DevReady, parseReadyLine } from '@seemore/host';
 
 export class DevServerStartError extends Error {}
 
@@ -75,7 +31,14 @@ export interface SpawnDevServerOptions {
  */
 export function spawnDevServer(options: SpawnDevServerOptions): Promise<SpawnedDevServer> {
   const { cliEntry, root, timeoutMs = DEV_READY_TIMEOUT_MS } = options;
+  // A missing `cwd` makes spawn fail with ENOENT naming node, not the folder.
+  if (!existsSync(root)) {
+    return Promise.reject(new DevServerStartError(`The folder ${root} no longer exists.`));
+  }
   const child = spawn(process.execPath, [cliEntry, ...buildDevArgs(root)], {
+    // Not a convenience: seemore adds `process.cwd()` to Vite's `server.fs.allow`, and the
+    // extension host's own cwd can be `/`, which would open the whole disk to `/@fs/`.
+    cwd: root,
     stdio: ['ignore', 'pipe', 'pipe'],
   });
 

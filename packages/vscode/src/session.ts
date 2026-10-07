@@ -18,10 +18,10 @@ import * as vscode from 'vscode';
 import { resolveCliEntry } from './cliEntry.js';
 import { type SpawnedDevServer, spawnDevServer } from './devProcess.js';
 import { SeemorePanel } from './panel.js';
-import { canonicalise, hasSeemoreConfig, resolveRelativePosix } from './pathUtil.js';
+import { canonicalise, hasSeemoreConfig, resolveInitialRoot } from '@seemore/host';
+import { resolveRelativePosix } from './pathUtil.js';
 import { createPinnedRootStore, type PinnedRootStore } from './pinnedRoot.js';
 import { fetchRoute } from './route.js';
-import { resolveInitialRoot } from './root.js';
 import { rootActionItems } from './rootActions.js';
 
 /** Close-and-reopen inside this window skips the boot cost of spawning a new server. */

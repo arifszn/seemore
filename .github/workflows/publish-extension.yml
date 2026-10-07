@@ -24,6 +24,9 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      # `@seemore/host`, bundled into the extension, imports from seemore's built entry.
+      - run: pnpm --filter seemore build
+
       - run: pnpm --filter seemore-vscode lint
 
       - run: pnpm --filter seemore-vscode typecheck

@@ -8,6 +8,25 @@ importers:
 
   .: {}
 
+  packages/host:
+    dependencies:
+      seemore:
+        specifier: workspace:*
+        version: link:../seemore
+    devDependencies:
+      '@types/node':
+        specifier: ^26.4.0
+        version: 26.4.0
+      oxlint:
+        specifier: ^1.80.0
+        version: 1.80.0
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: 4.1.11
+        version: 4.1.11(@types/node@26.4.0)(vite@8.2.2(@types/node@26.4.0)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.0))
+
   packages/seemore:
     dependencies:
       '@mdx-js/mdx':
@@ -144,6 +163,9 @@ importers:
         specifier: workspace:*
         version: link:../seemore
     devDependencies:
+      '@seemore/host':
+        specifier: workspace:*
+        version: link:../host
       '@types/node':
         specifier: ^26.4.0
         version: 26.4.0
