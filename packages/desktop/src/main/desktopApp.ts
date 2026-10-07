@@ -5,12 +5,14 @@
 import { existsSync, statSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { basename, dirname, join, resolve } from 'node:path';
-import { app, BrowserWindow, dialog, utilityProcess } from 'electron';
+import { app, BrowserWindow, dialog, Menu, shell, utilityProcess } from 'electron';
 import { buildDevArgs, canonicalise, checkCliVersion, hasSeemoreConfig, readCliVersion } from '@seemore/host';
 import pkg from '../../package.json';
 import { cliEntry, cliPackageJson } from './cli.js';
 import { readJson, writeJson } from './jsonStore.js';
-import { buildMenu } from './menu.js';
+import { openBuildSheet, registerBuildHandlers } from './buildSheet.js';
+import { type Job, startJob } from './jobs.js';
+import { buildMenu, MENU_IDS } from './menu.js';
 import { addRecent, parseRecents, type RecentEntry } from './recents.js';
 import { type Lease, ServerRegistry } from './serverRegistry.js';
 import { createSiteWindow, type SavedBounds } from './siteWindow.js';
@@ -26,6 +28,14 @@ interface SiteRecord {
   /** Path, query and hash of the last page shown, to come back to after a restart. */
   lastPath: string;
   rootGoneReported: boolean;
+  /** From `/__seemore/site`, refreshed on every page load (§11 item 3). */
+  site?: SiteInfo;
+}
+
+interface SiteInfo {
+  base: string;
+  pageActions: string[];
+  auth: boolean;
 }
 
 interface WindowsFile {
@@ -36,6 +46,8 @@ interface WindowsFile {
 
 interface StateFile {
   manyServersNoticeShown?: boolean;
+  /** Build Site's output folder, per root (§7.3). */
+  buildOutDirs?: Record<string, string>;
 }
 
 /** From this many open sites on, the app says once that each runs its own server (§6). */
@@ -59,6 +71,8 @@ export class DesktopApp {
   private queue: Promise<void> = Promise.resolve();
   private quitting = false;
   private cliChecked = false;
+  /** Export and build jobs running now; the update banner waits for zero (§16). */
+  private runningJobs = 0;
 
   constructor() {
     this.recentList = parseRecents(readJson(this.paths.recents));
@@ -84,6 +98,21 @@ export class DesktopApp {
       recents: () => this.recentList,
       onOpenPath: (path) => void this.open(path),
     });
+
+    registerBuildHandlers({
+      run: (root, outDir, base, password, onOutput) =>
+        this.runJob(['build', root, '--out', outDir, ...(base === undefined ? [] : ['--base', base])], root, {
+          password,
+          onOutput,
+        }),
+      remember: (root, outDir) => {
+        this.state.buildOutDirs = { ...this.state.buildOutDirs, [root]: outDir };
+        writeJson(this.paths.state, this.state);
+      },
+    });
+
+    app.on('browser-window-focus', () => this.updateMenuState());
+    app.on('browser-window-blur', () => this.updateMenuState());
 
     app.on('before-quit', () => {
       this.quitting = true;
@@ -167,6 +196,61 @@ export class DesktopApp {
     }
   }
 
+  /** File > Export Page as HTML… (§7.2). */
+  async exportPage(window: BrowserWindow): Promise<void> {
+    const record = this.records.get(window.id);
+    if (record?.origin === undefined) return;
+
+    const site = await this.refreshSite(record);
+    if (site !== undefined && !site.pageActions.includes('export-html')) return;
+
+    const file = await this.pageFile(record);
+    if (file === undefined) {
+      this.showError('This page has no source file to export.');
+      return;
+    }
+    const name = `${basename(file).replace(/\.(?:md|markdown|mdx)$/i, '')}.html`;
+    const choice = await dialog.showSaveDialog(window, {
+      defaultPath: join(dirname(file), name),
+      filters: [{ name: 'HTML', extensions: ['html'] }],
+    });
+    if (choice.canceled || choice.filePath === undefined) return;
+
+    window.setProgressBar(2);
+    const job = this.runJob(['export', file, '--root', record.root, '--out-file', choice.filePath], record.root);
+    const code = await job.done;
+    if (!window.isDestroyed()) window.setProgressBar(-1);
+    if (code !== 0) {
+      this.showError(`Exporting ${basename(file)} failed.`, new Error(job.output().trim().slice(-4000)));
+      return;
+    }
+    const { response } = await dialog.showMessageBox(window, {
+      type: 'info',
+      message: `Exported ${basename(choice.filePath)}`,
+      buttons: ['OK', process.platform === 'darwin' ? 'Show in Finder' : 'Show in Folder'],
+      defaultId: 0,
+    });
+    if (response === 1) shell.showItemInFolder(choice.filePath);
+  }
+
+  /** File > Build Site… (§7.3). */
+  async buildSite(window: BrowserWindow): Promise<void> {
+    const record = this.records.get(window.id);
+    if (record?.origin === undefined) return;
+    const site = (await this.refreshSite(record)) ?? { base: '/', pageActions: [], auth: false };
+    openBuildSheet(window, {
+      root: record.root,
+      outDir: this.state.buildOutDirs?.[record.root] ?? join(record.root, 'dist'),
+      base: site.base,
+      auth: site.auth,
+    });
+  }
+
+  /** Export or build is running; the update banner waits (§10.1, §16). */
+  jobsRunning(): boolean {
+    return this.runningJobs > 0;
+  }
+
   clearRecents(): void {
     this.recentList = [];
     writeJson(this.paths.recents, this.recentList);
@@ -230,6 +314,69 @@ export class DesktopApp {
     if (response === 0) await this.openNow(dirname(target.file), true);
   }
 
+  /**
+   * A one-off CLI run (§7). `cwd` is the root, as for every fork (§6), so the CLI's own
+   * output-folder checks apply. The password reaches this process's environment only.
+   */
+  private runJob(args: string[], root: string, options: { password?: string; onOutput?: (text: string) => void } = {}): Job {
+    this.checkCliOnce();
+    const env = { ...process.env };
+    delete env.SEEMORE_PASSWORD;
+    if (options.password !== undefined) env.SEEMORE_PASSWORD = options.password;
+    const job = startJob(
+      utilityProcess.fork(cliEntry(), args, { cwd: root, env, stdio: 'pipe', serviceName: `seemore ${args[0]}` }),
+      options.onOutput,
+    );
+    this.runningJobs += 1;
+    void job.done.finally(() => {
+      this.runningJobs -= 1;
+    });
+    return job;
+  }
+
+  /** The source file behind the window's current page (§11 item 2). */
+  private async pageFile(record: SiteRecord): Promise<string | undefined> {
+    try {
+      const path = new URL(record.window.webContents.getURL()).pathname;
+      const res = await fetch(`${record.origin}/__seemore/page?url=${encodeURIComponent(path)}`);
+      const body = (await res.json()) as { file?: string };
+      return res.ok && typeof body.file === 'string' ? body.file : undefined;
+    } catch {
+      return undefined;
+    }
+  }
+
+  /** `/__seemore/site`, read afresh: a config edit changes it mid-session (§11 item 3). */
+  private async refreshSite(record: SiteRecord): Promise<SiteInfo | undefined> {
+    try {
+      const res = await fetch(`${record.origin}/__seemore/site`);
+      if (!res.ok) return record.site;
+      const body = (await res.json()) as Partial<SiteInfo>;
+      record.site = {
+        base: typeof body.base === 'string' ? body.base : '/',
+        pageActions: Array.isArray(body.pageActions) ? body.pageActions.filter((a) => typeof a === 'string') : [],
+        auth: body.auth === true,
+      };
+    } catch {
+      // Keep what was known: a server between restarts answers nothing.
+    }
+    this.updateMenuState();
+    return record.site;
+  }
+
+  /** Export and Build apply to the focused site window; Export only if the site allows it. */
+  updateMenuState(): void {
+    const menu = Menu.getApplicationMenu();
+    if (menu === null) return;
+    const focused = BrowserWindow.getFocusedWindow();
+    const record = focused === null ? undefined : this.records.get(focused.id);
+    const live = record?.origin !== undefined;
+    const exportItem = menu.getMenuItemById(MENU_IDS.export);
+    const buildItem = menu.getMenuItemById(MENU_IDS.build);
+    if (exportItem !== null) exportItem.enabled = live && (record?.site?.pageActions.includes('export-html') ?? true);
+    if (buildItem !== null) buildItem.enabled = live;
+  }
+
   private async routeFor(record: SiteRecord, file: string): Promise<{ ok: true; url: string } | { ok: false; reason: string }> {
     try {
       const res = await fetch(`${record.origin}/__seemore/route?file=${encodeURIComponent(file)}`);
@@ -275,6 +422,8 @@ export class DesktopApp {
     };
     record.window.webContents.on('did-navigate', (_event, url) => track(url));
     record.window.webContents.on('did-navigate-in-page', (_event, url) => track(url));
+    // A config edit always reloads the page, so this keeps Export's state current (§11 item 3).
+    record.window.webContents.on('did-finish-load', () => void this.refreshSite(record));
 
     record.window.on('close', () => {
       this.windowsFile.bounds[root] = { ...record.window.getNormalBounds(), maximized: record.window.isMaximized() };
@@ -379,6 +528,7 @@ export class DesktopApp {
 
   private refreshMenu(): void {
     buildMenu(this, this.recentList);
+    this.updateMenuState();
   }
 
   private showError(message: string, error?: unknown): void {

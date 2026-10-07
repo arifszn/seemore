@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'" />
+    <title>Build Site</title>
+    <link rel="stylesheet" href="start.css" />
+    <link rel="stylesheet" href="build.css" />
+  </head>
+  <body>
+    <main class="sheet">
+      <h1>Build Site</h1>
+      <p class="lede" id="root"></p>
+
+      <form id="form">
+        <label>Output folder</label>
+        <div class="row">
+          <code id="out-dir"></code>
+          <button id="choose" type="button">Choose…</button>
+        </div>
+
+        <label for="base">Base path <span class="hint">optional, e.g. /my-repo/</span></label>
+        <input id="base" type="text" autocomplete="off" spellcheck="false" />
+
+        <div id="password-row" hidden>
+          <label for="password">Password <span class="hint">used for this build only, never saved</span></label>
+          <input id="password" type="password" autocomplete="off" />
+        </div>
+
+        <div class="actions">
+          <button id="build" type="submit">Build</button>
+        </div>
+      </form>
+
+      <pre id="log" hidden></pre>
+
+      <div id="result" class="actions" hidden>
+        <p id="status"></p>
+        <button id="reveal" type="button">Reveal</button>
+        <button id="open-index" type="button">Open index.html</button>
+      </div>
+    </main>
+    <script src="build.js"></script>
+  </body>
+</html>

@@ -1,6 +1,6 @@
 import { spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
-import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { _electron as electron, type ElectronApplication, type Page } from 'playwright';
@@ -210,5 +210,70 @@ describe('desktop app', () => {
     await expect.poll(() => recorded('dialogs')).toContainEqual(expect.stringMatching(/server for site stopped/));
     await page.waitForURL((url) => url.protocol === 'http:' && url.origin !== before);
     await settled(page, '/');
+  });
+
+  it('exports the current page as HTML, against the window’s root', async () => {
+    await launch(join(site, 'guide', 'intro.md'));
+    const page = await app!.firstWindow();
+    await settled(page, '/guide/intro');
+
+    const out = join(workDir, 'Chosen Name.html');
+    await app!.evaluate(({ dialog }, chosen) => {
+      dialog.showSaveDialog = (async () => ({ canceled: false, filePath: chosen })) as typeof dialog.showSaveDialog;
+    }, out);
+    await app!.evaluate(({ BrowserWindow }) =>
+      (globalThis as unknown as { seemoreDesktop: { exportPage: (w: unknown) => Promise<void> } }).seemoreDesktop.exportPage(
+        BrowserWindow.getAllWindows()[0],
+      ),
+    );
+
+    expect(existsSync(out)).toBe(true);
+    expect(readFileSync(out, 'utf8')).toContain('<title>Intro · E2E</title>');
+    expect(await recorded('dialogs')).toContain('Exported Chosen Name.html');
+  });
+
+  it('does not export from a site whose pageActions leave it out', async () => {
+    writeFileSync(join(site, 'seemore.config.ts'), "export default { title: 'E2E', pageActions: [] };\n");
+    await launch(site);
+    const page = await app!.firstWindow();
+    await settled(page, '/');
+
+    const asked = await app!.evaluate(async ({ BrowserWindow, dialog }) => {
+      let called = false;
+      dialog.showSaveDialog = (async () => {
+        called = true;
+        return { canceled: true, filePath: undefined };
+      }) as unknown as typeof dialog.showSaveDialog;
+      await (globalThis as unknown as { seemoreDesktop: { exportPage: (w: unknown) => Promise<void> } }).seemoreDesktop.exportPage(
+        BrowserWindow.getAllWindows()[0],
+      );
+      return called;
+    });
+    expect(asked).toBe(false);
+  });
+
+  it('builds the site from the sheet, with the password passed to that build only', async () => {
+    writeFileSync(join(site, 'seemore.config.ts'), "export default { title: 'E2E', auth: true };\n");
+    await launch(site);
+    const page = await app!.firstWindow();
+    await settled(page, '/');
+
+    const sheetOpened = app!.waitForEvent('window');
+    await app!.evaluate(({ BrowserWindow }) =>
+      (globalThis as unknown as { seemoreDesktop: { buildSite: (w: unknown) => Promise<void> } }).seemoreDesktop.buildSite(
+        BrowserWindow.getAllWindows()[0],
+      ),
+    );
+    const sheet = await sheetOpened;
+    await sheet.waitForSelector('#password-row:not([hidden])');
+    expect(await sheet.textContent('#out-dir')).toBe(join(site, 'dist'));
+
+    await sheet.fill('#password', 'hunter2');
+    await sheet.click('#build');
+    await sheet.waitForSelector('#result:not([hidden])', { timeout: 120_000 });
+    expect(await sheet.textContent('#status')).toBe(`Built into ${join(site, 'dist')}`);
+    expect(existsSync(join(site, 'dist', 'index.html'))).toBe(true);
+    expect(await sheet.textContent('#log')).not.toBe('');
+    expect(await app!.evaluate(() => process.env.SEEMORE_PASSWORD)).toBeUndefined();
   });
 });

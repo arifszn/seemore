@@ -4,6 +4,8 @@ import { app, BrowserWindow, Menu, type MenuItemConstructorOptions } from 'elect
 import type { DesktopApp } from './desktopApp.js';
 import type { RecentEntry } from './recents.js';
 
+export const MENU_IDS = { export: 'export-page', build: 'build-site' } as const;
+
 export function buildMenu(desktop: DesktopApp, recents: readonly RecentEntry[]): void {
   const isMac = process.platform === 'darwin';
   const focused = () => BrowserWindow.getFocusedWindow() ?? undefined;
@@ -34,6 +36,27 @@ export function buildMenu(desktop: DesktopApp, recents: readonly RecentEntry[]):
             { type: 'separator' },
             { label: 'Clear Menu', enabled: recents.length > 0, click: () => desktop.clearRecents() },
           ],
+        },
+        { type: 'separator' },
+        {
+          id: MENU_IDS.export,
+          label: 'Export Page as HTML…',
+          accelerator: 'CmdOrCtrl+E',
+          enabled: false,
+          click: () => {
+            const window = focused();
+            if (desktop.isSiteWindow(window)) void desktop.exportPage(window!);
+          },
+        },
+        {
+          id: MENU_IDS.build,
+          label: 'Build Site…',
+          accelerator: 'CmdOrCtrl+B',
+          enabled: false,
+          click: () => {
+            const window = focused();
+            if (desktop.isSiteWindow(window)) void desktop.buildSite(window!);
+          },
         },
         { type: 'separator' },
         {
