@@ -8,7 +8,7 @@ function pages(...files: string[]): ContentPage[] {
     ...toRoute(file),
     absPath: `/content/${file}`,
     version: 'v1',
-    data: { title: file.replace(/\.mdx?$/, '') },
+    data: { title: file.replace(/\.(?:mdx?|markdown)$/, '') },
   }));
 }
 
@@ -47,6 +47,12 @@ describe('relative markdown links', () => {
   it('resolves .mdx as well as .md', () => {
     const local = createLinkResolver(pages('a.md', 'b.mdx'), '/');
     expect(local.resolveHref('./b.mdx', 'a.md').href).toBe('/b');
+  });
+
+  it('resolves .markdown as well as .md', () => {
+    const local = createLinkResolver(pages('a.md', 'b.markdown'), '/');
+    expect(local.resolveHref('./b.markdown', 'a.md').href).toBe('/b');
+    expect(local.resolveWikilink('b', 'a.md').href).toBe('/b');
   });
 
   it('resolves a content-root-absolute link from the root, not from the linking file', () => {

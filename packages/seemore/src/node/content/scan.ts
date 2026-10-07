@@ -75,7 +75,7 @@ export function scan(options: ScanOptions): ScanResult {
   const find = (patterns: string[], keep: RegExp) =>
     findFiles(contentRoot, patterns, keep, options.exclude ?? [], options.include ?? []);
 
-  const contentFiles = find(['**/*.md', '**/*.mdx'], /\.mdx?$/);
+  const contentFiles = find(['**/*.md', '**/*.markdown', '**/*.mdx'], /\.(?:mdx?|markdown)$/);
   const metaFiles = find(['**/meta.json'], /(?:^|\/)meta\.json$/);
 
   const { routes, errors, warnings } = resolveRoutes(contentFiles);
@@ -170,7 +170,7 @@ function synthesiseOrderMeta(pages: ContentPage[], metaDirs: Set<string>): Virtu
     // page that would otherwise sort alphabetically into the middle of its own directory.
     if (!dirPages.some((p) => typeof p.data.order === 'number' || p.isIndex)) continue;
 
-    const ordered = [...dirPages].sort(compareForOrder).map((p) => basename(p.file).replace(/\.mdx?$/i, ''));
+    const ordered = [...dirPages].sort(compareForOrder).map((p) => basename(p.file).replace(/\.(?:mdx?|markdown)$/i, ''));
 
     out.push({
       type: 'meta',

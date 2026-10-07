@@ -7,7 +7,7 @@
 import { slug as slugify } from 'github-slugger';
 
 const INDEX_NAMES = new Set(['index', 'readme']);
-const CONTENT_EXT = /\.mdx?$/i;
+const CONTENT_EXT = /\.(?:mdx?|markdown)$/i;
 
 export interface RouteInfo {
   /** Virtual path relative to the content root, posix separators. */

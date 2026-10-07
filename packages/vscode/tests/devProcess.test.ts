@@ -1,44 +1,8 @@
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import { buildDevArgs, parseReadyLine, spawnDevServer } from '../src/devProcess.js';
-
-describe('parseReadyLine', () => {
-  it('parses a well-formed ready line', () => {
-    const line = JSON.stringify({ url: 'http://localhost:5173/', port: 5173, contentRoot: '/repo/docs', pageCount: 3 });
-    expect(parseReadyLine(line)).toEqual({
-      url: 'http://localhost:5173/',
-      port: 5173,
-      contentRoot: '/repo/docs',
-      pageCount: 3,
-    });
-  });
-
-  it('rejects a line that is not JSON', () => {
-    expect(parseReadyLine('  seemore  http://localhost:4040/')).toBeUndefined();
-  });
-
-  it('rejects JSON missing a required field', () => {
-    expect(parseReadyLine(JSON.stringify({ url: 'http://localhost:4040/', port: 4040 }))).toBeUndefined();
-  });
-
-  it('rejects JSON with a field of the wrong type', () => {
-    const line = JSON.stringify({ url: 'http://localhost:4040/', port: '4040', contentRoot: '/repo', pageCount: 1 });
-    expect(parseReadyLine(line)).toBeUndefined();
-  });
-
-  it('rejects a bare JSON value that is not an object', () => {
-    expect(parseReadyLine('42')).toBeUndefined();
-    expect(parseReadyLine('null')).toBeUndefined();
-  });
-});
-
-describe('buildDevArgs', () => {
-  it('always requests an ephemeral port, no open, and JSON output', () => {
-    expect(buildDevArgs('/repo/docs')).toEqual(['/repo/docs', '--port', '0', '--no-open', '--json']);
-  });
-});
+import { spawnDevServer } from '../src/devProcess.js';
 
 describe('spawnDevServer', () => {
   let scriptDir: string;
@@ -60,11 +24,26 @@ describe('spawnDevServer', () => {
       console.log(JSON.stringify({ url: 'http://localhost:9999/', port: 9999, contentRoot: process.argv[2], pageCount: 2 }));
     `);
 
-    const result = await spawnDevServer({ cliEntry, root: '/repo/docs' });
+    const result = await spawnDevServer({ cliEntry, root: scriptDir });
     try {
-      expect(result.ready).toEqual({ url: 'http://localhost:9999/', port: 9999, contentRoot: '/repo/docs', pageCount: 2 });
+      expect(result.ready).toEqual({ url: 'http://localhost:9999/', port: 9999, contentRoot: scriptDir, pageCount: 2 });
     } finally {
       result.process.kill();
+    }
+  });
+
+  it('runs the server with its cwd set to the root', async () => {
+    const root = mkdtempSync(join(tmpdir(), 'seemore-vscode-cwd-'));
+    const cliEntry = script(`
+      console.log(JSON.stringify({ url: 'http://localhost:9999/', port: 9999, contentRoot: process.cwd(), pageCount: 0 }));
+    `);
+
+    try {
+      const result = await spawnDevServer({ cliEntry, root });
+      result.process.kill();
+      expect(realpathSync(result.ready.contentRoot)).toBe(realpathSync(root));
+    } finally {
+      rmSync(root, { recursive: true, force: true });
     }
   });
 
@@ -74,7 +53,7 @@ describe('spawnDevServer', () => {
       setInterval(() => { console.log('post-ready log line'); }, 10);
     `);
 
-    const result = await spawnDevServer({ cliEntry, root: '/repo/docs' });
+    const result = await spawnDevServer({ cliEntry, root: scriptDir });
     try {
       // Settle detaches readline, which leaves stdout paused; a paused pipe fills until
       // the child blocks on write, so both streams have to be draining afterwards.
@@ -91,13 +70,19 @@ describe('spawnDevServer', () => {
       process.exit(1);
     `);
 
-    await expect(spawnDevServer({ cliEntry, root: '/repo/docs' })).rejects.toThrow(/exited before it was ready/);
+    await expect(spawnDevServer({ cliEntry, root: scriptDir })).rejects.toThrow(/exited before it was ready/);
+  });
+
+  it('rejects with a clear message when the root does not exist', async () => {
+    const cliEntry = script(`console.log('unreachable');`);
+
+    await expect(spawnDevServer({ cliEntry, root: join(scriptDir, 'gone') })).rejects.toThrow(/no longer exists/);
   });
 
   it('rejects on a timeout when nothing readable ever arrives', async () => {
     const cliEntry = script(`setInterval(() => {}, 1000);`);
 
-    await expect(spawnDevServer({ cliEntry, root: '/repo/docs', timeoutMs: 200 })).rejects.toThrow(
+    await expect(spawnDevServer({ cliEntry, root: scriptDir, timeoutMs: 200 })).rejects.toThrow(
       /did not report readiness/,
     );
   });

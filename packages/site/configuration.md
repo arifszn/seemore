@@ -33,7 +33,7 @@ export default {
 
 ## Which files are included
 
-Every `.md` and `.mdx` file under the content folder becomes a page, except in folders that are almost never documentation: dot folders such as `.github`, `node_modules`, `dist`, `build`, `out`, `vendor`, `target`, `venv`, `deps`, `Pods` and `bower_components`.
+Every `.md`, `.markdown` and `.mdx` file under the content folder becomes a page, except in folders that are almost never documentation: dot folders such as `.github`, `node_modules`, `dist`, `build`, `out`, `vendor`, `target`, `venv`, `deps`, `Pods` and `bower_components`.
 
 `exclude` skips more, using glob patterns relative to the content folder. `include` brings back something those defaults skip, as a folder name or a glob. `exclude` still wins over `include`:
 

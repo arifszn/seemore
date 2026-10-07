@@ -1,0 +1,115 @@
+# DESKTOP-SPEC §9. Every build runs with `--publish never`; the release job uploads (§14.3).
+appId: dev.seemore.desktop
+productName: seemore
+copyright: Copyright © Ariful Alam
+
+directories:
+  output: release
+  buildResources: build
+
+# tsup bundles everything the app imports into dist/, so there are no runtime dependencies
+# to collect and nothing native to rebuild.
+files:
+  - dist/**/*
+  - '!dist/**/*.map'
+  - package.json
+npmRebuild: false
+# English only, to save 12 MB compressed: Chromium's built-in text and navigator.language
+# are English. `en-US` keeps macOS's en.lproj (matched as a prefix) and en-US.pak elsewhere;
+# `en` alone would delete en-US.pak on Windows and Linux.
+electronLanguages: [en-US]
+icon: ../../assets/icon.png
+
+# The staged CLI (scripts/stage-seemore.mjs), outside the asar. macOS and Linux copy it to
+# resources/seemore/ (`extraResources` under mac and linux). electron-builder drops a
+# node_modules at the root of a source, and keeps a nested one only when the filter names it;
+# hence the extra stage/ level. Windows ships it as one archive the app unpacks on first
+# launch (scripts/pack-cli.mjs, run by this hook): NSIS can't write or delete paths past
+# MAX_PATH, and the CLI has some.
+beforePack: scripts/before-pack.cjs
+
+# camelCase keys, as in electron-builder's FuseOptionsV1 (§8).
+electronFuses:
+  runAsNode: false
+  enableNodeOptionsEnvironmentVariable: false
+  enableNodeCliInspectArguments: false
+  enableEmbeddedAsarIntegrityValidation: true
+  onlyLoadAppFromAsar: true
+  resetAdHocDarwinSignature: true
+
+# Needed for latest.yml, latest-linux.yml and app-update.yml, though nothing is published here.
+publish:
+  provider: github
+  owner: arifszn
+  repo: seemore
+
+mac:
+  target: [zip, dmg]
+  category: public.app-category.developer-tools
+  artifactName: seemore-${version}-mac-${arch}.${ext}
+  # Ad-hoc: Apple Silicon won't run unsigned native code. No Developer ID, no notarization.
+  identity: '-'
+  hardenedRuntime: false
+  notarize: false
+  extraResources:
+    - &stage
+      from: build/stage
+      to: .
+      filter:
+        - '**/*'
+        - seemore/node_modules/**/*
+    # Compiled by the beforePack hook (§13); signed with the app.
+    - from: build/native
+      to: .
+      filter: [default-handler]
+  # Markdown files (§13), by content type rather than `fileAssociations`, which writes only
+  # the deprecated CFBundleTypeExtensions. The system declares net.daringfireball.markdown
+  # (.md, .markdown); .mdx has no system type, so it is imported here.
+  extendInfo:
+    CFBundleDocumentTypes:
+      - CFBundleTypeName: Markdown document
+        CFBundleTypeRole: Viewer
+        LSHandlerRank: Default
+        LSItemContentTypes: [net.daringfireball.markdown, dev.seemore.mdx]
+    UTImportedTypeDeclarations:
+      - UTTypeIdentifier: dev.seemore.mdx
+        UTTypeDescription: MDX document
+        UTTypeConformsTo: [public.plain-text]
+        UTTypeTagSpecification:
+          public.filename-extension: [mdx]
+
+dmg:
+  artifactName: seemore-${version}-mac-${arch}.${ext}
+
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+  extraResources:
+    - from: build/archive
+      to: .
+      filter: [seemore-cli.tar.br, seemore-cli.json]
+
+nsis:
+  artifactName: seemore-Setup-${version}.${ext}
+
+linux:
+  target:
+    - target: AppImage
+      arch: [x64]
+    - target: deb
+      arch: [x64]
+  executableName: seemore-desktop
+  # The deb's Maintainer field, required; package.json's author has no email.
+  maintainer: Ariful Alam <arifszn@users.noreply.github.com>
+  category: Development
+  extraResources: [*stage]
+  # The desktop file's MimeType (§13). Not `fileAssociations.mimeType`: that also installs a
+  # mime definition of its own, redefining the system's text/markdown.
+  mimeTypes: [text/markdown]
+
+appImage:
+  artifactName: seemore-${version}.${ext}
+
+deb:
+  artifactName: seemore_${version}_amd64.${ext}

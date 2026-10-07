@@ -1,0 +1,39 @@
+{
+  "name": "seemore-desktop",
+  "productName": "seemore",
+  "version": "0.1.3",
+  "private": true,
+  "description": "Open a folder of Markdown as a seemore site in its own window.",
+  "license": "MIT",
+  "author": "Ariful Alam",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/arifszn/seemore.git",
+    "directory": "packages/desktop"
+  },
+  "main": "./dist/main.js",
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup && electron .",
+    "stage": "node scripts/stage-seemore.mjs",
+    "package": "tsup && electron-builder --publish never",
+    "package:dir": "tsup && electron-builder --dir --publish never",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests",
+    "test:e2e": "tsup && vitest run --config vitest.e2e.config.mts",
+    "lint": "oxlint --deny-warnings src tests scripts"
+  },
+  "devDependencies": {
+    "@seemore/host": "workspace:*",
+    "@types/node": "^26.4.0",
+    "electron": "44.6.0",
+    "electron-builder": "26.15.3",
+    "electron-updater": "6.8.9",
+    "oxlint": "^1.80.0",
+    "playwright": "1.63.0",
+    "tar": "7.5.22",
+    "tsup": "8.5.1",
+    "typescript": "5.9.3",
+    "vitest": "4.1.11"
+  }
+}

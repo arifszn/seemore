@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'" />
+    <title>seemore</title>
+    <link rel="stylesheet" href="start.css" />
+  </head>
+  <body>
+    <main>
+      <h1>seemore</h1>
+      <p class="lede">Open a folder of Markdown, or a single file, as a site.</p>
+      <div class="actions">
+        <button id="open-folder" type="button">Open Folder…</button>
+        <button id="open-file" type="button">Open File…</button>
+      </div>
+      <section id="recents" hidden>
+        <h2>Recent</h2>
+        <ul id="recent-list"></ul>
+      </section>
+    </main>
+    <script src="start.js"></script>
+  </body>
+</html>
