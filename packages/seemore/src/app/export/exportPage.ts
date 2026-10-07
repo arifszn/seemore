@@ -309,16 +309,22 @@ const RUNTIME = `(function () {
     if (window.__seemoreRememberTheme) window.__seemoreRememberTheme();
   });
 
+  // A button's accessible name: fumadocs-ui 16.15 set aria-label, 16.16 a visually hidden span.
+  function labelOf(button) {
+    return (button.getAttribute('aria-label') || button.textContent || '').trim();
+  }
+
   document.querySelectorAll('figure').forEach(function (figure) {
-    var button = figure.querySelector('button[aria-label]');
-    if (!button || !/copy/i.test(button.getAttribute('aria-label') || '')) return;
+    var button = Array.prototype.find.call(figure.querySelectorAll('button'), function (b) { return /copy/i.test(labelOf(b)); });
+    if (!button) return;
     button.addEventListener('click', function () {
       var code = figure.querySelector('pre, code');
       if (code && navigator.clipboard) navigator.clipboard.writeText(code.textContent || '');
     });
   });
 
-  document.querySelectorAll('button[aria-label="Copy Anchor Link"]').forEach(function (button) {
+  document.querySelectorAll('h1 button, h2 button, h3 button, h4 button, h5 button, h6 button').forEach(function (button) {
+    if (labelOf(button) !== 'Copy Anchor Link') return;
     var heading = button.closest('h1, h2, h3, h4, h5, h6');
     var svg = button.querySelector('svg');
     if (!heading || !heading.id || !navigator.clipboard) return;

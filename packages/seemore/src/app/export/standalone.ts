@@ -62,6 +62,14 @@ async function renderDiagrams(): Promise<void> {
   }
 }
 
+/**
+ * A button's accessible name: fumadocs-ui 16.15 set `aria-label`, 16.16 puts the text in a
+ * visually hidden span instead.
+ */
+function labelOf(button: Element): string {
+  return (button.getAttribute('aria-label') ?? button.textContent ?? '').trim();
+}
+
 function bindBehaviors(): void {
   const root = document.documentElement;
   document.querySelector('.seemore-export-theme-toggle')?.addEventListener('click', () => {
@@ -71,15 +79,17 @@ function bindBehaviors(): void {
   });
 
   for (const figure of document.querySelectorAll('figure')) {
-    const button = figure.querySelector('button[aria-label]');
-    if (button === null || !/copy/i.test(button.getAttribute('aria-label') ?? '')) continue;
+    const button = [...figure.querySelectorAll('button')].find((b) => /copy/i.test(labelOf(b)));
+    if (button === undefined) continue;
     button.addEventListener('click', () => {
       const code = figure.querySelector('pre, code');
       if (code !== null) void navigator.clipboard?.writeText(code.textContent ?? '');
     });
   }
 
-  for (const button of document.querySelectorAll('button[aria-label="Copy Anchor Link"]')) {
+  for (const button of [...document.querySelectorAll('h1 button, h2 button, h3 button, h4 button, h5 button, h6 button')].filter(
+    (b) => labelOf(b) === 'Copy Anchor Link',
+  )) {
     const heading = button.closest('h1, h2, h3, h4, h5, h6');
     const svg = button.querySelector('svg');
     if (heading === null || heading.id === '' || navigator.clipboard === undefined) continue;
