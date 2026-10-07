@@ -47,6 +47,19 @@ describe('search index', () => {
     expect(index).not.toContain('secretkey');
   });
 
+  // fumadocs-core 16.15's stringifier recursed forever on strong and emphasis under
+  // mdast-util-to-markdown 2.2, failing every dev search and build with such a page.
+  it('indexes strong, emphasis and strikethrough text', async () => {
+    const contentRoot = fixture({
+      'a.md': '---\ntitle: A\n---\n\n# A\n\nSome **bold**, *slanted* and ~~struck~~ words, and ***both***.\n',
+    });
+    const ctx = createContext({ config: resolveConfig({}, { root: contentRoot }), contentRoot });
+
+    const index = await buildSearchIndex(ctx);
+    expect(index).toContain('bold');
+    expect(index).toContain('slanted');
+  });
+
   it('points index entries at based URLs', async () => {
     const contentRoot = fixture({ 'a.md': '---\ntitle: A\n---\n\n# A\n' });
     const ctx = createContext({ config: resolveConfig({ base: '/sub/' }, { root: contentRoot }), contentRoot });

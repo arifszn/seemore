@@ -455,7 +455,8 @@ describe('the code copy button', () => {
 
     await runBuild({ cwd: contentRoot, outDir });
     const $ = load(read(outDir, 'index.html'));
-    const count = $('figure button').filter((_, el) => /copy/i.test($(el).attr('aria-label') ?? '')).length;
+    // fumadocs-ui names the button with a visually hidden span, not `aria-label`.
+    const count = $('figure button').filter((_, el) => /copy/i.test($(el).attr('aria-label') ?? $(el).text())).length;
 
     rmSync(contentRoot, { recursive: true, force: true });
     return count;
