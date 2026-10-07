@@ -3,8 +3,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { VFile } from 'vfile';
-import type { Paragraph, Root } from 'mdast';
-import { remarkSeemoreAssets } from '../src/node/vite/remark.js';
+import type { Paragraph, PhrasingContent, Root } from 'mdast';
+import { remarkSeemoreAssets, remarkSeemoreEmoji } from '../src/node/vite/remark.js';
 
 describe('remarkSeemoreAssets', () => {
   let contentRoot: string;
@@ -62,5 +62,37 @@ describe('remarkSeemoreAssets', () => {
 
     expect(warnings).toEqual([]);
     expect(paragraph.children[0]).toMatchObject({ type: 'image', url: 'my%20file.png' });
+  });
+});
+
+describe('remarkSeemoreEmoji', () => {
+  function run(...children: PhrasingContent[]): PhrasingContent[] {
+    const tree: Root = { type: 'root', children: [{ type: 'paragraph', children }] };
+    remarkSeemoreEmoji()(tree, new VFile(), () => {});
+    return (tree.children[0] as Paragraph).children;
+  }
+
+  it('converts GitHub shortcodes and the Slack names for colored shapes', () => {
+    const children = run({
+      type: 'text',
+      value: ':white_circle: not started · :large_yellow_circle: in progress · :white_check_mark: done · :red_circle: blocked :+1:',
+    });
+
+    expect(children.every((node) => node.type === 'text')).toBe(true);
+    expect(children.map((node) => (node as { value: string }).value).join('')).toBe(
+      '⚪ not started · 🟡 in progress · ✅ done · 🔴 blocked 👍',
+    );
+  });
+
+  it('leaves unknown names, times and inline code as written', () => {
+    const children = run(
+      { type: 'text', value: ':not_an_emoji: at 10:30:00 ' },
+      { type: 'inlineCode', value: ':red_circle:' },
+    );
+
+    expect(children).toEqual([
+      { type: 'text', value: ':not_an_emoji: at 10:30:00 ' },
+      { type: 'inlineCode', value: ':red_circle:' },
+    ]);
   });
 });
