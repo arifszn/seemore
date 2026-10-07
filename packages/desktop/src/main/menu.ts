@@ -3,11 +3,26 @@ import { basename } from 'node:path';
 import { app, BrowserWindow, Menu, type MenuItemConstructorOptions } from 'electron';
 import type { DesktopApp } from './desktopApp.js';
 import type { RecentEntry } from './recents.js';
+import type { Updater } from './update/updater.js';
 
 export const MENU_IDS = { export: 'export-page', build: 'build-site' } as const;
 
-export function buildMenu(desktop: DesktopApp, recents: readonly RecentEntry[]): void {
+export function buildMenu(desktop: DesktopApp, recents: readonly RecentEntry[], updater: Updater | undefined): void {
   const isMac = process.platform === 'darwin';
+
+  // In the app menu on macOS, under Help elsewhere (§10.1). Disabled when running from source.
+  const ready = updater?.readyVersion;
+  const updateItems: MenuItemConstructorOptions[] = [
+    ...(ready === undefined ? [] : [{ label: `Restart to Update to ${ready}`, click: () => void updater?.restart() }]),
+    { label: 'Check for Updates…', enabled: updater !== undefined, click: () => void updater?.check('manual') },
+    {
+      label: 'Check for Updates Automatically',
+      type: 'checkbox',
+      enabled: updater !== undefined,
+      checked: updater?.autoCheck ?? false,
+      click: (item) => updater?.setAutoCheck(item.checked),
+    },
+  ];
   const focused = () => BrowserWindow.getFocusedWindow() ?? undefined;
 
   const recentItems: MenuItemConstructorOptions[] =
@@ -21,7 +36,26 @@ export function buildMenu(desktop: DesktopApp, recents: readonly RecentEntry[]):
         }));
 
   const template: MenuItemConstructorOptions[] = [
-    ...(isMac ? [{ role: 'appMenu' as const }] : []),
+    ...(isMac
+      ? [
+          {
+            role: 'appMenu' as const,
+            submenu: [
+              { role: 'about' },
+              { type: 'separator' },
+              ...updateItems,
+              { type: 'separator' },
+              { role: 'services' },
+              { type: 'separator' },
+              { role: 'hide' },
+              { role: 'hideOthers' },
+              { role: 'unhide' },
+              { type: 'separator' },
+              { role: 'quit' },
+            ] satisfies MenuItemConstructorOptions[],
+          },
+        ]
+      : []),
     {
       label: 'File',
       submenu: [
@@ -86,6 +120,7 @@ export function buildMenu(desktop: DesktopApp, recents: readonly RecentEntry[]):
       ],
     },
     { role: 'windowMenu' },
+    ...(isMac ? [] : [{ role: 'help' as const, submenu: updateItems }]),
   ];
 
   Menu.setApplicationMenu(Menu.buildFromTemplate(template));

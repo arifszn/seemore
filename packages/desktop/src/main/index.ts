@@ -6,6 +6,7 @@ import { app, session } from 'electron';
 import { pathsFromArgv } from './argv.js';
 import { DesktopApp } from './desktopApp.js';
 import { installPermissionHandlers } from './siteWindow.js';
+import { offerMoveToApplications } from './update/index.js';
 
 // A separate profile for tests and side-by-side runs; set before anything reads `userData`.
 if (process.env.SEEMORE_USER_DATA !== undefined) app.setPath('userData', process.env.SEEMORE_USER_DATA);
@@ -37,6 +38,8 @@ if (!app.requestSingleInstanceLock()) {
 
   void app.whenReady().then(async () => {
     installPermissionHandlers(session.defaultSession);
+    // Moving relaunches the app from Applications; this instance just quits (§10.3).
+    if (await offerMoveToApplications()) return;
     desktop = new DesktopApp();
     // End-to-end tests drive `open()` directly instead of through OS dialogs.
     if (process.env.SEEMORE_E2E === '1') (globalThis as { seemoreDesktop?: DesktopApp }).seemoreDesktop = desktop;

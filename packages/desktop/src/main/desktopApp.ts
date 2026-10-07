@@ -18,6 +18,8 @@ import { type Lease, ServerRegistry } from './serverRegistry.js';
 import { createSiteWindow, type SavedBounds } from './siteWindow.js';
 import { createStartWindow, registerStartHandlers } from './startWindow.js';
 import { resolveTarget } from './target.js';
+import { createUpdater } from './update/index.js';
+import type { Updater } from './update/updater.js';
 import { WindowRegistry } from './windowRegistry.js';
 
 interface SiteRecord {
@@ -73,11 +75,19 @@ export class DesktopApp {
   private cliChecked = false;
   /** Export and build jobs running now; the update banner waits for zero (§16). */
   private runningJobs = 0;
+  /** Packaged builds only (§10). */
+  readonly updater: Updater | undefined;
 
   constructor() {
     this.recentList = parseRecents(readJson(this.paths.recents));
     this.windowsFile = parseWindowsFile(readJson(this.paths.windows));
     this.state = (readJson(this.paths.state) as StateFile | undefined) ?? {};
+
+    this.updater = createUpdater({ jobsRunning: () => this.jobsRunning(), onChange: () => this.refreshMenu() });
+    // Checks start once the first window has loaded, so they never delay startup (§10.1).
+    app.on('browser-window-created', (_event, window) => {
+      window.webContents.once('did-finish-load', () => this.updater?.start());
+    });
 
     this.servers = new ServerRegistry({
       fork: (root) =>
@@ -117,7 +127,10 @@ export class DesktopApp {
     app.on('before-quit', () => {
       this.quitting = true;
     });
-    app.on('will-quit', () => this.servers.killAll());
+    app.on('will-quit', () => {
+      this.updater?.stop();
+      this.servers.killAll();
+    });
 
     this.refreshMenu();
   }
@@ -330,6 +343,7 @@ export class DesktopApp {
     this.runningJobs += 1;
     void job.done.finally(() => {
       this.runningJobs -= 1;
+      if (this.runningJobs === 0) this.updater?.jobsIdle();
     });
     return job;
   }
@@ -527,7 +541,7 @@ export class DesktopApp {
   }
 
   private refreshMenu(): void {
-    buildMenu(this, this.recentList);
+    buildMenu(this, this.recentList, this.updater);
     this.updateMenuState();
   }
 
