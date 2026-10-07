@@ -1,7 +1,7 @@
 ---
 title: Features
 description: What you get by default, and the switches to change it.
-order: 8
+order: 9
 ---
 
 # Features

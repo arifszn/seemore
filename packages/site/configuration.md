@@ -1,7 +1,7 @@
 ---
 title: Configuration
 description: seemore.config.ts, and every option it takes.
-order: 6
+order: 7
 ---
 
 # Configuration

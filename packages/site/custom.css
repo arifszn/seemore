@@ -1,5 +1,6 @@
-/* Home page only — every class below is scoped under .seemore-landing, which the home
-   page's outermost wrapper carries, so nothing here reaches a regular doc page. */
+/* The home page, and the download page's section at the end. The home page's rules sit
+   under .seemore-landing, which its outermost wrapper carries; the download page's under
+   .seemore-download. */
 
 .seemore-landing {
   --landing-glow: color-mix(in oklch, var(--color-fd-primary) 16%, transparent);
@@ -566,141 +567,6 @@
   outline-offset: 2px;
 }
 
-/* — the mode's own artifact, drawn as a schematic strip — */
-
-.seemore-way-strip {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 0.45rem;
-  width: 232px;
-  flex-shrink: 0;
-  padding: 0.8rem 1rem;
-  border-right: 1px solid var(--color-fd-border);
-  background: color-mix(in oklch, var(--color-fd-border) 16%, var(--color-fd-card));
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-}
-
-@media (max-width: 639px) {
-  .seemore-way {
-    flex-direction: column;
-  }
-
-  .seemore-way-strip {
-    width: 100%;
-    min-height: 74px;
-    border-right: none;
-    border-bottom: 1px solid var(--color-fd-border);
-  }
-}
-
-.seemore-way-chrome {
-  display: flex;
-  gap: 0.3rem;
-}
-
-.seemore-way-dot {
-  width: 0.42rem;
-  height: 0.42rem;
-  border-radius: 999px;
-  background: var(--color-fd-border);
-}
-
-.seemore-way-pill {
-  align-self: flex-start;
-  border: 1px solid var(--color-fd-border);
-  border-radius: 999px;
-  padding: 0.1rem 0.55rem;
-  background: var(--color-fd-card);
-  font-size: 0.625rem;
-  color: var(--color-fd-muted-foreground);
-}
-
-.seemore-way-strip-split {
-  flex-direction: row;
-  align-items: stretch;
-  gap: 0;
-  padding: 0;
-}
-
-.seemore-way-pane {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 0.4rem;
-  padding: 0.7rem 0.9rem;
-  min-width: 0;
-}
-
-.seemore-way-pane + .seemore-way-pane {
-  border-left: 1px solid var(--color-fd-border);
-}
-
-.seemore-way-pane-label {
-  font-size: 0.5625rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--color-fd-muted-foreground);
-}
-
-.seemore-way-bar {
-  height: 0.25rem;
-  border-radius: 999px;
-  width: 72%;
-  background: color-mix(in oklch, var(--color-fd-border) 70%, var(--color-fd-card));
-}
-
-.seemore-way-bar:nth-of-type(3) {
-  width: 52%;
-}
-
-.seemore-way-bar:nth-of-type(4) {
-  width: 84%;
-}
-
-.seemore-way-pane:last-child .seemore-way-bar:nth-of-type(2) {
-  background: color-mix(in oklch, var(--color-fd-primary) 45%, var(--color-fd-card));
-}
-
-.seemore-way-dist {
-  position: absolute;
-  top: 0.6rem;
-  right: 0.9rem;
-  font-size: 0.625rem;
-  color: var(--color-fd-muted-foreground);
-}
-
-.seemore-way-files {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-  margin-top: 0.6rem;
-}
-
-.seemore-way-file {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  font-size: 0.6875rem;
-  color: var(--color-fd-muted-foreground);
-}
-
-.seemore-way-file::before {
-  content: '';
-  width: 0.28rem;
-  height: 0.28rem;
-  border-radius: 1px;
-  background: color-mix(in oklch, var(--color-fd-border) 70%, var(--color-fd-card));
-}
-
-.seemore-way-file:first-child::before {
-  background: var(--color-fd-primary);
-}
-
-/* — title, description — */
-
 .seemore-way-body {
   display: flex;
   flex-direction: column;
@@ -848,4 +714,191 @@
   margin: 0 !important;
   border-radius: 0 !important;
   border: none !important;
+}
+
+/* ---------- Download page ---------- */
+
+.seemore-download {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-block: 1.5rem 0.5rem;
+}
+
+.seemore-platforms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.seemore-platform {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.7rem 1.25rem;
+  border: 1px solid var(--color-fd-border);
+  border-radius: 0.75rem;
+  background: var(--color-fd-card);
+  color: var(--color-fd-foreground) !important;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: none !important;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
+  transition:
+    transform 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.seemore-platform:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in oklch, var(--color-fd-primary) 45%, var(--color-fd-border));
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.08);
+}
+
+.seemore-platform-primary {
+  background: var(--color-fd-primary);
+  border-color: var(--color-fd-primary);
+  color: var(--color-fd-primary-foreground) !important;
+}
+
+.seemore-platform-primary:hover {
+  border-color: var(--color-fd-primary);
+  background: color-mix(in oklch, var(--color-fd-primary) 88%, transparent);
+}
+
+.seemore-download-icon {
+  width: 1.15rem;
+  height: 1.15rem;
+  flex-shrink: 0;
+}
+
+.seemore-download-note {
+  margin: 0 !important;
+  font-size: 0.875rem;
+  color: var(--color-fd-muted-foreground);
+}
+
+.seemore-requirement {
+  margin: -0.5rem 0 1rem !important;
+  font-size: 0.875rem;
+  color: var(--color-fd-muted-foreground);
+}
+
+.seemore-files {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 0.75rem;
+}
+
+.seemore-file {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--color-fd-border);
+  border-radius: 0.9rem;
+  background: var(--color-fd-card);
+  color: var(--color-fd-foreground) !important;
+  text-decoration: none !important;
+  transition:
+    transform 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.seemore-file:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in oklch, var(--color-fd-primary) 45%, var(--color-fd-border));
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.08);
+}
+
+.seemore-file-logo {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
+  border-radius: 0.65rem;
+  background: var(--color-fd-muted);
+}
+
+.seemore-file-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.seemore-file-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.seemore-file-meta {
+  font-size: 0.8rem;
+  color: var(--color-fd-muted-foreground);
+}
+
+.seemore-file-arrow {
+  width: 1.1rem;
+  height: 1.1rem;
+  flex-shrink: 0;
+  color: var(--color-fd-muted-foreground);
+  transition: color 0.15s ease;
+}
+
+.seemore-file:hover .seemore-file-arrow {
+  color: var(--color-fd-primary);
+}
+
+.seemore-install {
+  margin-top: 1rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--color-fd-border);
+  border-radius: 0.9rem;
+  background: var(--color-fd-card);
+  font-size: 0.925rem;
+}
+
+.seemore-install > :first-child {
+  margin-top: 0;
+}
+
+.seemore-install > :last-child {
+  margin-bottom: 0;
+}
+
+.seemore-install ol {
+  list-style: none;
+  counter-reset: install-step;
+  padding-left: 0;
+}
+
+.seemore-install ol > li {
+  counter-increment: install-step;
+  position: relative;
+  padding-left: 2.25rem;
+}
+
+.seemore-install ol > li::before {
+  content: counter(install-step);
+  position: absolute;
+  left: 0;
+  top: 0.05rem;
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 999px;
+  background: var(--color-fd-primary);
+  color: var(--color-fd-primary-foreground);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.seemore-download-footer {
+  margin-top: 2rem !important;
+  font-size: 0.875rem;
+  color: var(--color-fd-muted-foreground);
 }

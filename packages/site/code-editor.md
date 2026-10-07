@@ -1,7 +1,7 @@
 ---
 title: Code editor extension
 description: The same rendered site as a panel beside your editor.
-order: 3
+order: 4
 ---
 
 # Code editor extension

@@ -1,6 +1,6 @@
 ---
 title: Home
-description: Let AI write the Markdown. Let seemore show it better — zero config documentation framework.
+description: Zero config documentation tool - Let AI write the Markdown. Let seemore show it better.
 order: 1
 ---
 
@@ -117,7 +117,8 @@ import { version } from '../seemore/package.json';
 </div>
 
 <div className="seemore-cta-row">
-  <Link className="seemore-btn seemore-btn-primary" href="/getting-started">Get started</Link>
+  <Link className="seemore-btn seemore-btn-primary" href="/download">Download Desktop App</Link>
+  <Link className="seemore-btn seemore-btn-primary" href="/getting-started">Use CLI</Link>
   <Link className="seemore-btn seemore-btn-secondary" href="https://github.com/arifszn/seemore">View on GitHub</Link>
 </div>
 
@@ -127,7 +128,7 @@ import { version } from '../seemore/package.json';
 
 <div className="seemore-section-head">
 
-## Three ways to use it
+## Two ways to use it
 
 Same folder, same Markdown, wherever you look at it.
 
@@ -135,15 +136,23 @@ Same folder, same Markdown, wherever you look at it.
 
 <div className="seemore-ways">
 
-<Link className="seemore-way" href="/getting-started">
-  <span className="seemore-way-strip" aria-hidden="true">
-    <span className="seemore-way-chrome">
-      <span className="seemore-way-dot"></span>
-      <span className="seemore-way-dot"></span>
-      <span className="seemore-way-dot"></span>
+<Link className="seemore-way" href="/download">
+  <span className="seemore-way-body">
+    <span className="seemore-way-head">
+      <span className="seemore-way-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="2" y="4" width="20" height="13" rx="2" />
+          <line x1="8" y1="21" x2="16" y2="21" />
+          <line x1="12" y1="17" x2="12" y2="21" />
+        </svg>
+      </span>
+      <span className="seemore-way-title">In the desktop app</span>
     </span>
-    <span className="seemore-way-pill">localhost:4040</span>
+    <span className="seemore-way-desc">Open a folder or a .md file as a site. For macOS, Windows and Linux.</span>
   </span>
+</Link>
+
+<Link className="seemore-way" href="/getting-started">
   <span className="seemore-way-body">
     <span className="seemore-way-head">
       <span className="seemore-way-icon">
@@ -157,57 +166,6 @@ Same folder, same Markdown, wherever you look at it.
       <span className="seemore-way-title">In your browser</span>
     </span>
     <span className="seemore-way-desc">npx seemore serves the folder you are in and updates live as you edit.</span>
-  </span>
-</Link>
-
-<Link className="seemore-way" href="/code-editor">
-  <span className="seemore-way-strip seemore-way-strip-split" aria-hidden="true">
-    <span className="seemore-way-pane">
-      <span className="seemore-way-pane-label">launch.md</span>
-      <span className="seemore-way-bar"></span>
-      <span className="seemore-way-bar"></span>
-      <span className="seemore-way-bar"></span>
-    </span>
-    <span className="seemore-way-pane">
-      <span className="seemore-way-pane-label">preview</span>
-      <span className="seemore-way-bar"></span>
-      <span className="seemore-way-bar"></span>
-      <span className="seemore-way-bar"></span>
-    </span>
-  </span>
-  <span className="seemore-way-body">
-    <span className="seemore-way-head">
-      <span className="seemore-way-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-          <rect x="3" y="4" width="18" height="16" rx="2" />
-          <line x1="9" y1="4" x2="9" y2="20" />
-        </svg>
-      </span>
-      <span className="seemore-way-title">In your code editor</span>
-    </span>
-    <span className="seemore-way-desc">An extension puts the same site in a panel next to the file you are editing, in VS Code and compatible editors.</span>
-  </span>
-</Link>
-
-<Link className="seemore-way" href="/publishing">
-  <span className="seemore-way-strip" aria-hidden="true">
-    <span className="seemore-way-dist">dist/</span>
-    <span className="seemore-way-files">
-      <span className="seemore-way-file">index.html</span>
-    </span>
-  </span>
-  <span className="seemore-way-body">
-    <span className="seemore-way-head">
-      <span className="seemore-way-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-          <rect x="4" y="4" width="16" height="4" rx="1" />
-          <rect x="4" y="10" width="16" height="4" rx="1" />
-          <rect x="4" y="16" width="16" height="4" rx="1" />
-        </svg>
-      </span>
-      <span className="seemore-way-title">As a static site</span>
-    </span>
-    <span className="seemore-way-desc">npx seemore build exports plain HTML you can host anywhere, so it doubles as a docs framework, not just a preview tool.</span>
   </span>
 </Link>
 

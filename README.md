@@ -2,10 +2,13 @@
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/arifszn/seemore/main/assets/logo.png" alt="seemore" width="280">
-  <h4 align="center">Let AI write the Markdown. Let seemore show it better — zero config documentation framework.</h4>
+  <h4 align="center">Zero config documentation tool - Let AI write the Markdown. Let seemore show it better.</h4>
   <p align="center">
     <a href="https://www.npmjs.com/package/seemore">
       <img src="https://img.shields.io/npm/v/seemore"/>
+    </a>
+    <a href="https://arifszn.github.io/seemore/download">
+      <img src="https://img.shields.io/badge/Desktop-macOS%20%C2%B7%20Windows%20%C2%B7%20Linux-111111"/>
     </a>
     <a href="https://open-vsx.org/extension/arifszn/seemore-vscode">
       <img src="https://img.shields.io/badge/Open_VSX-Registry-C160EF?logo=eclipseide&logoColor=white"/>
@@ -44,6 +47,14 @@ A folder of `.md` files has no order. You cannot click a link between files. You
 
 ## Quick start
 
+You can use seemore in two ways.
+
+### Desktop app
+
+Download the app for macOS, Windows or Linux from the [download page](https://arifszn.github.io/seemore/download). Open a folder or a `.md` file, and it opens as a site.
+
+### Command line
+
 seemore needs [Node.js](https://nodejs.org) 20 or newer.
 
 ```bash
@@ -59,7 +70,7 @@ The [seemore website](https://arifszn.github.io/seemore) is a folder of Markdown
 <summary><strong>Or ask an AI agent to set it up</strong></summary>
 <br/>
 
-If you do not want to use a terminal, use the [agent skill](https://github.com/arifszn/seemore-skill) instead. It does the setup for you.
+If you work with an AI agent, the [agent skill](https://github.com/arifszn/seemore-skill) does the setup for you.
 
 ### Claude Code (Plugin Marketplace)
 
@@ -109,6 +120,7 @@ Point seemore at any Markdown you already have: AI-written notes, project docs, 
 - **Zero config**: no config file, no code, no files to move
 - **Live preview**: files appear, disappear and reorder as you edit them
 - **Edit in place**: double-click any block in the preview to fix its Markdown
+- **Desktop app**: for macOS, Windows and Linux
 - **Editor integration**: one extension covers VS Code, Cursor, Antigravity and other VS Code-compatible editors, including remote workspaces
 - **Documentation framework**: `seemore build` renders the whole site to HTML, ready to deploy on any host
 - **Password protection**: protect the built site with one shared password, with no server required
@@ -127,6 +139,14 @@ The preview is also an editor. Double-click any paragraph, heading, list item, q
 </p>
 
 Inline editing works only for local previews.
+
+## Open with the desktop app
+
+Download the app from the [download page](https://arifszn.github.io/seemore/download). It opens a folder or a `.md` file as a site in its own window. You do not need a terminal or Node.js.
+
+- **Open a folder**: use **File > Open Folder**, or drag the folder onto the app.
+- **Open a file**: double-click a `.md` file, or use **File > Open File**.
+- **Export and build**: use the **File** menu.
 
 ## View in your code editor
 

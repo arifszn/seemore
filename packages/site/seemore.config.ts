@@ -1,6 +1,6 @@
 export default {
   title: 'seemore',
-  description: 'Let AI write the Markdown. Let seemore show it better — zero config documentation framework.',
+  description: 'Zero config documentation tool - Let AI write the Markdown. Let seemore show it better.',
   base: '/seemore/',
   theme: 'neutral',
   css: './custom.css',

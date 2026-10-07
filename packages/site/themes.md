@@ -1,7 +1,7 @@
 ---
 title: Themes
 description: The twelve built-in colour presets, and how to roll your own.
-order: 7
+order: 8
 ---
 
 # Themes
