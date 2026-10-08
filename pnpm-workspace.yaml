@@ -3,3 +3,6 @@ packages:
 
 allowBuilds:
   esbuild: true
+  # Its prebuilds cover every target and load at runtime; the scripts would only check
+  # for them or fall back to node-gyp.
+  node-pty: false

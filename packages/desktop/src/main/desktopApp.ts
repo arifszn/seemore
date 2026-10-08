@@ -5,16 +5,17 @@
 import { existsSync, statSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { basename, dirname, join, resolve } from 'node:path';
-import { app, BrowserWindow, dialog, Menu, shell, utilityProcess } from 'electron';
+import { app, BrowserWindow, dialog, Menu, shell, utilityProcess, type WebContents } from 'electron';
 import { buildDevArgs, canonicalise, hasSeemoreConfig, readCliVersion } from '@seemore/host';
 import { cliEntry, cliPackageJson, EXPECTED_CLI_VERSION } from './cli.js';
 import { readJson, writeJson } from './jsonStore.js';
 import { openBuildSheet, registerBuildHandlers } from './buildSheet.js';
 import { type Job, startJob } from './jobs.js';
-import { buildMenu, MENU_IDS } from './menu.js';
+import { buildMenu, MENU_IDS, TERMINAL_COMMANDS, TERMINAL_NEW } from './menu.js';
 import { addRecent, parseRecents, type RecentEntry } from './recents.js';
 import { type Lease, ServerRegistry } from './serverRegistry.js';
-import { createSiteWindow, type SavedBounds, showOpening } from './siteWindow.js';
+import { createSiteWindow, type SavedBounds, showOpening, siteContents, terminalPanel } from './siteWindow.js';
+import { type PanelState, parsePanelState, registerTerminalHandlers } from './terminalPanel.js';
 import { createStartWindow, registerStartHandlers } from './startWindow.js';
 import { resolveTarget } from './target.js';
 import { createUpdater } from './update/index.js';
@@ -23,6 +24,8 @@ import { WindowRegistry } from './windowRegistry.js';
 
 interface SiteRecord {
   window: BrowserWindow;
+  /** The site view's page (§7.4), where every load goes. */
+  page: WebContents;
   root: string;
   lease: Lease | undefined;
   origin: string | undefined;
@@ -45,6 +48,8 @@ interface SiteInfo {
 
 interface WindowsFile {
   bounds: Record<string, SavedBounds>;
+  /** Terminal panel height and open state, per root (§7.4). */
+  terminal: Record<string, PanelState>;
   /** Windows open at quit, for session restore (§5). */
   session: { root: string; path: string }[];
 }
@@ -87,7 +92,8 @@ export class DesktopApp {
     this.state = (readJson(this.paths.state) as StateFile | undefined) ?? {};
 
     this.updater = createUpdater({ jobsRunning: () => this.jobsRunning(), onChange: () => this.refreshMenu() });
-    // Checks start once the first window has loaded, so they never delay startup (§10.1).
+    // Checks start once the first window has loaded, so they never delay startup (§10.1). A
+    // site window's own page loads nothing; its site view counts instead (createSite).
     app.on('browser-window-created', (_event, window) => {
       window.webContents.once('did-finish-load', () => this.updater?.start());
     });
@@ -111,6 +117,8 @@ export class DesktopApp {
       recents: () => this.recentList,
       onOpenPath: (path) => void this.open(path),
     });
+
+    registerTerminalHandlers();
 
     registerBuildHandlers({
       run: (root, outDir, base, password, onOutput) =>
@@ -159,7 +167,7 @@ export class DesktopApp {
         }
         try {
           const record = await this.createSite(entry.root);
-          if (record !== undefined) void loadQuietly(record.window, `${record.origin}${entry.path}`);
+          if (record !== undefined) void loadQuietly(record.page, `${record.origin}${entry.path}`);
         } catch (error) {
           this.showError(`Could not reopen ${entry.root}.`, error);
         }
@@ -212,7 +220,7 @@ export class DesktopApp {
     if (record === undefined) return;
     try {
       const copy = await this.createSite(record.root);
-      if (copy !== undefined) void loadQuietly(copy.window, `${copy.origin}${record.lastPath}`);
+      if (copy !== undefined) void loadQuietly(copy.page, `${copy.origin}${record.lastPath}`);
     } catch (error) {
       this.showError(`Could not open another window on ${record.root}.`, error);
     }
@@ -281,6 +289,26 @@ export class DesktopApp {
     });
   }
 
+  /** View > Terminal (§7.4). */
+  toggleTerminal(window: BrowserWindow): void {
+    if (this.records.has(window.id)) terminalPanel(window).toggle();
+  }
+
+  /** A Terminal menu item (§7.4): new, kill, rename, clear, previous, next. */
+  terminalCommand(window: BrowserWindow, command: string): void {
+    if (this.records.has(window.id)) terminalPanel(window).command(command);
+  }
+
+  /** The site view's page of a site window (§7.4). */
+  sitePage(window: BrowserWindow): WebContents | undefined {
+    return this.records.get(window.id)?.page;
+  }
+
+  /** The window's shell process ids (§17). */
+  shellPids(window: BrowserWindow): number[] {
+    return this.records.has(window.id) ? terminalPanel(window).shells.pids() : [];
+  }
+
   /** Export or build is running; the update banner waits (§10.1, §16). */
   jobsRunning(): boolean {
     return this.runningJobs > 0;
@@ -332,16 +360,16 @@ export class DesktopApp {
     }
 
     if (target.kind === 'folder') {
-      if (fresh) await loadQuietly(record.window, `${record.origin}/`);
+      if (fresh) await loadQuietly(record.page, `${record.origin}/`);
       return;
     }
 
     const route = await this.routeFor(record, target.file);
     if (route.ok) {
-      await loadQuietly(record.window, `${record.origin}${route.url}`);
+      await loadQuietly(record.page, `${record.origin}${route.url}`);
       return;
     }
-    if (fresh) await loadQuietly(record.window, `${record.origin}/`);
+    if (fresh) await loadQuietly(record.page, `${record.origin}/`);
     const { response } = await dialog.showMessageBox(record.window, {
       type: 'info',
       message: `${basename(target.file)} isn't part of this site.`,
@@ -377,7 +405,7 @@ export class DesktopApp {
   /** The source file behind the window's current page (§11 item 2). */
   private async pageFile(record: SiteRecord): Promise<string | undefined> {
     try {
-      const path = new URL(record.window.webContents.getURL()).pathname;
+      const path = new URL(record.page.getURL()).pathname;
       const res = await fetch(`${record.origin}/__seemore/page?url=${encodeURIComponent(path)}`);
       const body = (await res.json()) as { file?: string };
       return res.ok && typeof body.file === 'string' ? body.file : undefined;
@@ -419,6 +447,16 @@ export class DesktopApp {
     if (exportItem !== null) exportItem.enabled = live && (record?.site?.pageActions.includes('export-html') ?? true);
     if (buildItem !== null) buildItem.enabled = live;
     if (closeFolderItem !== null) closeFolderItem.enabled = record !== undefined;
+    const terminalItem = menu.getMenuItemById(MENU_IDS.terminal);
+    if (terminalItem !== null) terminalItem.enabled = record !== undefined;
+    const newTerminal = menu.getMenuItemById(TERMINAL_NEW);
+    if (newTerminal !== null) newTerminal.enabled = record !== undefined;
+    // The rest act on an open panel's shells.
+    const panelOpen = record !== undefined && terminalPanel(record.window).isOpen;
+    for (const id of Object.keys(TERMINAL_COMMANDS)) {
+      const item = menu.getMenuItemById(id);
+      if (item !== null) item.enabled = panelOpen;
+    }
   }
 
   private async routeFor(record: SiteRecord, file: string): Promise<{ ok: true; url: string } | { ok: false; reason: string }> {
@@ -441,6 +479,7 @@ export class DesktopApp {
     this.checkCliOnce();
     const record: SiteRecord = {
       window: undefined as never,
+      page: undefined as never,
       root,
       lease: undefined,
       origin: undefined,
@@ -452,7 +491,14 @@ export class DesktopApp {
       bounds: this.windowsFile.bounds[root],
       origin: () => record.origin,
       onOpenPath: (path) => void this.open(path, { newWindow: true }),
+      panel: parsePanelState(this.windowsFile.terminal[root]),
+      onPanelChange: (state) => {
+        this.windowsFile.terminal[root] = state;
+        writeJson(this.paths.windows, this.windowsFile);
+        this.updateMenuState();
+      },
     });
+    record.page = siteContents(record.window);
     const id = record.window.id;
     this.records.set(id, record);
     this.windows.add(id, root);
@@ -465,10 +511,11 @@ export class DesktopApp {
       this.checkRootStillThere(record);
       this.saveSession();
     };
-    record.window.webContents.on('did-navigate', (_event, url) => track(url));
-    record.window.webContents.on('did-navigate-in-page', (_event, url) => track(url));
+    record.page.on('did-navigate', (_event, url) => track(url));
+    record.page.on('did-navigate-in-page', (_event, url) => track(url));
     // A config edit always reloads the page, so this keeps Export's state current (§11 item 3).
-    record.window.webContents.on('did-finish-load', () => void this.refreshSite(record));
+    record.page.on('did-finish-load', () => void this.refreshSite(record));
+    record.page.once('did-finish-load', () => this.updater?.start());
 
     record.window.on('close', () => {
       this.windowsFile.bounds[root] = { ...record.window.getNormalBounds(), maximized: record.window.isMaximized() };
@@ -526,7 +573,7 @@ export class DesktopApp {
       if (record === undefined) continue;
       record.lease = undefined;
       record.origin = undefined;
-      void record.window.loadFile(join(__dirname, 'error.html'));
+      void record.page.loadFile(join(__dirname, 'error.html'));
       void dialog
         .showMessageBox(record.window, {
           type: 'error',
@@ -551,9 +598,9 @@ export class DesktopApp {
       record.lease = lease;
       record.origin = lease.server.origin;
       this.updateMenuState();
-      await loadQuietly(record.window, `${record.origin}${record.lastPath}`);
+      await loadQuietly(record.page, `${record.origin}${record.lastPath}`);
     } catch (error) {
-      if (!record.window.isDestroyed()) void record.window.loadFile(join(__dirname, 'error.html'));
+      if (!record.window.isDestroyed()) void record.page.loadFile(join(__dirname, 'error.html'));
       this.showError(`Could not restart the server for ${record.root}.`, error);
     }
   }
@@ -632,9 +679,9 @@ export class DesktopApp {
 }
 
 /** Loads a URL; an aborted load (the user navigated on) is not an error worth reporting. */
-async function loadQuietly(window: BrowserWindow, url: string): Promise<void> {
+async function loadQuietly(page: WebContents, url: string): Promise<void> {
   try {
-    await window.loadURL(url);
+    await page.loadURL(url);
   } catch {
     // ERR_ABORTED and friends: the window shows whatever replaced it.
   }
@@ -644,6 +691,7 @@ function parseWindowsFile(value: unknown): WindowsFile {
   const file = (typeof value === 'object' && value !== null ? value : {}) as Partial<WindowsFile>;
   return {
     bounds: typeof file.bounds === 'object' && file.bounds !== null ? file.bounds : {},
+    terminal: typeof file.terminal === 'object' && file.terminal !== null ? file.terminal : {},
     session: Array.isArray(file.session)
       ? file.session.filter(
           (entry): entry is { root: string; path: string } =>

@@ -7,12 +7,22 @@ directories:
   output: release
   buildResources: build
 
-# tsup bundles everything the app imports into dist/, so there are no runtime dependencies
-# to collect and nothing native to rebuild.
+# tsup bundles everything the app imports into dist/, except `node-pty` (§7.4), the one
+# runtime dependency: native, with prebuilds for every target loaded at runtime, so nothing
+# is rebuilt. Only its runtime files ship, and only the target's own prebuilds
+# (`${platform}` is darwin, linux or win32, as node-pty names them). smartUnpack moves it to
+# app.asar.unpacked; its JS is still required through app.asar, which its spawn-helper path
+# rewrite expects (microsoft/node-pty#923).
 files:
   - dist/**/*
   - '!dist/**/*.map'
   - package.json
+  - '!node_modules/node-pty/{binding.gyp,src,third_party,typings,scripts,deps}${/*}'
+  - '!node_modules/node-pty/prebuilds${/*}'
+  - node_modules/node-pty/prebuilds/${platform}-${arch}/**
+  - '!node_modules/node-pty/**/*.pdb'
+  # Headers for building from source, a dependency only in name.
+  - '!node_modules/node-addon-api${/*}'
 npmRebuild: false
 # English only, to save 12 MB compressed: Chromium's built-in text and navigator.language
 # are English. `en-US` keeps macOS's en.lproj (matched as a prefix) and en-US.pak elsewhere;

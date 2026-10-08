@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <!-- xterm sets its theme and cell sizes through <style> elements it creates (§8). -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:" />
+    <title>Terminal</title>
+    <link rel="stylesheet" href="start.css" />
+    <link rel="stylesheet" href="terminal.css" />
+  </head>
+  <body>
+    <div id="splitter" role="separator" aria-orientation="horizontal" aria-label="Resize terminal"></div>
+    <header>
+      <span class="title">Terminal</span>
+      <button id="new" title="New Terminal" aria-label="New Terminal"></button>
+      <button id="kill-active" title="Kill Terminal" aria-label="Kill Terminal"></button>
+      <button id="hide" title="Hide Panel" aria-label="Hide Panel"></button>
+    </header>
+    <div class="body">
+      <div id="terminals">
+        <form id="find" hidden>
+          <input id="find-input" type="text" placeholder="Find" aria-label="Find" spellcheck="false" />
+          <span id="find-status"></span>
+          <button id="find-prev" type="button" title="Previous Match (Shift+Enter)" aria-label="Previous Match"></button>
+          <button id="find-next" type="button" title="Next Match (Enter)" aria-label="Next Match"></button>
+          <button id="find-close" type="button" title="Close (Escape)" aria-label="Close"></button>
+        </form>
+      </div>
+      <ul id="tabs" role="tablist" aria-label="Terminals"></ul>
+    </div>
+    <script src="terminal.js"></script>
+  </body>
+</html>

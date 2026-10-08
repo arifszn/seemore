@@ -1,10 +1,14 @@
 /**
- * A window showing one site: the dev server's page loaded directly, sandboxed, with no preload
- * (DESKTOP-SPEC §8). Navigation, new windows and permissions follow `policy.ts`.
+ * A window showing one site: the dev server's page in a child `WebContentsView` filling the
+ * window above the terminal panel, sandboxed, with a preload that only reports its theme
+ * (DESKTOP-SPEC §7.4, §8). The
+ * window's own `webContents` loads nothing. Navigation, new
+ * windows and permissions follow `policy.ts`.
  */
 import { basename, join } from 'node:path';
-import { BrowserWindow, nativeTheme, type Rectangle, shell, WebContentsView } from 'electron';
+import { BrowserWindow, nativeTheme, type Rectangle, shell, type WebContents, WebContentsView } from 'electron';
 import { allowPermission, decideNavigation, decideNewWindow } from './policy.js';
+import { type PanelState, TerminalPanel } from './terminalPanel.js';
 
 export interface SavedBounds extends Partial<Rectangle> {
   maximized?: boolean;
@@ -17,13 +21,36 @@ export interface SiteWindowOptions {
   origin: () => string | undefined;
   /** A file dropped on the window (§4.4). */
   onOpenPath: (path: string) => void;
+  /** The terminal panel's saved height and open state for this root (§7.4). */
+  panel: PanelState;
+  onPanelChange: (state: PanelState) => void;
 }
 
 /** Origin each site window's `webContents` may use, for the session-wide permission handlers. */
 const origins = new Map<number, () => string | undefined>();
 
+/** Each site window's site view, the page every caller means by the window's page. */
+const sites = new WeakMap<BrowserWindow, WebContents>();
+const terminals = new WeakMap<BrowserWindow, TerminalPanel>();
+
+/** The site page of a window made by `createSiteWindow`. */
+export function siteContents(window: BrowserWindow): WebContents {
+  const contents = sites.get(window);
+  if (contents === undefined) throw new Error('not a site window');
+  return contents;
+}
+
+/** The terminal panel of a window made by `createSiteWindow`. */
+export function terminalPanel(window: BrowserWindow): TerminalPanel {
+  const panel = terminals.get(window);
+  if (panel === undefined) throw new Error('not a site window');
+  return panel;
+}
+
 export function createSiteWindow(options: SiteWindowOptions): BrowserWindow {
   const { root, bounds } = options;
+  // The loading page's background (start.css), so the window never flashes white.
+  const background = nativeTheme.shouldUseDarkColors ? '#1c1c1e' : '#ffffff';
   const window = new BrowserWindow({
     width: bounds?.width ?? 1200,
     height: bounds?.height ?? 840,
@@ -31,9 +58,15 @@ export function createSiteWindow(options: SiteWindowOptions): BrowserWindow {
     y: bounds?.y,
     title: basename(root),
     show: false,
-    // The loading page's background (start.css), so the window never flashes white.
-    backgroundColor: nativeTheme.shouldUseDarkColors ? '#1c1c1e' : '#ffffff',
+    backgroundColor: background,
+    webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false, webSecurity: true },
+  });
+  if (bounds?.maximized === true) window.maximize();
+  if (process.platform === 'darwin') window.setRepresentedFilename(root);
+
+  const view = new WebContentsView({
     webPreferences: {
+      preload: join(__dirname, 'preload-site.js'),
       sandbox: true,
       contextIsolation: true,
       nodeIntegration: false,
@@ -41,17 +74,29 @@ export function createSiteWindow(options: SiteWindowOptions): BrowserWindow {
       navigateOnDragDrop: true,
     },
   });
-  if (bounds?.maximized === true) window.maximize();
-  if (process.platform === 'darwin') window.setRepresentedFilename(root);
-  window.once('ready-to-show', () => window.show());
+  view.setBackgroundColor(background);
+  // Kept: `view.webContents` reads undefined once the window destroys the view.
+  const webContents = view.webContents;
+  sites.set(window, webContents);
+  window.contentView.addChildView(view);
+  // Lays both views out, now and on every resize.
+  terminals.set(window, new TerminalPanel(window, view, root, options.panel, options.onPanelChange));
+  // Focus belongs to the site, never to the window's own empty page.
+  window.on('focus', () => {
+    if (window.webContents.isFocused()) webContents.focus();
+  });
+  window.once('closed', () => {
+    if (!webContents.isDestroyed()) webContents.close();
+  });
 
-  const { webContents } = window;
   const id = webContents.id;
   origins.set(id, options.origin);
   window.once('closed', () => origins.delete(id));
 
-  window.on('page-title-updated', (event, title) => {
+  webContents.on('page-title-updated', (event, title) => {
     event.preventDefault();
+    // The view outlives its window by a moment as the window closes.
+    if (window.isDestroyed()) return;
     // The loading and error pages are ours, not the site's: the folder name alone.
     const local = webContents.getURL().startsWith('file:');
     window.setTitle(title === '' || local ? basename(root) : `${basename(root)} - ${title}`);
@@ -81,7 +126,7 @@ const openings = new WeakMap<BrowserWindow, () => void>();
  * and "Opening <root>…", a local page in the asar. An overlay, not the window's own page:
  * navigating from that page to the server's origin blanks the window until the site paints,
  * which on a first run is Vite's whole first compile. The window shows once the overlay has
- * painted; the next load in the window's own page to finish or fail removes it.
+ * painted; the next load in the site view to finish or fail removes it.
  */
 export function showOpening(window: BrowserWindow, root: string): void {
   if (openings.has(window)) return;
@@ -101,7 +146,7 @@ export function showOpening(window: BrowserWindow, root: string): void {
   window.on('resize', fit);
   window.contentView.addChildView(view);
 
-  const { webContents } = window;
+  const webContents = siteContents(window);
   const hide = () => {
     if (openings.get(window) !== hide) return;
     openings.delete(window);
