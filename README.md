@@ -114,7 +114,7 @@ Point seemore at any Markdown you already have: AI-written notes, project docs, 
 - **Zero config**: no config file, no code, no files to move
 - **Live preview**: files appear, disappear and reorder as you edit them
 - **Edit in place**: double-click any block in the preview to fix its Markdown
-- **Desktop app**: for macOS, Windows and Linux
+- **Desktop app**: for macOS, Windows and Linux, with an integrated terminal
 - **Editor integration**: one extension covers VS Code, Cursor, Antigravity and other VS Code-compatible editors, including remote workspaces
 - **Documentation framework**: `seemore build` renders the whole site to HTML, ready to deploy on any host
 - **Password protection**: protect the built site with one shared password, with no server required
@@ -136,10 +136,15 @@ Inline editing works only for local previews.
 
 ## Open with the desktop app
 
-Download the app from the [download page](https://arifszn.github.io/seemore/download). It opens a folder or a `.md` file as a site in its own window.
+Download the app from the [download page](https://arifszn.github.io/seemore/download). It opens a folder or a `.md` file as a site in its own window, with an integrated terminal.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/desktop-app.png" alt="The seemore desktop app in the black theme, showing a folder of research notes as a site: a paragraph's Markdown source open in the inline editor above a flowchart, and the integrated terminal listing the folder's Markdown files" width="640"/>
+</p>
 
 - **Open a folder**: use **File > Open Folder**, or drag the folder onto the app.
 - **Open a file**: double-click a `.md` file, or use **File > Open File**.
+- **Use the integrated terminal**: it opens in the site's folder, so you can run an AI agent, git or a script next to the pages it changes. Show or hide it with **View > Terminal** (<kbd>Ctrl</kbd>+<kbd>`</kbd>), and open more from the **Terminal** menu.
 - **Export and build**: use the **File** menu.
 
 ## View in your code editor

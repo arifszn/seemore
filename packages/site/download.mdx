@@ -1,6 +1,6 @@
 ---
 title: Desktop app
-description: Download seemore for macOS, Windows or Linux. Open a folder or a Markdown file as a site, with no terminal and no Node install.
+description: Download seemore for macOS, Windows or Linux. Open a folder or a Markdown file as a site, with an integrated terminal and no Node install.
 order: 3
 ---
 
@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react';
 import macNotOpened from './assets/macos-not-opened.png';
 import macOpenAnyway from './assets/macos-open-anyway.png';
 import macConfirm from './assets/macos-confirm.png';
+import desktopApp from './assets/desktop-app.png';
 
 export const RELEASES = 'https://github.com/arifszn/seemore/releases/latest';
 
@@ -162,9 +163,13 @@ export function FileCard({ file, platform, title, type }) {
 
 # Desktop app
 
-Open a folder or a `.md` file as a site in its own window.
+Open a folder or a `.md` file as a site in its own window. An integrated terminal opens in the site's folder: run an AI agent, git or a script there, and the pages update as the files change. Show or hide it with **View > Terminal** (<kbd>Ctrl</kbd>+<kbd>`</kbd>).
 
 <PlatformButtons />
+
+<div className="seemore-shot">
+  <img src={desktopApp} alt="The seemore desktop app in the black theme, showing a folder of research notes as a site: a paragraph's Markdown source open in the inline editor above a flowchart, and the integrated terminal listing the folder's Markdown files" />
+</div>
 
 ## macOS
 
