@@ -221,6 +221,31 @@ describe('desktop app', () => {
     expect(page.url()).toMatch(/^file:.*index\.html/);
   });
 
+  it('closes the folder into a start screen, and leaves it out of the session', async () => {
+    await launch(site);
+    const page = await sitePage();
+    await settled(page, '/');
+
+    expect(await app!.evaluate(({ Menu }) => Menu.getApplicationMenu()?.getMenuItemById('close-folder')?.label)).toBe(
+      'Close Folder',
+    );
+    await app!.evaluate(({ BrowserWindow }) =>
+      (globalThis as unknown as { seemoreDesktop: { closeFolder: (w: unknown) => void } }).seemoreDesktop.closeFolder(
+        BrowserWindow.getAllWindows()[0],
+      ),
+    );
+
+    const start = () => app!.windows().find((w) => w.url().startsWith('file:') && w.url().includes('index.html'));
+    await expect.poll(() => start() !== undefined).toBe(true);
+    await start()!.waitForSelector('#open-folder');
+    await expect.poll(() => app!.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().length)).toBe(1);
+    await app!.close();
+
+    await launch();
+    const relaunched = await app!.firstWindow();
+    await relaunched.waitForSelector('#open-folder');
+  });
+
   it('offers a restart when the server crashes, and comes back on a new server', async () => {
     await launch(site);
     const page = await sitePage();

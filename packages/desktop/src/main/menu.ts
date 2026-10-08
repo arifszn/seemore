@@ -6,7 +6,7 @@ import type { DesktopApp } from './desktopApp.js';
 import type { RecentEntry } from './recents.js';
 import type { Updater } from './update/updater.js';
 
-export const MENU_IDS = { export: 'export-page', build: 'build-site' } as const;
+export const MENU_IDS = { export: 'export-page', build: 'build-site', closeFolder: 'close-folder' } as const;
 
 export function buildMenu(desktop: DesktopApp, recents: readonly RecentEntry[], updater: Updater | undefined): void {
   const isMac = process.platform === 'darwin';
@@ -106,6 +106,15 @@ export function buildMenu(desktop: DesktopApp, recents: readonly RecentEntry[], 
           click: () => {
             const window = focused();
             if (desktop.isSiteWindow(window)) void desktop.duplicate(window!);
+          },
+        },
+        {
+          id: MENU_IDS.closeFolder,
+          label: 'Close Folder',
+          enabled: false,
+          click: () => {
+            const window = focused();
+            if (desktop.isSiteWindow(window)) desktop.closeFolder(window!);
           },
         },
         { type: 'separator' },

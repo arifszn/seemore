@@ -29,6 +29,8 @@ interface SiteRecord {
   /** Path, query and hash of the last page shown, to come back to after a restart. */
   lastPath: string;
   rootGoneReported: boolean;
+  /** Closed by File > Close Folder: out of the session even as the last window (§5). */
+  closedFolder?: boolean;
   /** From `/__seemore/site`, refreshed on every page load (§11 item 3). */
   site?: SiteInfo;
   /** Settles once the first server start succeeds or fails; the window shows meanwhile (§5). */
@@ -175,8 +177,8 @@ export class DesktopApp {
   }
 
   /** File > New Window: a start screen. */
-  newWindow(): void {
-    createStartWindow({ recents: () => this.recentList, onOpenPath: (path) => void this.open(path) });
+  newWindow(): BrowserWindow {
+    return createStartWindow({ recents: () => this.recentList, onOpenPath: (path) => void this.open(path) });
   }
 
   /** Focuses some window, or opens the start screen when there is none. */
@@ -214,6 +216,19 @@ export class DesktopApp {
     } catch (error) {
       this.showError(`Could not open another window on ${record.root}.`, error);
     }
+  }
+
+  /** File > Close Folder: the window gives way to a start screen in its place. */
+  closeFolder(window: BrowserWindow): void {
+    const record = this.records.get(window.id);
+    if (record === undefined) return;
+    record.closedFolder = true;
+    // The start screen first: closing the last window quits on Windows and Linux.
+    const start = this.newWindow();
+    const { x, y, width, height } = window.getBounds();
+    const size = start.getSize();
+    start.setPosition(Math.round(x + (width - size[0]!) / 2), Math.round(y + (height - size[1]!) / 2));
+    window.close();
   }
 
   /** File > Export Page as HTML… (§7.2). */
@@ -391,7 +406,7 @@ export class DesktopApp {
     return record.site;
   }
 
-  /** Export and Build apply to the focused site window; Export only if the site allows it. */
+  /** Export, Build and Close Folder apply to the focused site window; Export only if the site allows it. */
   updateMenuState(): void {
     const menu = Menu.getApplicationMenu();
     if (menu === null) return;
@@ -400,8 +415,10 @@ export class DesktopApp {
     const live = record?.origin !== undefined;
     const exportItem = menu.getMenuItemById(MENU_IDS.export);
     const buildItem = menu.getMenuItemById(MENU_IDS.build);
+    const closeFolderItem = menu.getMenuItemById(MENU_IDS.closeFolder);
     if (exportItem !== null) exportItem.enabled = live && (record?.site?.pageActions.includes('export-html') ?? true);
     if (buildItem !== null) buildItem.enabled = live;
+    if (closeFolderItem !== null) closeFolderItem.enabled = record !== undefined;
   }
 
   private async routeFor(record: SiteRecord, file: string): Promise<{ ok: true; url: string } | { ok: false; reason: string }> {
@@ -460,7 +477,7 @@ export class DesktopApp {
       record.lease?.release();
       // The last window closing on Windows or Linux quits the app; it still belongs to the
       // session, so it is kept, as are windows closed by quitting.
-      const keep = this.quitting || (process.platform !== 'darwin' && this.records.size === 1);
+      const keep = !record.closedFolder && (this.quitting || (process.platform !== 'darwin' && this.records.size === 1));
       this.records.delete(id);
       this.windows.remove(id);
       if (!keep) this.saveSession();
