@@ -57,7 +57,7 @@ function openPanel() {
     once: () => undefined,
     isDestroyed: () => false,
     getContentBounds: () => ({ x: 0, y: 0, width: 1000, height: 800 }),
-    contentView: { addChildView: (view: { webContents: { id: number } }) => void views.push(view) },
+    contentView: { on: () => undefined, addChildView: (view: { webContents: { id: number } }) => void views.push(view) },
   };
   const site = { setBounds: () => undefined, webContents: { focus: () => undefined } };
   const panel = new TerminalPanel(window as never, site as never, '/sites/docs', { height: 280, open: true }, () => undefined);
