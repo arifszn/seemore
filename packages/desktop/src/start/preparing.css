@@ -1,6 +1,6 @@
 /* The two loaders: preparing.html (a small window while the CLI unpacks) and opening.html (a
-   site window while its server starts). Both show a page being rendered: Markdown markers
-   and lines draw in, the markers drop away, and it starts over. */
+   site window while its server starts). Both show a page being rendered: its lines draw
+   in from the middle, fade, and it starts over. */
 html,
 body {
   height: 100%;
@@ -42,27 +42,20 @@ p.sub {
   flex: none;
   display: grid;
   gap: calc(6 * var(--u));
-  width: calc(44 * var(--u));
+  width: calc(32 * var(--u));
 }
 .ln {
   display: flex;
   align-items: center;
-  gap: calc(5 * var(--u));
+  justify-content: center;
   height: calc(6 * var(--u));
-}
-.ln i {
-  width: calc(7 * var(--u));
-  font: normal calc(10 * var(--u)) / 1 var(--mono);
-  text-align: right;
-  color: var(--accent);
-  animation: settle 2.6s ease-in-out infinite;
 }
 .ln b {
   height: calc(3 * var(--u));
   width: var(--w);
   border-radius: var(--u);
   background: var(--muted);
-  transform-origin: left center;
+  transform-origin: center;
   transform: scaleX(0);
   animation: draw 2.6s cubic-bezier(0.3, 0.7, 0.2, 1) infinite;
   animation-delay: calc(var(--i) * 0.16s);
@@ -100,19 +93,6 @@ p.sub {
     opacity: 0;
   }
 }
-@keyframes settle {
-  0%,
-  50% {
-    opacity: 1;
-  }
-  62%,
-  96% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
-}
 
 /* opening.html: a full-size window, so the page stacks above the label. */
 .opening {
@@ -133,8 +113,5 @@ p.sub {
   .ln b {
     animation: none;
     transform: none;
-  }
-  .ln i {
-    animation: none;
   }
 }
