@@ -103,9 +103,6 @@ export function PlatformButtons() {
   ];
   const ordered = [...buttons].sort((a, b) => (a.id === platform ? -1 : b.id === platform ? 1 : 0));
   const version = release ? release.tag_name.replace('desktop-v', '') : null;
-  const other = macArch === 'intel'
-    ? { label: 'Apple Silicon', file: FILES.macArm }
-    : { label: 'Intel', file: FILES.macIntel };
   return (
     <div className="seemore-download">
       <div className="seemore-platforms">
@@ -125,12 +122,6 @@ export function PlatformButtons() {
       </div>
       <p className="seemore-download-note">
         {version ? `Version ${version}. ` : ''}Free and open source.
-        {platform === 'macos' && macArch && (
-          <>
-            {' '}For {macArch === 'arm' ? 'Apple Silicon' : 'Intel'}. Not your Mac?{' '}
-            <a href={assetUrl(release, other.file)}>Download for {other.label}</a>.
-          </>
-        )}
       </p>
     </div>
   );
@@ -168,7 +159,7 @@ Open a folder or a `.md` file as a site in its own window. An integrated termina
 <PlatformButtons />
 
 <div className="seemore-shot">
-  <img src={desktopApp} alt="The seemore desktop app in the black theme, showing a folder of research notes as a site: a paragraph's Markdown source open in the inline editor above a flowchart, and the integrated terminal listing the folder's Markdown files" />
+  <img src={desktopApp} alt="The seemore desktop app in the light theme, showing a folder of research notes as a site: a paragraph's Markdown source open in the inline editor above a merge flowchart, and the integrated terminal running three shells in the folder's git repository on main" />
 </div>
 
 ## macOS

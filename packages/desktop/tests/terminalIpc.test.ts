@@ -8,20 +8,28 @@ const electron = vi.hoisted(() => {
   const handlers = new Map<string, (event: { sender: { id: number } }, ...args: unknown[]) => unknown>();
   let nextId = 100;
   class WebContentsView {
+    /** The bounds and visibility `layout()` set, and what the page was sent. */
+    bounds = { x: 0, y: 0, width: 0, height: 0 };
+    visible = true;
+    sent: unknown[][] = [];
     webContents = {
       id: nextId++,
       on: () => undefined,
-      once: () => undefined,
+      once: (_name: string, fn: () => void) => fn(),
       setWindowOpenHandler: () => undefined,
       loadFile: () => Promise.resolve(),
       isDestroyed: () => false,
-      send: () => undefined,
+      send: (...args: unknown[]) => void this.sent.push(args),
       focus: () => undefined,
       close: () => undefined,
     };
     setBackgroundColor() {}
-    setBounds() {}
-    setVisible() {}
+    setBounds(bounds: { x: number; y: number; width: number; height: number }) {
+      this.bounds = bounds;
+    }
+    setVisible(visible: boolean) {
+      this.visible = visible;
+    }
   }
   return {
     handlers,
@@ -66,9 +74,17 @@ vi.mock('node-pty', () => pty);
 const { registerTerminalHandlers, TerminalPanel } = await import('../src/main/terminalPanel.js');
 registerTerminalHandlers();
 
+/** A terminal view fake: what `layout()` set, and what the page was sent. */
+interface FakeView {
+  webContents: { id: number };
+  bounds: { x: number; y: number; width: number; height: number };
+  visible: boolean;
+  sent: unknown[][];
+}
+
 /** An open panel and the id of its terminal view's `webContents`. */
 function openPanel(root = '/sites/docs') {
-  const views: { webContents: { id: number } }[] = [];
+  const views: FakeView[] = [];
   let destroyed = false;
   const onChange = vi.fn();
   const window = {
@@ -76,11 +92,25 @@ function openPanel(root = '/sites/docs') {
     once: () => undefined,
     isDestroyed: () => destroyed,
     getContentBounds: () => ({ x: 0, y: 0, width: 1000, height: 800 }),
-    contentView: { on: () => undefined, addChildView: (view: { webContents: { id: number } }) => void views.push(view) },
+    contentView: { on: () => undefined, addChildView: (view: FakeView) => void views.push(view) },
   };
-  const site = { setBounds: () => undefined, webContents: { focus: () => undefined } };
+  const siteBounds: { x: number; y: number; width: number; height: number }[] = [];
+  const siteVisible: boolean[] = [];
+  const site = {
+    setBounds: (bounds: { x: number; y: number; width: number; height: number }) => void siteBounds.push({ ...bounds }),
+    setVisible: (visible: boolean) => void siteVisible.push(visible),
+    webContents: { focus: () => undefined },
+  };
   const panel = new TerminalPanel(window as never, site as never, root, { height: 280, open: true }, onChange);
-  return { panel, onChange, sender: { id: views[0]!.webContents.id }, destroy: () => (destroyed = true) };
+  return {
+    panel,
+    onChange,
+    sender: { id: views[0]!.webContents.id },
+    view: views[0]!,
+    siteBounds,
+    siteVisible,
+    destroy: () => (destroyed = true),
+  };
 }
 
 const call = (channel: string, sender: { id: number }, ...args: unknown[]) => electron.handlers.get(channel)!({ sender }, ...args);
@@ -98,7 +128,7 @@ describe('terminal IPC', () => {
   });
 
   it('answers nothing for any other sender, such as a site page', () => {
-    const { panel } = openPanel();
+    const { panel, view } = openPanel();
     const site = { id: 1 };
     expect(call('terminal:create', site, 80, 24)).toBeUndefined();
     call('terminal:input', site, 1, 'rm -rf ~\r');
@@ -106,11 +136,13 @@ describe('terminal IPC', () => {
     call('terminal:paste', site);
     call('terminal:openLink', site, 'https://example.com/');
     call('terminal:hide', site);
+    call('terminal:maximize', site);
     expect(panel.shells.size).toBe(0);
     expect(ptys).toHaveLength(0);
     expect(electron.clipboard.writeText).not.toHaveBeenCalled();
     expect(electron.shell.openExternal).not.toHaveBeenCalled();
     expect(panel.isOpen).toBe(true);
+    expect(view.bounds).toEqual({ x: 0, y: 520, width: 1000, height: 280 });
   });
 
   it('keeps each window to its own shells, though their ids match', () => {
@@ -173,5 +205,43 @@ describe('terminal IPC', () => {
     call('terminal:openLink', sender, 'https://example.com/docs');
     expect(electron.shell.openExternal).toHaveBeenCalledTimes(1);
     expect(electron.shell.openExternal).toHaveBeenCalledWith('https://example.com/docs');
+  });
+
+  it('maximizes the panel for a terminal view, and restores it', () => {
+    const { sender, view, siteBounds, siteVisible } = openPanel();
+    call('terminal:maximize', sender);
+    expect(view.bounds).toEqual({ x: 0, y: 0, width: 1000, height: 800 });
+    expect(view.sent).toContainEqual(['terminal:command', 'maximized']);
+    // The site hides rather than shrinking to nothing; its bounds wait for the restore.
+    expect(siteVisible.at(-1)).toBe(false);
+    expect(siteBounds.length).toBe(1);
+    call('terminal:maximize', sender);
+    expect(view.bounds).toEqual({ x: 0, y: 520, width: 1000, height: 280 });
+    expect(view.sent).toContainEqual(['terminal:command', 'restored']);
+    expect(siteVisible.at(-1)).toBe(true);
+    expect(siteBounds.at(-1)).toEqual({ x: 0, y: 0, width: 1000, height: 520 });
+  });
+
+  it('restores a maximized panel when the splitter is grabbed', () => {
+    const { sender, view } = openPanel();
+    call('terminal:maximize', sender);
+    call('terminal:drag', sender, 'start', 500);
+    // The grab itself restores the saved height (280), before any move.
+    expect(view.bounds).toEqual({ x: 0, y: 520, width: 1000, height: 280 });
+    expect(view.sent).toContainEqual(['terminal:command', 'restored']);
+    call('terminal:drag', sender, 'move', 450);
+    call('terminal:drag', sender, 'end', 400);
+    expect(view.bounds).toEqual({ x: 0, y: 420, width: 1000, height: 380 });
+  });
+
+  it('resets a maximized panel when it is hidden', () => {
+    const { panel, onChange, sender, view } = openPanel();
+    call('terminal:maximize', sender);
+    call('terminal:hide', sender);
+    expect(panel.isOpen).toBe(false);
+    expect(view.sent).toContainEqual(['terminal:command', 'restored']);
+    panel.open();
+    expect(view.bounds).toEqual({ x: 0, y: 520, width: 1000, height: 280 });
+    expect(onChange).toHaveBeenLastCalledWith({ height: 280, open: true });
   });
 });
