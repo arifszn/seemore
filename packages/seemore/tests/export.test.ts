@@ -134,6 +134,13 @@ describe('the export toc', () => {
     expect(html).toContain('<a href="#x">A &amp; B</a>');
   });
 
+  it('leaves the anchor button out of an entry', () => {
+    const html = withExportToc(
+      '<h1>T</h1><h2 id="mac">macOS<button><span class="sr-only">Copy Anchor Link</span><svg></svg></button></h2>',
+    );
+    expect(html).toContain('<a href="#mac">macOS</a>');
+  });
+
   it('leaves a page without headed sections alone', () => {
     const html = '<h1>Title</h1><p>no sections</p>';
     expect(withExportToc(html)).toBe(html);

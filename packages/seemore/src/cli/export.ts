@@ -300,7 +300,7 @@ export function withExportToc(html: string): string {
     (match) => ({
       depth: Number(match[1]),
       id: match[2] ?? '',
-      text: decodeEntities((match[3] ?? '').replace(/<[^>]+>/g, '')),
+      text: decodeEntities((match[3] ?? '').replace(/<button\b[\s\S]*?<\/button>/gi, '').replace(/<[^>]+>/g, '')).trim(),
     }),
   );
   if (headings.length === 0) return html;

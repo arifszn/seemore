@@ -219,7 +219,11 @@ function buildExportToc(article: Element): Element | undefined {
     const li = document.createElement('li');
     const a = document.createElement('a');
     a.href = `#${heading.id}`;
-    a.textContent = heading.textContent ?? '';
+    // Without the anchor button: fumadocs-ui 16.16 labels it with a visually hidden span,
+    // whose "Copy Anchor Link" would otherwise end up in every entry.
+    const label = heading.cloneNode(true) as Element;
+    for (const button of label.querySelectorAll('button')) button.remove();
+    a.textContent = label.textContent?.trim() ?? '';
     li.append(a);
 
     if (heading.tagName === 'H2') {
