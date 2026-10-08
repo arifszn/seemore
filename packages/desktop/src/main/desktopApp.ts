@@ -294,6 +294,11 @@ export class DesktopApp {
     if (this.records.has(window.id)) terminalPanel(window).toggle();
   }
 
+  /** The window's shell process ids (§17). */
+  shellPids(window: BrowserWindow): number[] {
+    return this.records.has(window.id) ? terminalPanel(window).shells.pids() : [];
+  }
+
   /** Export or build is running; the update banner waits (§10.1, §16). */
   jobsRunning(): boolean {
     return this.runningJobs > 0;

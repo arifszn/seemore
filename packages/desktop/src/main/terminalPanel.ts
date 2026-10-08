@@ -2,11 +2,13 @@
  * The terminal panel of a site window (DESKTOP-SPEC §7.4): a second `WebContentsView` below
  * the site view, created on first use. The panel owns the window's layout: the site takes
  * what the panel leaves. Its page drags a splitter strip; the main process turns the drag
- * into bounds, so the page never sets its own size. IPC is answered only for a terminal
- * view's own window (§8).
+ * into bounds, so the page never sets its own size. Each panel holds its window's shells.
+ * IPC is answered only for a terminal view, and only about its own window's shells (§8).
  */
 import { join } from 'node:path';
 import { type BrowserWindow, ipcMain, nativeTheme, type WebContents, WebContentsView } from 'electron';
+import { spawn } from 'node-pty';
+import { Shells, validSize } from './shells.js';
 
 export interface PanelState {
   height: number;
@@ -37,11 +39,32 @@ export function parsePanelState(value: unknown): PanelState {
 /** Terminal views by `webContents` id: the only senders the handlers answer. */
 const panels = new Map<number, TerminalPanel>();
 
+const isId = (id: unknown): id is number => typeof id === 'number' && Number.isInteger(id);
+
 export function registerTerminalHandlers(): void {
+  const from = (event: Electron.IpcMainEvent | Electron.IpcMainInvokeEvent) => panels.get(event.sender.id);
+
   ipcMain.on('terminal:drag', (event, phase: unknown, screenY: unknown) => {
-    const panel = panels.get(event.sender.id);
+    const panel = from(event);
     if (panel === undefined || typeof screenY !== 'number' || !Number.isFinite(screenY)) return;
     if (phase === 'start' || phase === 'move' || phase === 'end') panel.drag(phase, screenY);
+  });
+  ipcMain.handle('terminal:create', (event, cols: unknown, rows: unknown) => {
+    const size = validSize(cols, rows);
+    return size === undefined ? undefined : from(event)?.shells.create(size.cols, size.rows);
+  });
+  ipcMain.on('terminal:input', (event, id: unknown, data: unknown) => {
+    if (isId(id) && typeof data === 'string') from(event)?.shells.write(id, data);
+  });
+  ipcMain.on('terminal:resize', (event, id: unknown, cols: unknown, rows: unknown) => {
+    const size = validSize(cols, rows);
+    if (isId(id) && size !== undefined) from(event)?.shells.resize(id, size.cols, size.rows);
+  });
+  ipcMain.on('terminal:rename', (event, id: unknown, name: unknown) => {
+    if (isId(id) && typeof name === 'string' && name.trim() !== '') from(event)?.shells.rename(id, name.trim().slice(0, 100));
+  });
+  ipcMain.on('terminal:kill', (event, id: unknown) => {
+    if (isId(id)) from(event)?.shells.kill(id);
   });
 }
 
@@ -51,16 +74,32 @@ export class TerminalPanel {
   private page: WebContents | undefined;
   private state: PanelState;
   private dragFrom: { screenY: number; height: number } | undefined;
+  readonly shells: Shells;
 
   constructor(
     private readonly window: BrowserWindow,
     private readonly site: WebContentsView,
+    root: string,
     saved: PanelState,
     private readonly onChange: (state: PanelState) => void,
   ) {
     this.state = { ...saved };
+    this.shells = new Shells(
+      root,
+      {
+        onData: (id, data) => this.send('terminal:data', id, data),
+        onExit: (id, exitCode) => {
+          this.send('terminal:exit', id, exitCode);
+          // The last shell to exit hides the panel.
+          if (this.shells.size === 0) this.close();
+        },
+      },
+      spawn,
+    );
     window.on('resize', () => this.layout());
+    // Closing the window, Close Folder and quitting all close it.
     window.once('closed', () => {
+      this.shells.killAll();
       if (this.page === undefined) return;
       panels.delete(this.page.id);
       if (!this.page.isDestroyed()) this.page.close();
@@ -120,6 +159,10 @@ export class TerminalPanel {
       this.dragFrom = undefined;
       this.onChange({ ...this.state });
     }
+  }
+
+  private send(channel: string, ...args: unknown[]): void {
+    if (this.page !== undefined && !this.page.isDestroyed()) this.page.send(channel, ...args);
   }
 
   private ensureView(): void {

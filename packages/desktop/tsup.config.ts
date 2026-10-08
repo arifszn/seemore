@@ -16,8 +16,9 @@ export default defineConfig({
   format: ['cjs'],
   target: 'node22',
   platform: 'node',
-  // Electron provides `electron` at runtime; there is nothing on disk to bundle.
-  external: ['electron'],
+  // Electron provides `electron` at runtime; there is nothing on disk to bundle. `node-pty`
+  // is native and ships as files of its own (§9).
+  external: ['electron', 'node-pty'],
   noExternal: ['@seemore/host', 'seemore'],
   outDir: 'dist',
   clean: true,

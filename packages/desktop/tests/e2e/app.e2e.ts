@@ -380,6 +380,72 @@ describe('desktop app', () => {
     await expect.poll(async () => (await layout()).views.find((v) => v.visible && v.y > 0)?.height).toBe(380);
   });
 
+  it('runs shells at the site root, kills one, and leaves none running after the window closes', async () => {
+    await launch(site);
+    const page = await sitePage();
+    await settled(page, '/');
+    await app!.evaluate(({ BrowserWindow }) =>
+      (globalThis as unknown as { seemoreDesktop: { toggleTerminal: (w: unknown) => void } }).seemoreDesktop.toggleTerminal(
+        BrowserWindow.getAllWindows()[0],
+      ),
+    );
+    const find = () => app!.windows().find((w) => w.url().endsWith('terminal.html'));
+    await expect.poll(() => find() !== undefined).toBe(true);
+    const terminal = find()!;
+    await terminal.waitForSelector('#splitter');
+
+    // Through the preload, as the page's xterm will (13.4).
+    const probe = process.platform === 'win32' ? '(Get-Location).Path' : 'echo "$PWD"';
+    const ids = await terminal.evaluate(async (command) => {
+      type Api = {
+        create: (c: number, r: number) => Promise<{ id: number; name: string }>;
+        input: (id: number, data: string) => void;
+        onData: (l: (id: number, data: string) => void) => void;
+        onExit: (l: (id: number, code: number) => void) => void;
+      };
+      const api = (window as unknown as { seemore: Api }).seemore;
+      const out = window as unknown as { output: Record<number, string>; exited: number[] };
+      out.output = {};
+      out.exited = [];
+      api.onData((id, data) => (out.output[id] = (out.output[id] ?? '') + data));
+      api.onExit((id) => out.exited.push(id));
+      const a = await api.create(80, 24);
+      const b = await api.create(80, 24);
+      api.input(a.id, `${command}\r`);
+      return [a.id, b.id];
+    }, probe);
+    const output = (id: number) => terminal.evaluate((i) => (window as unknown as { output: Record<number, string> }).output[i] ?? '', id);
+    await expect.poll(() => output(ids[0]!), { timeout: 20_000 }).toContain(site);
+
+    const shellPids = () =>
+      app!.evaluate(({ BrowserWindow }) => {
+        const pids: number[] = [];
+        for (const window of BrowserWindow.getAllWindows()) {
+          const shells = (globalThis as unknown as { seemoreDesktop: { shellPids: (w: unknown) => number[] } }).seemoreDesktop.shellPids(window);
+          pids.push(...shells);
+        }
+        return pids;
+      });
+    const alive = (pid: number) => {
+      try {
+        process.kill(pid, 0);
+        return true;
+      } catch {
+        return false;
+      }
+    };
+    const [first, second] = await shellPids();
+    expect([first, second].every((pid) => pid !== undefined && alive(pid))).toBe(true);
+
+    await terminal.evaluate((id) => (window as unknown as { seemore: { kill: (i: number) => void } }).seemore.kill(id), ids[0]!);
+    await expect.poll(() => terminal.evaluate(() => (window as unknown as { exited: number[] }).exited)).toEqual([ids[0]]);
+    await expect.poll(() => alive(first!), { timeout: 10_000 }).toBe(false);
+    expect(await shellPids()).toEqual([second]);
+
+    await app!.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0]!.close());
+    await expect.poll(() => alive(second!), { timeout: 10_000 }).toBe(false);
+  });
+
   // The staged CLI is trimmed (scripts/trim-seemore.mjs); the two largest client-side
   // dependencies must still load from it.
   it('renders mermaid and D2 diagrams with the trimmed CLI', async () => {

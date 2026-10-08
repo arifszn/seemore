@@ -78,7 +78,7 @@ export function createSiteWindow(options: SiteWindowOptions): BrowserWindow {
   sites.set(window, webContents);
   window.contentView.addChildView(view);
   // Lays both views out, now and on every resize.
-  terminals.set(window, new TerminalPanel(window, view, options.panel, options.onPanelChange));
+  terminals.set(window, new TerminalPanel(window, view, root, options.panel, options.onPanelChange));
   // Focus belongs to the site, never to the window's own empty page.
   window.on('focus', () => {
     if (window.webContents.isFocused()) webContents.focus();
