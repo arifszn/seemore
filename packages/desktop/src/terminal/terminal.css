@@ -113,7 +113,7 @@ body.many #kill-active {
 }
 #tabs {
   display: none;
-  width: 160px;
+  width: 120px;
   flex: none;
   margin: 0;
   padding: 0 4px;
