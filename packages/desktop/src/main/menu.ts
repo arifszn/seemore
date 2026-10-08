@@ -171,7 +171,7 @@ export function buildMenu(desktop: DesktopApp, recents: readonly RecentEntry[], 
       ],
     },
     {
-      // VS Code's default shortcuts (§7.4). Split Terminal comes with phase 2.
+      // VS Code's default shortcuts (§7.4).
       label: 'Terminal',
       submenu: [
         { id: TERMINAL_NEW, label: 'New Terminal', accelerator: 'Ctrl+Shift+`', enabled: false, click: () => terminal('new') },
