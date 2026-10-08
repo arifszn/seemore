@@ -91,7 +91,7 @@
   text-align: left;
   border: 0;
   border-radius: 6px;
-  padding: 6px 8px;
+  padding: 4px 8px;
 }
 .home li button:hover .name,
 .home li button:focus-visible .name {
@@ -105,12 +105,12 @@
   white-space: nowrap;
 }
 .home li .name {
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 500;
 }
 .home li .path {
   margin-top: 1px;
-  font-size: 12px;
+  font-size: 10.5px;
   color: var(--muted);
   opacity: 0.75;
 }
