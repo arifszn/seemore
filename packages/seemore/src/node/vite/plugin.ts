@@ -291,7 +291,8 @@ function handleSourceRead(ctx: SeemoreContext, req: IncomingMessage, res: Server
 
   const start = Number(query.get('start'));
   const end = Number(query.get('end'));
-  const content = readFileSync(page.absPath, 'utf8');
+  const content = read(res, page.absPath);
+  if (content === undefined) return;
   if (!Number.isInteger(start) || !Number.isInteger(end) || start < 0 || end < start || end > content.length) {
     return send(res, 400, { error: 'The requested range is not inside this file.' });
   }
@@ -313,7 +314,9 @@ async function handleSourceWrite(ctx: SeemoreContext, req: IncomingMessage, res:
   // An append carries no offsets: the end of the file is wherever it is now.
   if (body.append === true) {
     if (typeof body.text !== 'string') return send(res, 400, { error: '`text` is required.' });
-    const appended = appendSource(readFileSync(page.absPath, 'utf8'), body.text);
+    const content = read(res, page.absPath);
+    if (content === undefined) return;
+    const appended = appendSource(content, body.text);
     if (appended === undefined) return send(res, 200, { ok: true });
     return write(res, page.absPath, appended);
   }
@@ -324,7 +327,8 @@ async function handleSourceWrite(ctx: SeemoreContext, req: IncomingMessage, res:
 
   // Read, splice and write as one string: the offsets are JavaScript string indices, so any
   // detour through a Buffer would cut a multi-byte character in half.
-  const content = readFileSync(page.absPath, 'utf8');
+  const content = read(res, page.absPath);
+  if (content === undefined) return;
   const result = spliceSource(content, {
     start: body.start as number,
     end: body.end as number,
@@ -334,6 +338,23 @@ async function handleSourceWrite(ctx: SeemoreContext, req: IncomingMessage, res:
   if (!result.ok) return send(res, result.status, { error: result.error });
 
   return write(res, page.absPath, result.content);
+}
+
+/**
+ * Reads the page, or answers with the reason it could not be read and returns `undefined`.
+ *
+ * An exclusive lock on Windows blocks reads as well as writes, so the read fails with `EBUSY`
+ * before a write is ever tried — and an uncaught throw here would reach the editor as Vite's
+ * HTML error page, with no message in it to show.
+ */
+function read(res: ServerResponse, file: string): string | undefined {
+  try {
+    return readFileSync(file, 'utf8');
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException).code;
+    send(res, 500, { error: `The file could not be read${code === undefined ? '' : ` (${code})`}. Is another program holding it open?` });
+    return undefined;
+  }
 }
 
 /**
