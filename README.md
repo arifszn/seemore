@@ -64,7 +64,7 @@ npx seemore   # renders this folder at http://localhost:4040
 
 The [seemore website](https://arifszn.github.io/seemore) is a folder of Markdown, rendered by seemore. Your own folder will look the same way.
 
-<details open>
+<details>
 <summary><strong>Or ask an AI agent to set it up</strong></summary>
 <br/>
 
