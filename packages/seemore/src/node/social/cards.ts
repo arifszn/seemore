@@ -1,5 +1,6 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
+import { createElement } from 'react';
 import { ogImagePath } from '../../shared/og.js';
 import type { SeemoreContext } from '../context.js';
 
@@ -37,11 +38,7 @@ export async function generateSocialCards(ctx: SeemoreContext, outDir: string): 
 }
 
 interface TakumiModule {
-  Renderer: new (options: { fonts: unknown[] }) => {
-    renderAsync(node: unknown, options: { width: number; height: number; format: 'png' }): Promise<Uint8Array>;
-  };
-  container(props: unknown, children: unknown[]): unknown;
-  text(value: string, props: unknown): unknown;
+  render(element: unknown, options: { width: number; height: number }): Promise<Uint8Array>;
 }
 
 async function renderCard(
@@ -50,8 +47,15 @@ async function renderCard(
   title: string,
   description: unknown,
 ): Promise<Uint8Array | undefined> {
-  const renderer = new takumi.Renderer({ fonts: [] });
-  const node = takumi.container(
+  const children = [
+    createElement('div', { style: { fontSize: 28, opacity: 0.6 } }, site),
+    createElement('div', { style: { fontSize: 64, fontWeight: 700 } }, title),
+    ...(typeof description === 'string'
+      ? [createElement('div', { style: { fontSize: 30, opacity: 0.8 } }, description)]
+      : []),
+  ];
+  const node = createElement(
+    'div',
     {
       style: {
         width: 1200,
@@ -65,14 +69,10 @@ async function renderCard(
         gap: 24,
       },
     },
-    [
-      takumi.text(site, { style: { fontSize: 28, opacity: 0.6 } }),
-      takumi.text(title, { style: { fontSize: 64, fontWeight: 700 } }),
-      ...(typeof description === 'string' ? [takumi.text(description, { style: { fontSize: 30, opacity: 0.8 } })] : []),
-    ],
+    children,
   );
 
-  return await renderer.renderAsync(node, { width: 1200, height: 630, format: 'png' });
+  return await takumi.render(node, { width: 1200, height: 630 });
 }
 
 /** Import by a specifier TypeScript will not try to resolve at build time. */

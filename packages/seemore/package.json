@@ -84,6 +84,7 @@
     "rehype-raw": "7.0.0",
     "remark-frontmatter": "^5.0.0",
     "tailwindcss": "4.3.3",
+    "takumi-js": "2.14.0",
     "tinyglobby": "^0.2.17",
     "unified": "^11.0.5",
     "unist-util-visit": "^5.1.0",
