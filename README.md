@@ -144,8 +144,7 @@ Download the app from the [download page](https://arifszn.github.io/seemore/down
 
 - **Open a folder**: use **File > Open Folder**, or drag the folder onto the app.
 - **Open a file**: double-click a `.md` file, or use **File > Open File**.
-- **Use the integrated terminal**: it opens in the site's folder, so you can run an AI agent, git or a script next to the pages it changes. Show or hide it with **View > Terminal** (<kbd>Ctrl</kbd>+<kbd>`</kbd>), and open more from the **Terminal** menu.
-- **Export and build**: use the **File** menu.
+- **Use the integrated terminal**: it opens in the site's folder, so you can run an AI agent, git or a script next to the pages it changes.
 
 ## View in your code editor
 
