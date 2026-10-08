@@ -72,6 +72,8 @@ export function registerTerminalHandlers(): void {
     if (isId(id)) from(event)?.shells.kill(id);
   });
   ipcMain.on('terminal:hide', (event) => from(event)?.close());
+  // The header's chevron: the panel fills the window until it is clicked again.
+  ipcMain.on('terminal:maximize', (event) => from(event)?.toggleMaximize());
   // From a site view's preload: the site's theme, which the terminal follows.
   ipcMain.on('site:theme', (event, dark: unknown) => {
     if (typeof dark === 'boolean') bySite.get(event.sender.id)?.setDark(dark);
@@ -97,6 +99,9 @@ export class TerminalPanel {
   private page: WebContents | undefined;
   private state: PanelState;
   private dragFrom: { screenY: number; height: number } | undefined;
+  /** The header's chevron: the panel fills the window. Runtime state only — a relaunch and
+   *  a reopened panel start at the saved height, as VS Code's do (§7.4). */
+  private maximized = false;
   /** The page has loaded and listens for commands. */
   private loaded = false;
   /** The site's theme, once its page has reported it; the OS's until then. */
@@ -149,6 +154,19 @@ export class TerminalPanel {
     else this.open();
   }
 
+  /** The header's chevron (§7.4): the panel fills the window; the site is hidden, not squashed. */
+  toggleMaximize(): void {
+    if (!this.state.open) return;
+    this.setMaximized(!this.maximized);
+  }
+
+  private setMaximized(maximized: boolean): void {
+    if (this.maximized === maximized) return;
+    this.maximized = maximized;
+    this.layout();
+    if (this.loaded) this.send('terminal:command', maximized ? 'maximized' : 'restored');
+  }
+
   open(): void {
     this.ensureView();
     this.state.open = true;
@@ -162,6 +180,8 @@ export class TerminalPanel {
     // A window going away: its `closed` handler ends the shells, and the state stays saved.
     if (!this.state.open || this.window.isDestroyed()) return;
     this.state.open = false;
+    // Maximize does not outlive a hidden panel; the page learns, so its chevron resets too.
+    this.setMaximized(false);
     this.layout();
     this.site.webContents.focus();
     this.onChange({ ...this.state });
@@ -189,8 +209,12 @@ export class TerminalPanel {
   layout(): void {
     if (this.window.isDestroyed()) return;
     const { width, height } = this.window.getContentBounds();
-    const panel = this.state.open ? clampPanelHeight(this.state.height, height) : 0;
-    this.site.setBounds({ x: 0, y: 0, width, height: height - panel });
+    const panel = this.state.open ? (this.maximized ? height : clampPanelHeight(this.state.height, height)) : 0;
+    // Maximized hides the site rather than squashing it to 0 px: a hidden page keeps its
+    // layout for the restore, as the hidden panel view does when the panel is closed.
+    const showSite = !(this.state.open && this.maximized);
+    this.site.setVisible(showSite);
+    if (showSite) this.site.setBounds({ x: 0, y: 0, width, height: height - panel });
     if (this.view === undefined) return;
     this.view.setVisible(this.state.open);
     if (this.state.open) this.view.setBounds({ x: 0, y: height - panel, width, height: panel });
@@ -201,6 +225,8 @@ export class TerminalPanel {
     if (!this.state.open) return;
     const { height } = this.window.getContentBounds();
     if (phase === 'start') {
+      // Grabbing the splitter restores the panel first; the drag then resizes the saved height.
+      this.setMaximized(false);
       this.dragFrom = { screenY, height: clampPanelHeight(this.state.height, height) };
       return;
     }

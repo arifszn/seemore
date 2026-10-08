@@ -13,6 +13,8 @@ contextBridge.exposeInMainWorld('seemore', {
   rename: (id: number, name: string) => ipcRenderer.send('terminal:rename', id, name),
   kill: (id: number) => ipcRenderer.send('terminal:kill', id),
   hide: () => ipcRenderer.send('terminal:hide'),
+  /** The header's chevron: the panel fills the window until it is clicked again. */
+  maximize: () => ipcRenderer.send('terminal:maximize'),
   /** The clipboard goes through the main process: the page has no clipboard permission. */
   copy: (text: string) => ipcRenderer.send('terminal:copy', text),
   paste: () => ipcRenderer.send('terminal:paste'),
@@ -27,7 +29,7 @@ contextBridge.exposeInMainWorld('seemore', {
   onTheme: (listener: (dark: boolean) => void) => {
     ipcRenderer.on('terminal:theme', (_event, dark: boolean) => listener(dark));
   },
-  /** From the main process: `opened`, and the Terminal menu's items (13.5). */
+  /** From the main process: `opened`, `maximized`/`restored`, and the Terminal menu's items (13.5). */
   onCommand: (listener: (command: string) => void) => {
     ipcRenderer.on('terminal:command', (_event, command: string) => listener(command));
   },

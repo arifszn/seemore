@@ -422,6 +422,17 @@ describe('desktop app', () => {
     });
     await expect.poll(async () => (await layout()).views[1]!.height).toBe(380);
 
+    // The header's chevron maximizes the panel: the site hides, and the height is kept.
+    const maximize = terminal()!.locator('#maximize');
+    await maximize.click();
+    await expect.poll(async () => (await layout()).views[1]).toMatchObject({ y: 0, height: (await layout()).content });
+    expect((await layout()).views[0]!.visible).toBe(false);
+    await expect.poll(() => maximize.getAttribute('title')).toBe('Restore Panel Size');
+    await maximize.click();
+    await expect.poll(async () => (await layout()).views[1]).toMatchObject({ y: (await layout()).content - 380, height: 380 });
+    expect((await layout()).views[0]!.visible).toBe(true);
+    await expect.poll(() => maximize.getAttribute('title')).toBe('Maximize Panel Size');
+
     await toggle();
     ({ content, views } = await layout());
     expect(views[0]!.height).toBe(content);

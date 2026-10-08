@@ -20,6 +20,7 @@ interface Api {
   rename: (id: number, name: string) => void;
   kill: (id: number) => void;
   hide: () => void;
+  maximize: () => void;
   copy: (text: string) => void;
   paste: () => void;
   openLink: (url: string) => void;
@@ -343,6 +344,13 @@ $('kill-active').addEventListener('click', () => {
   if (active !== undefined) api.kill(active.id);
 });
 $('hide').addEventListener('click', () => api.hide());
+const maximizeButton = $('maximize');
+/** The chevron points at what clicking will do, as VS Code's titles do. */
+function setMaximizeLabel(maximized: boolean): void {
+  maximizeButton.title = maximized ? 'Restore Panel Size' : 'Maximize Panel Size';
+  maximizeButton.setAttribute('aria-label', maximizeButton.title);
+}
+$('maximize').addEventListener('click', () => api.maximize());
 
 api.onData((id, data) => sessions.get(id)?.term.write(data));
 api.onExit((id) => remove(id));
@@ -375,6 +383,15 @@ api.onCommand((command) => {
       break;
     case 'next':
       step(1);
+      break;
+    // The panel's chevron state, pushed by the main process: only it knows the splitter's grab.
+    case 'maximized':
+      document.body.classList.add('maximized');
+      setMaximizeLabel(true);
+      break;
+    case 'restored':
+      document.body.classList.remove('maximized');
+      setMaximizeLabel(false);
       break;
   }
 });
