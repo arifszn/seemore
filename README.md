@@ -136,7 +136,7 @@ Inline editing works only for local previews.
 
 ## Open with the desktop app
 
-Download the app from the [download page](https://arifszn.github.io/seemore/download). It opens a folder or a `.md` file as a site in its own window. You do not need a terminal or Node.js.
+Download the app from the [download page](https://arifszn.github.io/seemore/download). It opens a folder or a `.md` file as a site in its own window.
 
 - **Open a folder**: use **File > Open Folder**, or drag the folder onto the app.
 - **Open a file**: double-click a `.md` file, or use **File > Open File**.

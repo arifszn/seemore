@@ -47,6 +47,25 @@ export function detectPlatform() {
   return null;
 }
 
+{/* Apple Silicon or Intel, or null when the browser does not say. Chromium answers through
+    client hints. Chrome and Firefox name the GPU in WebGL ("Apple M2", "Intel Iris"); Safari
+    says "Apple GPU" on both, so it stays null there. */}
+export async function detectMacArch() {
+  try {
+    const { architecture } = await navigator.userAgentData.getHighEntropyValues(['architecture']);
+    if (architecture === 'arm') return 'arm';
+    if (architecture === 'x86') return 'intel';
+  } catch {}
+  try {
+    const gl = document.createElement('canvas').getContext('webgl');
+    const info = gl.getExtension('WEBGL_debug_renderer_info');
+    const renderer = gl.getParameter(info.UNMASKED_RENDERER_WEBGL);
+    if (/Apple M\d/.test(renderer)) return 'arm';
+    if (/Intel|AMD|Radeon|NVIDIA/i.test(renderer)) return 'intel';
+  } catch {}
+  return null;
+}
+
 {/* Platform logos from Simple Icons (simpleicons.org, CC0). */}
 export const ICONS = {
   macos: 'M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701',
@@ -63,20 +82,29 @@ export function PlatformIcon({ id }) {
 }
 
 {/* One button per platform, each to its section below. The visitor's own platform becomes
-    the primary button, which downloads its file directly where there is only one choice. */}
+    the primary button, which downloads its file directly where the file is known. On a Mac
+    whose chip the browser does not reveal, it goes to the section instead. */}
 export function PlatformButtons() {
   const release = useLatest();
   const [platform, setPlatform] = useState(null);
-  useEffect(() => setPlatform(detectPlatform()), []);
+  const [macArch, setMacArch] = useState(null);
+  useEffect(() => {
+    const detected = detectPlatform();
+    setPlatform(detected);
+    if (detected === 'macos') detectMacArch().then(setMacArch);
+  }, []);
+  const macFile = macArch === 'arm' ? FILES.macArm : macArch === 'intel' ? FILES.macIntel : null;
   const buttons = [
-    // macOS and Linux have two files each (a browser can't always tell Apple Silicon from
-    // Intel), so their buttons go to the section, where the visitor picks one.
-    { id: 'macos', label: 'macOS', file: null, direct: 'Download for Mac' },
+    { id: 'macos', label: 'macOS', file: macFile, direct: 'Download for Mac' },
     { id: 'windows', label: 'Windows', file: FILES.windows, direct: 'Download for Windows' },
+    // Linux has two files (.deb and AppImage), so its button goes to the section.
     { id: 'linux', label: 'Linux', file: null, direct: 'Download for Linux' },
   ];
   const ordered = [...buttons].sort((a, b) => (a.id === platform ? -1 : b.id === platform ? 1 : 0));
   const version = release ? release.tag_name.replace('desktop-v', '') : null;
+  const other = macArch === 'intel'
+    ? { label: 'Apple Silicon', file: FILES.macArm }
+    : { label: 'Intel', file: FILES.macIntel };
   return (
     <div className="seemore-download">
       <div className="seemore-platforms">
@@ -96,6 +124,12 @@ export function PlatformButtons() {
       </div>
       <p className="seemore-download-note">
         {version ? `Version ${version}. ` : ''}Free and open source.
+        {platform === 'macos' && macArch && (
+          <>
+            {' '}For {macArch === 'arm' ? 'Apple Silicon' : 'Intel'}. Not your Mac?{' '}
+            <a href={assetUrl(release, other.file)}>Download for {other.label}</a>.
+          </>
+        )}
       </p>
     </div>
   );
@@ -128,7 +162,7 @@ export function FileCard({ file, platform, title, type }) {
 
 # Desktop app
 
-Open a folder or a `.md` file as a site in its own window. You do not need a terminal or Node.js.
+Open a folder or a `.md` file as a site in its own window.
 
 <PlatformButtons />
 
