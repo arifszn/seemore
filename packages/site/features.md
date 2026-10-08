@@ -14,7 +14,7 @@ Search works with no server to run and nothing to pay for. If your site grows pa
 
 While the preview is running, the page is also an editor. Double-click any paragraph, heading, list item, quote or table cell, and it opens in place with that block's **Markdown source**: `**bold**` stays `**bold**`, links stay links. Fix the text and press **Save**: seemore writes the change straight back to the file, and the page hot-reloads exactly as it does for an edit made in your editor. seemore writes nothing until you say so. Clicking away closes the editor without saving. Once you have typed something, the editor stays open rather than discarding your text. Double-click below the last block, or anywhere on an empty page, to add new text to the end of the file.
 
-It works the same in the [code editor extension](./code-editor.md), whose panel runs the same dev server.
+It works the same in the [code editor extension](./code-editor-extension.md), whose panel runs the same dev server.
 
 Inline editing is for local previews only. `seemore build` output is static, so nothing is emitted there.
 
