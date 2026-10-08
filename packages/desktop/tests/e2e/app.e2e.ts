@@ -380,7 +380,7 @@ describe('desktop app', () => {
     await expect.poll(async () => (await layout()).views.find((v) => v.visible && v.y > 0)?.height).toBe(380);
   });
 
-  it('runs shells at the site root, kills one, and leaves none running after the window closes', async () => {
+  it('runs shells at the site root in the terminal page, with tabs, find and links', async () => {
     await launch(site);
     const page = await sitePage();
     await settled(page, '/');
@@ -392,40 +392,13 @@ describe('desktop app', () => {
     const find = () => app!.windows().find((w) => w.url().endsWith('terminal.html'));
     await expect.poll(() => find() !== undefined).toBe(true);
     const terminal = find()!;
-    await terminal.waitForSelector('#splitter');
-
-    // Through the preload, as the page's xterm will (13.4).
-    const probe = process.platform === 'win32' ? '(Get-Location).Path' : 'echo "$PWD"';
-    const ids = await terminal.evaluate(async (command) => {
-      type Api = {
-        create: (c: number, r: number) => Promise<{ id: number; name: string }>;
-        input: (id: number, data: string) => void;
-        onData: (l: (id: number, data: string) => void) => void;
-        onExit: (l: (id: number, code: number) => void) => void;
-      };
-      const api = (window as unknown as { seemore: Api }).seemore;
-      const out = window as unknown as { output: Record<number, string>; exited: number[] };
-      out.output = {};
-      out.exited = [];
-      api.onData((id, data) => (out.output[id] = (out.output[id] ?? '') + data));
-      api.onExit((id) => out.exited.push(id));
-      const a = await api.create(80, 24);
-      const b = await api.create(80, 24);
-      api.input(a.id, `${command}\r`);
-      return [a.id, b.id];
-    }, probe);
-    const output = (id: number) => terminal.evaluate((i) => (window as unknown as { output: Record<number, string> }).output[i] ?? '', id);
-    await expect.poll(() => output(ids[0]!), { timeout: 20_000 }).toContain(site);
 
     const shellPids = () =>
-      app!.evaluate(({ BrowserWindow }) => {
-        const pids: number[] = [];
-        for (const window of BrowserWindow.getAllWindows()) {
-          const shells = (globalThis as unknown as { seemoreDesktop: { shellPids: (w: unknown) => number[] } }).seemoreDesktop.shellPids(window);
-          pids.push(...shells);
-        }
-        return pids;
-      });
+      app!.evaluate(({ BrowserWindow }) =>
+        BrowserWindow.getAllWindows().flatMap((window) =>
+          (globalThis as unknown as { seemoreDesktop: { shellPids: (w: unknown) => number[] } }).seemoreDesktop.shellPids(window),
+        ),
+      );
     const alive = (pid: number) => {
       try {
         process.kill(pid, 0);
@@ -434,14 +407,53 @@ describe('desktop app', () => {
         return false;
       }
     };
+    const screen = () => terminal.evaluate(() => document.querySelector('.terminal:not([hidden]) .xterm-rows')?.textContent ?? '');
+
+    // Opening the panel starts a shell at the root and focuses it.
+    await terminal.waitForSelector('.terminal .xterm');
+    await expect.poll(shellPids).toHaveLength(1);
+    const probe = process.platform === 'win32' ? '(Get-Location).Path' : 'echo "$PWD"';
+    await terminal.keyboard.type(`${probe}; echo https://example.com/docs\n`);
+    await expect.poll(screen, { timeout: 20_000 }).toContain(site);
+
+    // A link in the output opens in the browser.
+    const link = await terminal.evaluate(() => {
+      const rows = Array.from(document.querySelectorAll('.terminal:not([hidden]) .xterm-rows > div'));
+      const row = rows.find((r) => r.textContent?.startsWith('https://example.com/docs'))!;
+      const text = document.createTreeWalker(row, NodeFilter.SHOW_TEXT).nextNode()!;
+      const range = document.createRange();
+      range.setStart(text, 10);
+      range.setEnd(text, 11);
+      const box = range.getBoundingClientRect();
+      return { x: box.left + box.width / 2, y: box.top + box.height / 2 };
+    });
+    await terminal.mouse.move(link.x, link.y);
+    await terminal.mouse.click(link.x, link.y);
+    await expect.poll(() => recorded('opened')).toEqual(['https://example.com/docs']);
+
+    // Find highlights a match in the active terminal.
+    await terminal.keyboard.press(process.platform === 'darwin' ? 'Meta+f' : 'Control+f');
+    await terminal.waitForSelector('#find:not([hidden])');
+    await terminal.keyboard.type('example');
+    expect(await terminal.textContent('#find-status')).toBe('');
+    await terminal.keyboard.press('Escape');
+    await terminal.waitForSelector('#find', { state: 'hidden' });
+
+    // A second terminal brings up the tabs list.
+    await terminal.click('#new');
+    await expect.poll(shellPids).toHaveLength(2);
+    await terminal.waitForSelector('#tabs li:nth-child(2).active');
+    expect(await terminal.isVisible('#tabs')).toBe(true);
     const [first, second] = await shellPids();
-    expect([first, second].every((pid) => pid !== undefined && alive(pid))).toBe(true);
 
-    await terminal.evaluate((id) => (window as unknown as { seemore: { kill: (i: number) => void } }).seemore.kill(id), ids[0]!);
-    await expect.poll(() => terminal.evaluate(() => (window as unknown as { exited: number[] }).exited)).toEqual([ids[0]]);
+    // Killing the first from its tab ends its process and hides the list again.
+    await terminal.hover('#tabs li:first-child');
+    await terminal.click('#tabs li:first-child .kill');
     await expect.poll(() => alive(first!), { timeout: 10_000 }).toBe(false);
-    expect(await shellPids()).toEqual([second]);
+    await expect.poll(shellPids).toEqual([second]);
+    await terminal.waitForSelector('#tabs', { state: 'hidden' });
 
+    // Closing the window leaves no shell running.
     await app!.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0]!.close());
     await expect.poll(() => alive(second!), { timeout: 10_000 }).toBe(false);
   });

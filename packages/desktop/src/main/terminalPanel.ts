@@ -6,8 +6,9 @@
  * IPC is answered only for a terminal view, and only about its own window's shells (§8).
  */
 import { join } from 'node:path';
-import { type BrowserWindow, ipcMain, nativeTheme, type WebContents, WebContentsView } from 'electron';
+import { type BrowserWindow, clipboard, ipcMain, nativeTheme, shell, type WebContents, WebContentsView } from 'electron';
 import { spawn } from 'node-pty';
+import { decideNavigation } from './policy.js';
 import { Shells, validSize } from './shells.js';
 
 export interface PanelState {
@@ -66,6 +67,20 @@ export function registerTerminalHandlers(): void {
   ipcMain.on('terminal:kill', (event, id: unknown) => {
     if (isId(id)) from(event)?.shells.kill(id);
   });
+  ipcMain.on('terminal:hide', (event) => from(event)?.close());
+  ipcMain.on('terminal:copy', (event, text: unknown) => {
+    if (from(event) !== undefined && typeof text === 'string' && text !== '') clipboard.writeText(text);
+  });
+  // A paste event in the page, which xterm sends to the shell (bracketed if the shell asks).
+  ipcMain.on('terminal:paste', (event) => {
+    if (from(event) !== undefined) event.sender.paste();
+  });
+  // The same scheme rules as a site page's links (§8): web and mail links, nothing else.
+  ipcMain.on('terminal:openLink', (event, url: unknown) => {
+    if (from(event) === undefined || typeof url !== 'string') return;
+    const decision = decideNavigation(url, '');
+    if (decision.action === 'external') void shell.openExternal(decision.url);
+  });
 }
 
 export class TerminalPanel {
@@ -74,6 +89,8 @@ export class TerminalPanel {
   private page: WebContents | undefined;
   private state: PanelState;
   private dragFrom: { screenY: number; height: number } | undefined;
+  /** The page has loaded and listens for commands. */
+  private loaded = false;
   readonly shells: Shells;
 
   constructor(
@@ -122,6 +139,7 @@ export class TerminalPanel {
     this.state.open = true;
     this.layout();
     this.page?.focus();
+    if (this.loaded) this.send('terminal:command', 'opened');
     this.onChange({ ...this.state });
   }
 
@@ -161,6 +179,13 @@ export class TerminalPanel {
     }
   }
 
+  /** A Terminal menu item for the page (§7.4): new, kill, rename, clear, previous, next. */
+  command(name: string): void {
+    if (!this.state.open) this.open();
+    if (this.loaded) this.send('terminal:command', name);
+    else this.page?.once('did-finish-load', () => this.send('terminal:command', name));
+  }
+
   private send(channel: string, ...args: unknown[]): void {
     if (this.page !== undefined && !this.page.isDestroyed()) this.page.send(channel, ...args);
   }
@@ -180,6 +205,10 @@ export class TerminalPanel {
     const page = view.webContents;
     page.on('will-navigate', (details) => details.preventDefault());
     page.setWindowOpenHandler(() => ({ action: 'deny' }));
+    page.once('did-finish-load', () => {
+      this.loaded = true;
+      if (this.state.open) this.send('terminal:command', 'opened');
+    });
     panels.set(page.id, this);
     this.view = view;
     this.page = page;
