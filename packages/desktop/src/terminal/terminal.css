@@ -101,15 +101,15 @@ body.many #kill-active {
   position: relative;
   padding: 0 0 4px 12px;
 }
-.terminal {
+.terminal-host {
   height: 100%;
 }
-.terminal[hidden] {
+.terminal-host[hidden] {
   display: none;
 }
 /* xterm 6 colours its scrollable element from the theme but leaves its own stylesheet's
    black on the viewport, which shows below the last whole row. */
-.terminal .xterm .xterm-viewport {
+.terminal-host .xterm .xterm-viewport {
   background-color: var(--bg);
 }
 #tabs {

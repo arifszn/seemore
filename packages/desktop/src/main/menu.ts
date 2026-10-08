@@ -1,12 +1,22 @@
 /** The application menu (DESKTOP-SPEC §4.4, §5). Rebuilt when the recents change. */
 import { basename } from 'node:path';
-import { app, BrowserWindow, Menu, type MenuItemConstructorOptions } from 'electron';
+import { app, BrowserWindow, Menu, type MenuItemConstructorOptions, webContents } from 'electron';
 import { currentDefaultHandlerPlatform, makeDefaultHandler } from './defaultHandler.js';
 import type { DesktopApp } from './desktopApp.js';
 import type { RecentEntry } from './recents.js';
 import type { Updater } from './update/updater.js';
 
 export const MENU_IDS = { export: 'export-page', build: 'build-site', closeFolder: 'close-folder', terminal: 'toggle-terminal' } as const;
+
+/** The Terminal menu's items that act on the panel's shells, by the page command they send (§7.4). */
+export const TERMINAL_COMMANDS = {
+  'terminal-kill': 'kill',
+  'terminal-rename': 'rename',
+  'terminal-clear': 'clear',
+  'terminal-previous': 'previous',
+  'terminal-next': 'next',
+} as const;
+export const TERMINAL_NEW = 'terminal-new';
 
 export function buildMenu(desktop: DesktopApp, recents: readonly RecentEntry[], updater: Updater | undefined): void {
   const isMac = process.platform === 'darwin';
@@ -32,6 +42,17 @@ export function buildMenu(desktop: DesktopApp, recents: readonly RecentEntry[], 
     },
   ];
   const focused = () => BrowserWindow.getFocusedWindow() ?? undefined;
+  /** A site window's site view, else whatever page has focus (the start screen, a build sheet). */
+  const reload = (ignoringCache: boolean) => {
+    const window = focused();
+    const page = desktop.isSiteWindow(window) ? desktop.sitePage(window!) : webContents.getFocusedWebContents();
+    if (ignoringCache) page?.reloadIgnoringCache();
+    else page?.reload();
+  };
+  const terminal = (command: string) => {
+    const window = focused();
+    if (desktop.isSiteWindow(window)) desktop.terminalCommand(window!, command);
+  };
 
   const recentItems: MenuItemConstructorOptions[] =
     recents.length === 0
@@ -125,8 +146,9 @@ export function buildMenu(desktop: DesktopApp, recents: readonly RecentEntry[], 
     {
       label: 'View',
       submenu: [
-        { role: 'reload' },
-        { role: 'forceReload' },
+        // The site, even while the terminal has focus (S9): the roles act on the focused page.
+        { label: 'Reload', accelerator: 'CmdOrCtrl+R', click: () => reload(false) },
+        { label: 'Force Reload', accelerator: 'Shift+CmdOrCtrl+R', click: () => reload(true) },
         { role: 'toggleDevTools' },
         { type: 'separator' },
         {
@@ -146,6 +168,32 @@ export function buildMenu(desktop: DesktopApp, recents: readonly RecentEntry[], 
         { role: 'zoomOut' },
         { type: 'separator' },
         { role: 'togglefullscreen' },
+      ],
+    },
+    {
+      // VS Code's default shortcuts (§7.4). Split Terminal comes with phase 2.
+      label: 'Terminal',
+      submenu: [
+        { id: TERMINAL_NEW, label: 'New Terminal', accelerator: 'Ctrl+Shift+`', enabled: false, click: () => terminal('new') },
+        { type: 'separator' },
+        { id: 'terminal-kill', label: 'Kill Terminal', enabled: false, click: () => terminal('kill') },
+        { id: 'terminal-rename', label: 'Rename Terminal…', enabled: false, click: () => terminal('rename') },
+        { id: 'terminal-clear', label: 'Clear Terminal', enabled: false, click: () => terminal('clear') },
+        { type: 'separator' },
+        {
+          id: 'terminal-previous',
+          label: 'Focus Previous Terminal',
+          accelerator: isMac ? 'Cmd+Shift+[' : 'Ctrl+PageUp',
+          enabled: false,
+          click: () => terminal('previous'),
+        },
+        {
+          id: 'terminal-next',
+          label: 'Focus Next Terminal',
+          accelerator: isMac ? 'Cmd+Shift+]' : 'Ctrl+PageDown',
+          enabled: false,
+          click: () => terminal('next'),
+        },
       ],
     },
     { role: 'windowMenu' },

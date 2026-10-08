@@ -121,6 +121,8 @@ function runKey(session: Session, event: KeyboardEvent): boolean {
   if (event.type !== 'keydown') return true;
   const action = keyAction(event, api.platform, session.term.hasSelection());
   if (action === undefined) return true;
+  // Not xterm's, and not stopped: unhandled, it reaches the menu's accelerator.
+  if (action.kind === 'menu') return false;
   // Handled here: neither xterm nor a menu accelerator should see it too.
   event.preventDefault();
   if (action.kind === 'find') openFind();
@@ -136,7 +138,7 @@ function runKey(session: Session, event: KeyboardEvent): boolean {
 
 async function createNow(): Promise<void> {
   const host = document.createElement('div');
-  host.className = 'terminal';
+  host.className = 'terminal-host';
   terminalsEl.append(host);
   const term = new Terminal({
     fontFamily: "ui-monospace, 'SF Mono', 'Cascadia Mono', Menlo, Consolas, monospace",
@@ -286,7 +288,8 @@ api.onCommand((command) => {
   switch (command) {
     // The panel opened: a shell if it has none, and focus on the active one.
     case 'opened':
-      if (sessions.size === 0) void create();
+      // Once: a second `opened` can arrive while the first shell is still starting.
+      if (sessions.size === 0 && creating === undefined) void create();
       else activate(active);
       break;
     case 'new':

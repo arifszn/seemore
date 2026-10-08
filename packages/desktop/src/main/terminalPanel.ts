@@ -16,7 +16,8 @@ export interface PanelState {
   open: boolean;
 }
 
-export const DEFAULT_PANEL: PanelState = { height: 280, open: false };
+/** Open until the user hides it, so a first-time user sees the terminal exists. */
+export const DEFAULT_PANEL: PanelState = { height: 280, open: true };
 /** The panel never shrinks below its header and a few lines. */
 export const MIN_PANEL_HEIGHT = 120;
 /** Nor does the site, so the splitter can always be grabbed back. */
@@ -33,7 +34,7 @@ export function parsePanelState(value: unknown): PanelState {
   const state = (typeof value === 'object' && value !== null ? value : {}) as Partial<PanelState>;
   return {
     height: typeof state.height === 'number' && Number.isFinite(state.height) ? state.height : DEFAULT_PANEL.height,
-    open: state.open === true,
+    open: typeof state.open === 'boolean' ? state.open : DEFAULT_PANEL.open,
   };
 }
 
@@ -181,7 +182,12 @@ export class TerminalPanel {
 
   /** A Terminal menu item for the page (§7.4): new, kill, rename, clear, previous, next. */
   command(name: string): void {
-    if (!this.state.open) this.open();
+    if (!this.state.open) {
+      // Opening a panel with no shells starts one: New Terminal needs no second.
+      const empty = this.shells.size === 0;
+      this.open();
+      if (name === 'new' && empty) return;
+    }
     if (this.loaded) this.send('terminal:command', name);
     else this.page?.once('did-finish-load', () => this.send('terminal:command', name));
   }

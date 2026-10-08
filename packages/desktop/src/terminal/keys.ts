@@ -5,6 +5,8 @@
  * a child view, and a key the page handles never reaches the menu.
  */
 export type KeyAction =
+  /** A Terminal or View menu shortcut: neither xterm nor the page takes it, so the menu does. */
+  | { kind: 'menu' }
   | { kind: 'find' }
   | { kind: 'copy' }
   | { kind: 'paste' }
@@ -13,6 +15,8 @@ export type KeyAction =
 
 export interface KeyLike {
   key: string;
+  /** The physical key: Shift turns ` into ~ and [ into {. */
+  code: string;
   ctrlKey: boolean;
   shiftKey: boolean;
   altKey: boolean;
@@ -34,7 +38,11 @@ function only(event: KeyLike, ...mods: Mods[]): boolean {
 
 export function keyAction(event: KeyLike, platform: string, hasSelection: boolean): KeyAction | undefined {
   const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
+  // View > Terminal and New Terminal, Ctrl on every platform.
+  if (event.code === 'Backquote' && (only(event, 'ctrl') || only(event, 'ctrl', 'shift'))) return { kind: 'menu' };
   if (platform === 'darwin') {
+    // Focus Previous / Next Terminal.
+    if ((event.code === 'BracketLeft' || event.code === 'BracketRight') && only(event, 'meta', 'shift')) return { kind: 'menu' };
     if (key === 'f' && only(event, 'meta')) return { kind: 'find' };
     if (key === 'c' && only(event, 'meta')) return hasSelection ? { kind: 'copy' } : undefined;
     if (key === 'v' && only(event, 'meta')) return { kind: 'paste' };
@@ -48,6 +56,7 @@ export function keyAction(event: KeyLike, platform: string, hasSelection: boolea
   }
 
   if (key === 'f' && only(event, 'ctrl')) return { kind: 'find' };
+  if ((key === 'PageUp' || key === 'PageDown') && only(event, 'ctrl')) return { kind: 'menu' };
   if (key === 'PageUp' && only(event, 'shift')) return { kind: 'scroll', by: 'page', amount: -1 };
   if (key === 'PageDown' && only(event, 'shift')) return { kind: 'scroll', by: 'page', amount: 1 };
 

@@ -24,8 +24,13 @@ describe('clampPanelHeight', () => {
 });
 
 describe('parsePanelState', () => {
-  it('reads a saved state', () => {
+  it('reads a saved state, closed included', () => {
     expect(parsePanelState({ height: 400, open: true })).toEqual({ height: 400, open: true });
+    expect(parsePanelState({ height: 400, open: false })).toEqual({ height: 400, open: false });
+  });
+
+  it('opens the panel for a root with no saved state', () => {
+    expect(parsePanelState(undefined).open).toBe(true);
   });
 
   it('falls back to the default for anything malformed', () => {

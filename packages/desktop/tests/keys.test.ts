@@ -3,11 +3,28 @@ import { keyAction, type KeyLike } from '../src/terminal/keys.js';
 
 const key = (k: string, mods: Partial<Omit<KeyLike, 'key'>> = {}): KeyLike => ({
   key: k,
+  code: '',
   ctrlKey: false,
   shiftKey: false,
   altKey: false,
   metaKey: false,
   ...mods,
+});
+
+describe('menu shortcuts', () => {
+  it('leaves Ctrl+` and Ctrl+Shift+` to the menu on every platform, by physical key', () => {
+    for (const platform of ['darwin', 'win32', 'linux']) {
+      expect(keyAction(key('`', { code: 'Backquote', ctrlKey: true }), platform, false)).toEqual({ kind: 'menu' });
+      expect(keyAction(key('~', { code: 'Backquote', ctrlKey: true, shiftKey: true }), platform, false)).toEqual({ kind: 'menu' });
+    }
+  });
+
+  it('leaves Focus Previous / Next Terminal to the menu', () => {
+    expect(keyAction(key('{', { code: 'BracketLeft', metaKey: true, shiftKey: true }), 'darwin', false)).toEqual({ kind: 'menu' });
+    expect(keyAction(key('}', { code: 'BracketRight', metaKey: true, shiftKey: true }), 'darwin', false)).toEqual({ kind: 'menu' });
+    expect(keyAction(key('PageUp', { ctrlKey: true }), 'win32', false)).toEqual({ kind: 'menu' });
+    expect(keyAction(key('PageDown', { ctrlKey: true }), 'linux', false)).toEqual({ kind: 'menu' });
+  });
 });
 
 describe('keyAction on macOS', () => {

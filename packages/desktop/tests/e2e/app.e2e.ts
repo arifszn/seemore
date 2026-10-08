@@ -86,6 +86,9 @@ async function sitePage(except: Page[] = []): Promise<Page> {
   return find()!;
 }
 
+/** Site pages open in the app; each site window also has its terminal page (§7.4). */
+const sitePages = () => app!.windows().filter((w) => w.url().startsWith('http'));
+
 async function settled(page: Page, pathname: string): Promise<void> {
   await page.waitForURL((url) => url.pathname === pathname);
   await page.waitForSelector('article h1, h1');
@@ -111,7 +114,7 @@ describe('desktop app', () => {
 
     await open(join(site, 'guide', 'intro.md'));
     await settled(page, '/guide/intro');
-    expect(app!.windows()).toHaveLength(1);
+    expect(sitePages()).toHaveLength(1);
   });
 
   it('lands on the home page and explains when the file is excluded', async () => {
@@ -139,7 +142,7 @@ describe('desktop app', () => {
 
     await page.click('#popup');
     await expect.poll(() => recorded('opened')).toEqual(['https://example.com/popup']);
-    expect(app!.windows()).toHaveLength(1);
+    expect(sitePages()).toHaveLength(1);
   });
 
   it('lets a page write to the clipboard, the one permission it has', async () => {
@@ -170,8 +173,8 @@ describe('desktop app', () => {
     const page = await sitePage();
     await settled(page, '/');
     await expect.poll(() => opening() === undefined).toBe(true);
-    // The site view alone (§7.4).
-    expect(await app!.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().map((w) => w.contentView.children.length))).toEqual([1]);
+    // The site view and the terminal panel (§7.4).
+    expect(await app!.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().map((w) => w.contentView.children.length))).toEqual([2]);
   });
 
   it('opens a second window on the same server', async () => {
@@ -212,7 +215,7 @@ describe('desktop app', () => {
     // It found the lock held, handed over its argv, and quit.
     expect(second.status).toBe(0);
     await settled(page, '/guide/intro');
-    expect(app!.windows()).toHaveLength(1);
+    expect(sitePages()).toHaveLength(1);
   });
 
   it('shows the start screen when there is nothing to restore', async () => {
@@ -349,9 +352,7 @@ describe('desktop app', () => {
         ),
       );
 
-    // No terminal view until first use.
-    expect((await layout()).views).toHaveLength(1);
-    await toggle();
+    // Open by default, so the terminal is there to be found.
     const terminal = () => app!.windows().find((w) => w.url().endsWith('terminal.html'));
     await expect.poll(() => terminal() !== undefined).toBe(true);
     await terminal()!.waitForSelector('#splitter');
@@ -373,10 +374,12 @@ describe('desktop app', () => {
     expect(views[0]!.height).toBe(content);
     expect(views[1]!.visible).toBe(false);
 
-    await toggle();
+    // Hidden stays hidden for this root; the height is kept for the next time it opens.
     await app!.close();
     await launch();
     await sitePage();
+    await expect.poll(async () => (await layout()).views).toHaveLength(1);
+    await toggle();
     await expect.poll(async () => (await layout()).views.find((v) => v.visible && v.y > 0)?.height).toBe(380);
   });
 
@@ -384,11 +387,6 @@ describe('desktop app', () => {
     await launch(site);
     const page = await sitePage();
     await settled(page, '/');
-    await app!.evaluate(({ BrowserWindow }) =>
-      (globalThis as unknown as { seemoreDesktop: { toggleTerminal: (w: unknown) => void } }).seemoreDesktop.toggleTerminal(
-        BrowserWindow.getAllWindows()[0],
-      ),
-    );
     const find = () => app!.windows().find((w) => w.url().endsWith('terminal.html'));
     await expect.poll(() => find() !== undefined).toBe(true);
     const terminal = find()!;
@@ -407,10 +405,10 @@ describe('desktop app', () => {
         return false;
       }
     };
-    const screen = () => terminal.evaluate(() => document.querySelector('.terminal:not([hidden]) .xterm-rows')?.textContent ?? '');
+    const screen = () => terminal.evaluate(() => document.querySelector('.terminal-host:not([hidden]) .xterm-rows')?.textContent ?? '');
 
-    // Opening the panel starts a shell at the root and focuses it.
-    await terminal.waitForSelector('.terminal .xterm');
+    // The panel opens with the window and starts a shell at the root.
+    await terminal.waitForSelector('.terminal-host .xterm');
     await expect.poll(shellPids).toHaveLength(1);
     const probe = process.platform === 'win32' ? '(Get-Location).Path' : 'echo "$PWD"';
     await terminal.keyboard.type(`${probe}; echo https://example.com/docs\n`);
@@ -418,7 +416,7 @@ describe('desktop app', () => {
 
     // A link in the output opens in the browser.
     const link = await terminal.evaluate(() => {
-      const rows = Array.from(document.querySelectorAll('.terminal:not([hidden]) .xterm-rows > div'));
+      const rows = Array.from(document.querySelectorAll('.terminal-host:not([hidden]) .xterm-rows > div'));
       const row = rows.find((r) => r.textContent?.startsWith('https://example.com/docs'))!;
       const text = document.createTreeWalker(row, NodeFilter.SHOW_TEXT).nextNode()!;
       const range = document.createRange();
@@ -445,6 +443,34 @@ describe('desktop app', () => {
     await terminal.waitForSelector('#tabs li:nth-child(2).active');
     expect(await terminal.isVisible('#tabs')).toBe(true);
     const [first, second] = await shellPids();
+
+    // The Terminal menu's items, clicked as the menu would (its shortcuts never reach the
+    // menu from a synthetic key press).
+    const clickMenu = (id: string) =>
+      app!.evaluate(({ Menu, BrowserWindow }, itemId) => {
+        const item = Menu.getApplicationMenu()!.getMenuItemById(itemId)!;
+        if (!item.enabled) throw new Error(`${itemId} is disabled`);
+        item.click(undefined, BrowserWindow.getAllWindows()[0], undefined);
+      }, id);
+    const activeTab = () => terminal.$$eval('#tabs li', (tabs) => tabs.findIndex((tab) => tab.classList.contains('active')));
+    await clickMenu('terminal-previous');
+    await expect.poll(activeTab).toBe(0);
+    await clickMenu('terminal-next');
+    await expect.poll(activeTab).toBe(1);
+    await clickMenu('terminal-rename');
+    await terminal.waitForSelector('#tabs li.active input.rename');
+    await terminal.fill('#tabs li.active input.rename', 'server');
+    await terminal.press('#tabs li.active input.rename', 'Enter');
+    await expect.poll(() => terminal.textContent('#tabs li.active .name')).toBe('server');
+
+    // View > Reload reloads the site, not the focused terminal, whose shells keep running.
+    const reloaded = page.waitForEvent('load');
+    await app!.evaluate(({ Menu, BrowserWindow }) => {
+      const view = Menu.getApplicationMenu()!.items.find((item) => item.label === 'View')!;
+      view.submenu!.items.find((item) => item.label === 'Reload')!.click(undefined, BrowserWindow.getAllWindows()[0], undefined);
+    });
+    await reloaded;
+    expect(await shellPids()).toEqual([first, second]);
 
     // Killing the first from its tab ends its process and hides the list again.
     await terminal.hover('#tabs li:first-child');

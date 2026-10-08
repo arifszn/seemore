@@ -11,7 +11,7 @@ import { cliEntry, cliPackageJson, EXPECTED_CLI_VERSION } from './cli.js';
 import { readJson, writeJson } from './jsonStore.js';
 import { openBuildSheet, registerBuildHandlers } from './buildSheet.js';
 import { type Job, startJob } from './jobs.js';
-import { buildMenu, MENU_IDS } from './menu.js';
+import { buildMenu, MENU_IDS, TERMINAL_COMMANDS, TERMINAL_NEW } from './menu.js';
 import { addRecent, parseRecents, type RecentEntry } from './recents.js';
 import { type Lease, ServerRegistry } from './serverRegistry.js';
 import { createSiteWindow, type SavedBounds, showOpening, siteContents, terminalPanel } from './siteWindow.js';
@@ -294,6 +294,16 @@ export class DesktopApp {
     if (this.records.has(window.id)) terminalPanel(window).toggle();
   }
 
+  /** A Terminal menu item (§7.4): new, kill, rename, clear, previous, next. */
+  terminalCommand(window: BrowserWindow, command: string): void {
+    if (this.records.has(window.id)) terminalPanel(window).command(command);
+  }
+
+  /** The site view's page of a site window (§7.4). */
+  sitePage(window: BrowserWindow): WebContents | undefined {
+    return this.records.get(window.id)?.page;
+  }
+
   /** The window's shell process ids (§17). */
   shellPids(window: BrowserWindow): number[] {
     return this.records.has(window.id) ? terminalPanel(window).shells.pids() : [];
@@ -439,6 +449,14 @@ export class DesktopApp {
     if (closeFolderItem !== null) closeFolderItem.enabled = record !== undefined;
     const terminalItem = menu.getMenuItemById(MENU_IDS.terminal);
     if (terminalItem !== null) terminalItem.enabled = record !== undefined;
+    const newTerminal = menu.getMenuItemById(TERMINAL_NEW);
+    if (newTerminal !== null) newTerminal.enabled = record !== undefined;
+    // The rest act on an open panel's shells.
+    const panelOpen = record !== undefined && terminalPanel(record.window).isOpen;
+    for (const id of Object.keys(TERMINAL_COMMANDS)) {
+      const item = menu.getMenuItemById(id);
+      if (item !== null) item.enabled = panelOpen;
+    }
   }
 
   private async routeFor(record: SiteRecord, file: string): Promise<{ ok: true; url: string } | { ok: false; reason: string }> {
@@ -477,6 +495,7 @@ export class DesktopApp {
       onPanelChange: (state) => {
         this.windowsFile.terminal[root] = state;
         writeJson(this.paths.windows, this.windowsFile);
+        this.updateMenuState();
       },
     });
     record.page = siteContents(record.window);
