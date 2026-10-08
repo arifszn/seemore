@@ -1,3 +1,6 @@
+/* The two loaders: preparing.html (a small window while the CLI unpacks) and opening.html (a
+   site window while its server starts). Both show a page being rendered: Markdown markers
+   and lines draw in, the markers drop away, and it starts over. */
 html,
 body {
   height: 100%;
@@ -7,35 +10,131 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 14px;
+  gap: 16px;
+  padding: 0 20px;
+  box-sizing: border-box;
   user-select: none;
   cursor: default;
 }
+.text {
+  min-width: 0;
+}
 p {
   margin: 0;
-  max-width: 70vw;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 15px;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
-.spinner {
-  width: 20px;
-  height: 20px;
-  box-sizing: border-box;
-  border: 2.5px solid var(--line);
-  border-top-color: var(--fg);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+p.sub {
+  margin-top: 3px;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--muted);
 }
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
+
+/* The page being rendered. --u scales it; the opening window uses a larger one. */
+.doc {
+  --u: 1px;
+  flex: none;
+  display: grid;
+  gap: calc(6 * var(--u));
+  width: calc(44 * var(--u));
+}
+.ln {
+  display: flex;
+  align-items: center;
+  gap: calc(5 * var(--u));
+  height: calc(6 * var(--u));
+}
+.ln i {
+  width: calc(7 * var(--u));
+  font: normal calc(10 * var(--u)) / 1 var(--mono);
+  text-align: right;
+  color: var(--accent);
+  animation: settle 2.6s ease-in-out infinite;
+}
+.ln b {
+  height: calc(3 * var(--u));
+  width: var(--w);
+  border-radius: var(--u);
+  background: var(--muted);
+  transform-origin: left center;
+  transform: scaleX(0);
+  animation: draw 2.6s cubic-bezier(0.3, 0.7, 0.2, 1) infinite;
+  animation-delay: calc(var(--i) * 0.16s);
+}
+.ln.h b {
+  height: calc(5 * var(--u));
+  background: var(--fg);
+}
+.ln:nth-child(1) {
+  --i: 0;
+  --w: calc(26 * var(--u));
+}
+.ln:nth-child(2) {
+  --i: 1;
+  --w: calc(32 * var(--u));
+}
+.ln:nth-child(3) {
+  --i: 2;
+  --w: calc(20 * var(--u));
+}
+@keyframes draw {
+  0%,
+  6% {
+    transform: scaleX(0);
+    opacity: 1;
+  }
+  32%,
+  84% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+  96%,
+  100% {
+    transform: scaleX(1);
+    opacity: 0;
   }
 }
+@keyframes settle {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  62%,
+  96% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* opening.html: a full-size window, so the page stacks above the label. */
+.opening {
+  flex-direction: column;
+  gap: 18px;
+}
+.opening .doc {
+  --u: 2px;
+}
+.opening p {
+  max-width: 70vw;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .spinner {
-    animation-duration: 2.4s;
+  .ln b {
+    animation: none;
+    transform: none;
+  }
+  .ln i {
+    animation: none;
   }
 }

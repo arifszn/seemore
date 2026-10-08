@@ -5,20 +5,25 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'" />
     <title>seemore</title>
     <link rel="stylesheet" href="start.css" />
+    <link rel="stylesheet" href="home.css" />
   </head>
-  <body>
+  <body class="home">
     <main>
       <h1>seemore</h1>
       <p class="lede">Open a folder of Markdown, or a single file, as a site.</p>
       <div class="actions">
-        <button id="open-folder" type="button">Open Folder…</button>
-        <button id="open-file" type="button">Open File…</button>
+        <button id="open-folder" type="button">
+          Open Folder…<kbd data-keys="shift+o"></kbd>
+        </button>
+        <button id="open-file" type="button">Open File…<kbd data-keys="o"></kbd></button>
       </div>
+      <p class="drop-hint">Or drop a folder or <code>.md</code> file on this window.</p>
       <section id="recents" hidden>
         <h2>Recent</h2>
         <ul id="recent-list"></ul>
       </section>
     </main>
+    <div class="drop-veil" aria-hidden="true"><span>Drop to open</span></div>
     <script src="start.js"></script>
   </body>
 </html>

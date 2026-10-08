@@ -1,19 +1,26 @@
+/* Shared by every local page: the start screen, the loaders, the build sheet and the error
+   page. --bg matches the windows' backgroundColor in the main process, so nothing flashes. */
 :root {
   color-scheme: light dark;
   --fg: #1d1d1f;
   --muted: #6e6e73;
+  --faint: #a8a8ad;
   --bg: #ffffff;
-  --line: #d2d2d7;
-  --hover: #f2f2f5;
+  --line: #e3e3e8;
+  --hover: #f4f4f6;
+  --accent: #2f5bd3;
+  --mono: ui-monospace, 'SF Mono', 'Cascadia Mono', Menlo, Consolas, monospace;
   font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
 @media (prefers-color-scheme: dark) {
   :root {
     --fg: #f5f5f7;
     --muted: #a1a1a6;
+    --faint: #5e5e63;
     --bg: #1c1c1e;
-    --line: #3a3a3c;
-    --hover: #2c2c2e;
+    --line: #333336;
+    --hover: #262628;
+    --accent: #7c9cff;
   }
 }
 body {
@@ -29,6 +36,7 @@ main {
 h1 {
   margin: 0 0 8px;
   font-size: 28px;
+  letter-spacing: -0.02em;
 }
 .lede {
   margin: 0 0 28px;
@@ -50,32 +58,7 @@ button {
 button:hover {
   background: var(--hover);
 }
-h2 {
-  margin: 36px 0 8px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-li button {
-  display: block;
-  width: 100%;
-  text-align: left;
-  border: 0;
-  border-radius: 6px;
-  padding: 6px 8px;
-}
-li .path {
-  display: block;
-  font-size: 12px;
-  color: var(--muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
