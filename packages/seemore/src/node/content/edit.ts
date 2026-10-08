@@ -49,6 +49,27 @@ export function spliceSource(content: string, request: SpliceRequest): SpliceRes
 }
 
 /**
+ * Adding text to the end of a file, for a page with no block to edit — an empty file, one
+ * that is only frontmatter, or one whose content renders unstamped.
+ *
+ * The end is read at write time rather than carried from the browser, so there is nothing
+ * stale to compare: an append to a file that moved since render still lands after its last
+ * character. Returns `undefined` when there is nothing to write.
+ */
+export function appendSource(content: string, text: string): string | undefined {
+  const body = text.replace(/\r\n/g, '\n').replace(/\s+$/, '');
+  if (body.trim() === '') return undefined;
+
+  // A blank line before the text, so it starts a block of its own instead of running on
+  // from the last paragraph or list item. Checked on LF so a CRLF file's `\r\n` counts.
+  const lf = content.replace(/\r\n/g, '\n');
+  const separator = lf === '' || lf.endsWith('\n\n') ? '' : lf.endsWith('\n') ? '\n' : '\n\n';
+
+  // The separator goes through `withEol` with the text, so a CRLF file stays CRLF throughout.
+  return content + withEol(`${separator}${body}\n`, dominantEol(content));
+}
+
+/**
  * The line ending the file already uses.
  *
  * Without this, editing a multi-line block on Windows silently rewrites its `\r\n` to `\n` —
