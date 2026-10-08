@@ -354,9 +354,11 @@
   }
 
   /* Inline editing (dev only, `content.edit`). The article is the positioning context for
-     the editor layer, which sits over the block being edited. */
+     the editor layer, which sits over the block being edited. The minimum height and the
+     bottom padding leave room below the content to double-click and append, including on
+     an empty page, which would otherwise collapse to nothing. */
   .seemore-editable {
-    @apply relative;
+    @apply relative min-h-48 pb-12;
   }
 
   .seemore-editable [data-seemore-pos]:hover {

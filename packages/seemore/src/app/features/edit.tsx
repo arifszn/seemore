@@ -17,7 +17,10 @@ import type { RouteEntry } from '../../shared/types.js';
 const ENDPOINT = '/__seemore/source';
 
 interface Editing {
-  element: HTMLElement;
+  /** The block being edited; absent when appending, which has no block to hide. */
+  element?: HTMLElement;
+  /** Appending to the end of the file rather than replacing `start:end`. */
+  append: boolean;
   start: number;
   end: number;
   /**
@@ -51,7 +54,7 @@ export function InlineEditor({ entry }: { entry: RouteEntry }) {
 
   const close = useCallback(() => {
     setEditing((current) => {
-      current?.element.classList.remove('seemore-editing');
+      current?.element?.classList.remove('seemore-editing');
       return undefined;
     });
     setError(undefined);
@@ -69,11 +72,15 @@ export function InlineEditor({ entry }: { entry: RouteEntry }) {
       const target = event.target as HTMLElement | null;
       if (target === null) return;
       // A link would have navigated on the first of the two clicks. Leave it alone; the rest
-      // of the paragraph around it still opens the editor.
-      if (target.closest('a') !== null) return;
+      // of the paragraph around it still opens the editor. A double-click inside the editor
+      // selects a word, and must not read as one on the empty article behind it.
+      if (target.closest('a, .seemore-editor, .seemore-editor-error') !== null) return;
 
       const block = target.closest<HTMLElement>('[data-seemore-pos]');
-      if (block === null || !host.contains(block)) return;
+      // Not on a block: below the last of them (or on an empty page) appends to the file.
+      // A gap between two blocks is left alone — the text would not land where it was asked.
+      const append = block === null && host.contains(target) && event.clientY > contentBottom(host);
+      if (!append && (block === null || !host.contains(block))) return;
 
       // An editor is already open. Moving to another block is fine while nothing has been
       // typed, but with unsaved text it would discard the edit without asking — so leave it
@@ -84,11 +91,37 @@ export function InlineEditor({ entry }: { entry: RouteEntry }) {
         if (field.value.replace(/\r\n/g, '\n') !== original.replace(/\r\n/g, '\n')) return;
       }
 
-      const [start, end] = (block.dataset['seemorePos'] ?? '').split(':').map(Number);
+      event.preventDefault();
+      if (append) {
+        openAppend();
+        return;
+      }
+
+      const [start, end] = ((block as HTMLElement).dataset['seemorePos'] ?? '').split(':').map(Number);
       if (!Number.isInteger(start) || !Number.isInteger(end)) return;
 
-      event.preventDefault();
-      void open(block, start as number, end as number);
+      void open(block as HTMLElement, start as number, end as number);
+    };
+
+    // Nothing to fetch: the editor starts empty, and the server finds the end of the file
+    // when it writes.
+    const openAppend = () => {
+      const host = article();
+      if (host === undefined) return;
+      const bounds = host.getBoundingClientRect();
+      const bottom = contentBottom(host);
+
+      setError(undefined);
+      setRefused(false);
+      setEditing({
+        append: true,
+        start: 0,
+        end: 0,
+        original: '',
+        top: Number.isFinite(bottom) ? bottom - bounds.top + APPEND_GAP : 0,
+        left: 0,
+        width: bounds.width,
+      });
     };
 
     const open = async (block: HTMLElement, start: number, end: number) => {
@@ -118,6 +151,7 @@ export function InlineEditor({ entry }: { entry: RouteEntry }) {
       setRefused(false);
       setEditing({
         element: block,
+        append: false,
         start,
         end,
         original,
@@ -163,7 +197,7 @@ export function InlineEditor({ entry }: { entry: RouteEntry }) {
 
   // The block is hidden rather than removed while it is edited, so the page does not jump.
   // If this component goes away mid-edit — a navigation, a hot reload — put it back.
-  useEffect(() => () => editing?.element.classList.remove('seemore-editing'), [editing]);
+  useEffect(() => () => editing?.element?.classList.remove('seemore-editing'), [editing]);
 
   const save = useCallback(async () => {
     const current = editing;
@@ -177,19 +211,28 @@ export function InlineEditor({ entry }: { entry: RouteEntry }) {
       close();
       return;
     }
+    // The server would write nothing for blank text either; skip the round trip.
+    if (current.append && field.value.trim() === '') {
+      close();
+      return;
+    }
 
     setSaving(true);
     try {
       const response = await fetch(ENDPOINT, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          file: entry.absPath,
-          start: current.start,
-          end: current.end,
-          expected: current.original,
-          text: field.value,
-        }),
+        body: JSON.stringify(
+          current.append
+            ? { file: entry.absPath, append: true, text: field.value }
+            : {
+                file: entry.absPath,
+                start: current.start,
+                end: current.end,
+                expected: current.original,
+                text: field.value,
+              },
+        ),
       });
       if (!response.ok) {
         const body = (await response.json().catch(() => ({}))) as { error?: string };
@@ -310,3 +353,21 @@ function resize(node: HTMLTextAreaElement): void {
 
 /** Floor for the cap, so a very short window still shows a usable amount of text. */
 const MIN_EDITOR_HEIGHT = 160;
+
+/** Space between the last block and an append editor opened below it. */
+const APPEND_GAP = 8;
+
+/**
+ * The bottom edge, in viewport coordinates, of the article's last rendered child — or
+ * `-Infinity` for an article with nothing in it, so any point counts as below the content.
+ * The editor layer is skipped, and so is anything not laid out (`display: none` reports a
+ * zero rect, which would put the "bottom" at the top of the viewport).
+ */
+function contentBottom(host: HTMLElement): number {
+  for (let node = host.lastElementChild; node !== null; node = node.previousElementSibling) {
+    if (node.classList.contains('seemore-editor-layer')) continue;
+    if (node.getClientRects().length === 0) continue;
+    return node.getBoundingClientRect().bottom;
+  }
+  return Number.NEGATIVE_INFINITY;
+}

@@ -8,7 +8,7 @@ import type { SeemoreContext } from '../context.js';
 import { buildSearchIndex } from '../search/build.js';
 import { toPosix } from '../content/slug.js';
 import { canonicalise } from '../paths.js';
-import { spliceSource } from '../content/edit.js';
+import { appendSource, spliceSource } from '../content/edit.js';
 import type { ContentPage } from '../content/scan.js';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 
@@ -291,7 +291,8 @@ function handleSourceRead(ctx: SeemoreContext, req: IncomingMessage, res: Server
 
   const start = Number(query.get('start'));
   const end = Number(query.get('end'));
-  const content = readFileSync(page.absPath, 'utf8');
+  const content = read(res, page.absPath);
+  if (content === undefined) return;
   if (!Number.isInteger(start) || !Number.isInteger(end) || start < 0 || end < start || end > content.length) {
     return send(res, 400, { error: 'The requested range is not inside this file.' });
   }
@@ -300,7 +301,7 @@ function handleSourceRead(ctx: SeemoreContext, req: IncomingMessage, res: Server
 }
 
 async function handleSourceWrite(ctx: SeemoreContext, req: IncomingMessage, res: ServerResponse): Promise<void> {
-  let body: Partial<{ file: string; start: number; end: number; expected: string; text: string }>;
+  let body: Partial<{ file: string; start: number; end: number; expected: string; text: string; append: boolean }>;
   try {
     body = JSON.parse(await readBody(req)) as typeof body;
   } catch {
@@ -309,13 +310,25 @@ async function handleSourceWrite(ctx: SeemoreContext, req: IncomingMessage, res:
 
   const page = resolvePage(ctx, body.file);
   if (page === undefined) return send(res, 404, { error: 'That file is not part of this site.' });
+
+  // An append carries no offsets: the end of the file is wherever it is now.
+  if (body.append === true) {
+    if (typeof body.text !== 'string') return send(res, 400, { error: '`text` is required.' });
+    const content = read(res, page.absPath);
+    if (content === undefined) return;
+    const appended = appendSource(content, body.text);
+    if (appended === undefined) return send(res, 200, { ok: true });
+    return write(res, page.absPath, appended);
+  }
+
   if (typeof body.expected !== 'string' || typeof body.text !== 'string') {
     return send(res, 400, { error: 'Both `expected` and `text` are required.' });
   }
 
   // Read, splice and write as one string: the offsets are JavaScript string indices, so any
   // detour through a Buffer would cut a multi-byte character in half.
-  const content = readFileSync(page.absPath, 'utf8');
+  const content = read(res, page.absPath);
+  if (content === undefined) return;
   const result = spliceSource(content, {
     start: body.start as number,
     end: body.end as number,
@@ -324,9 +337,41 @@ async function handleSourceWrite(ctx: SeemoreContext, req: IncomingMessage, res:
   });
   if (!result.ok) return send(res, result.status, { error: result.error });
 
-  writeFileSync(page.absPath, result.content, 'utf8');
-  // Nothing to invalidate by hand: the watcher sees the write and hot-reloads the page,
-  // which is the same path an edit in an editor takes.
+  return write(res, page.absPath, result.content);
+}
+
+/**
+ * Reads the page, or answers with the reason it could not be read and returns `undefined`.
+ *
+ * An exclusive lock on Windows blocks reads as well as writes, so the read fails with `EBUSY`
+ * before a write is ever tried — and an uncaught throw here would reach the editor as Vite's
+ * HTML error page, with no message in it to show.
+ */
+function read(res: ServerResponse, file: string): string | undefined {
+  try {
+    return readFileSync(file, 'utf8');
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException).code;
+    send(res, 500, { error: `The file could not be read${code === undefined ? '' : ` (${code})`}. Is another program holding it open?` });
+    return undefined;
+  }
+}
+
+/**
+ * Writes the page and answers. Nothing to invalidate by hand: the watcher sees the write and
+ * hot-reloads the page, which is the same path an edit in an editor takes.
+ *
+ * A failed write is answered rather than thrown — on Windows another process holding the
+ * file open exclusively gives `EBUSY` or `EPERM`, and an uncaught throw would drop the
+ * request with nothing for the editor to show.
+ */
+function write(res: ServerResponse, file: string, content: string): void {
+  try {
+    writeFileSync(file, content, 'utf8');
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException).code;
+    return send(res, 500, { error: `The file could not be written${code === undefined ? '' : ` (${code})`}. Is another program holding it open?` });
+  }
   return send(res, 200, { ok: true });
 }
 

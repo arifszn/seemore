@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { compile } from '@mdx-js/mdx';
-import { dominantEol, spliceSource } from '../src/node/content/edit.js';
+import { appendSource, dominantEol, spliceSource } from '../src/node/content/edit.js';
 import { rehypeSeemorePositions } from '../src/node/vite/positions.js';
 import { runDev, type DevServer } from '../src/cli/dev.js';
 
@@ -69,6 +69,42 @@ describe('splicing an edited block back into its file', () => {
     expect(dominantEol('a\r\nb\r\nc\r\n')).toBe('\r\n');
     // Mixed: majority wins, so a mostly-CRLF file does not drift to LF one edit at a time.
     expect(dominantEol('a\r\nb\r\nc\n')).toBe('\r\n');
+  });
+});
+
+describe('appending to the end of a file', () => {
+  it('writes into an empty file with no separator', () => {
+    expect(appendSource('', 'Hello.')).toBe('Hello.\n');
+  });
+
+  it('starts a new block after frontmatter', () => {
+    expect(appendSource('---\ntitle: Notes\n---\n', 'Hello.')).toBe('---\ntitle: Notes\n---\n\nHello.\n');
+  });
+
+  it('adds a blank line when the file has no trailing newline', () => {
+    expect(appendSource('# Title', 'Hello.')).toBe('# Title\n\nHello.\n');
+  });
+
+  it('adds nothing more after an existing blank line', () => {
+    expect(appendSource('# Title\n\n', 'Hello.')).toBe('# Title\n\nHello.\n');
+  });
+
+  it('ends with exactly one newline whatever was typed', () => {
+    expect(appendSource('# Title\n', 'Hello.\n\n  \n')).toBe('# Title\n\nHello.\n');
+  });
+
+  it('keeps a CRLF file on CRLF, separator included', () => {
+    const result = appendSource('# Title\r\n', 'One.\nTwo.');
+    expect(result).toBe('# Title\r\n\r\nOne.\r\nTwo.\r\n');
+    expect(result).not.toMatch(/[^\r]\n/);
+  });
+
+  it('treats a CRLF blank line as one', () => {
+    expect(appendSource('# Title\r\n\r\n', 'Hello.')).toBe('# Title\r\n\r\nHello.\r\n');
+  });
+
+  it('writes nothing for blank text', () => {
+    expect(appendSource('# Title\n', '  \n\t')).toBeUndefined();
   });
 });
 
@@ -156,6 +192,23 @@ describe('the dev server source endpoint', () => {
     });
     expect(write.status).toBe(200);
     expect(readFileSync(file, 'utf8')).toBe('# Title\n\nRewritten para.\n');
+  });
+
+  it('appends to the end of the file', async () => {
+    const { url, file } = await startDev('---\ntitle: Empty\n---\n', {});
+    const put = (text: string) =>
+      fetch(`${url}/__seemore/source`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ file, append: true, text }),
+      });
+
+    expect((await put('First words.')).status).toBe(200);
+    expect(readFileSync(file, 'utf8')).toBe('---\ntitle: Empty\n---\n\nFirst words.\n');
+
+    // Blank text is accepted and leaves the file alone.
+    expect((await put('   ')).status).toBe(200);
+    expect(readFileSync(file, 'utf8')).toBe('---\ntitle: Empty\n---\n\nFirst words.\n');
   });
 
   it('reports a conflict rather than overwriting a file that changed', async () => {
