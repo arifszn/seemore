@@ -1,10 +1,12 @@
 /** The application menu (DESKTOP-SPEC §4.4, §5). Rebuilt when the recents change. */
 import { basename } from 'node:path';
-import { app, BrowserWindow, Menu, type MenuItemConstructorOptions, webContents } from 'electron';
+import { app, BrowserWindow, Menu, type MenuItemConstructorOptions, shell, webContents } from 'electron';
 import { currentDefaultHandlerPlatform, makeDefaultHandler } from './defaultHandler.js';
 import type { DesktopApp } from './desktopApp.js';
 import type { RecentEntry } from './recents.js';
 import type { Updater } from './update/updater.js';
+
+const REPO_URL = 'https://github.com/arifszn/seemore';
 
 export const MENU_IDS = { export: 'export-page', build: 'build-site', closeFolder: 'close-folder', terminal: 'toggle-terminal' } as const;
 
@@ -197,7 +199,14 @@ export function buildMenu(desktop: DesktopApp, recents: readonly RecentEntry[], 
       ],
     },
     { role: 'windowMenu' },
-    ...(isMac ? [] : [{ role: 'help' as const, submenu: updateItems }]),
+    {
+      role: 'help',
+      submenu: [
+        { label: 'seemore on GitHub', click: () => void shell.openExternal(REPO_URL) },
+        { label: 'Report an Issue', click: () => void shell.openExternal(`${REPO_URL}/issues/new`) },
+        ...(isMac ? [] : [{ type: 'separator' as const }, ...updateItems]),
+      ],
+    },
   ];
 
   Menu.setApplicationMenu(Menu.buildFromTemplate(template));
