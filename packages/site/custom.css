@@ -753,6 +753,10 @@
   color: var(--color-fd-muted-foreground);
 }
 
+.seemore-download-shot {
+  margin-top: 1.5rem;
+}
+
 .seemore-requirement {
   margin: -0.5rem 0 1rem !important;
   font-size: 0.875rem;
