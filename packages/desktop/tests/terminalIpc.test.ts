@@ -33,35 +33,54 @@ const electron = vi.hoisted(() => {
       handle: (channel: string, handler: (...args: never[]) => unknown) => handlers.set(channel, handler as never),
     },
     nativeTheme: { shouldUseDarkColors: false },
+    dialog: { showMessageBox: vi.fn(() => Promise.resolve({ response: 0 })) },
   };
 });
 vi.mock('electron', () => electron);
 
-const ptys = vi.hoisted(() => [] as { write: ReturnType<typeof vi.fn>; kill: ReturnType<typeof vi.fn> }[]);
-vi.mock('node-pty', () => ({
+/** Every folder exists but this one. */
+vi.mock('node:fs', async (original) => ({ ...(await original<typeof import('node:fs')>()), existsSync: (path: string) => path !== '/sites/gone' }));
+
+const ptys = vi.hoisted(() => [] as { write: ReturnType<typeof vi.fn>; kill: ReturnType<typeof vi.fn>; exit: (code: number) => void }[]);
+const pty = vi.hoisted(() => ({
   spawn: vi.fn(() => {
-    const pty = { pid: 1, write: vi.fn(), resize: vi.fn(), kill: vi.fn(), onData: () => ({ dispose() {} }), onExit: () => ({ dispose() {} }) };
-    ptys.push(pty);
-    return pty;
+    let onExit: (event: { exitCode: number }) => void = () => undefined;
+    const fake = {
+      pid: 1,
+      write: vi.fn(),
+      resize: vi.fn(),
+      kill: vi.fn(),
+      onData: () => ({ dispose() {} }),
+      onExit: (listener: typeof onExit) => {
+        onExit = listener;
+        return { dispose() {} };
+      },
+      exit: (exitCode: number) => onExit({ exitCode }),
+    };
+    ptys.push(fake);
+    return fake;
   }),
 }));
+vi.mock('node-pty', () => pty);
 
 const { registerTerminalHandlers, TerminalPanel } = await import('../src/main/terminalPanel.js');
 registerTerminalHandlers();
 
 /** An open panel and the id of its terminal view's `webContents`. */
-function openPanel() {
+function openPanel(root = '/sites/docs') {
   const views: { webContents: { id: number } }[] = [];
+  let destroyed = false;
+  const onChange = vi.fn();
   const window = {
     on: () => undefined,
     once: () => undefined,
-    isDestroyed: () => false,
+    isDestroyed: () => destroyed,
     getContentBounds: () => ({ x: 0, y: 0, width: 1000, height: 800 }),
     contentView: { on: () => undefined, addChildView: (view: { webContents: { id: number } }) => void views.push(view) },
   };
   const site = { setBounds: () => undefined, webContents: { focus: () => undefined } };
-  const panel = new TerminalPanel(window as never, site as never, '/sites/docs', { height: 280, open: true }, () => undefined);
-  return { panel, sender: { id: views[0]!.webContents.id } };
+  const panel = new TerminalPanel(window as never, site as never, root, { height: 280, open: true }, onChange);
+  return { panel, onChange, sender: { id: views[0]!.webContents.id }, destroy: () => (destroyed = true) };
 }
 
 const call = (channel: string, sender: { id: number }, ...args: unknown[]) => electron.handlers.get(channel)!({ sender }, ...args);
@@ -115,6 +134,36 @@ describe('terminal IPC', () => {
     call('terminal:input', sender, 1, 42);
     expect(ptys[0]!.write).not.toHaveBeenCalled();
     expect(panel.shells.size).toBe(1);
+  });
+
+  it('starts no shell, and says why, when the shell fails to spawn', () => {
+    const { panel, sender } = openPanel();
+    pty.spawn.mockImplementationOnce(() => {
+      throw new Error('File not found: /nope/sh');
+    });
+    expect(call('terminal:create', sender, 80, 24)).toBeUndefined();
+    expect(panel.shells.size).toBe(0);
+    expect(electron.dialog.showMessageBox).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ message: 'Could not start a shell.', detail: 'File not found: /nope/sh' }),
+    );
+  });
+
+  it('starts no shell in a folder that has gone', () => {
+    const { panel, sender } = openPanel('/sites/gone');
+    expect(call('terminal:create', sender, 80, 24)).toBeUndefined();
+    expect(pty.spawn).not.toHaveBeenCalled();
+    expect(panel.shells.size).toBe(0);
+    expect(electron.dialog.showMessageBox).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ detail: '/sites/gone no longer exists.' }));
+  });
+
+  it('leaves a destroyed window alone when its last shell exits', () => {
+    const { panel, onChange, sender, destroy } = openPanel();
+    call('terminal:create', sender, 80, 24);
+    destroy();
+    expect(() => ptys[0]!.exit(0)).not.toThrow();
+    expect(panel.isOpen).toBe(true);
+    expect(onChange).not.toHaveBeenCalled();
   });
 
   it('opens only web and mail links', () => {

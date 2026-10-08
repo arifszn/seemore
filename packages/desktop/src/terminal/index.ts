@@ -160,10 +160,12 @@ async function createNow(): Promise<void> {
     // Created while hidden: 80 by 24 until the first resize.
   }
 
-  const created = await api.create(term.cols, term.rows);
+  // None when the shell can't start; the main process has said why.
+  const created = await api.create(term.cols, term.rows).catch(() => undefined);
   if (created === undefined) {
     term.dispose();
     host.remove();
+    if (sessions.size === 0) api.hide();
     return;
   }
   const tab = document.createElement('li');

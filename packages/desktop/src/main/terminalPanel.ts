@@ -5,11 +5,12 @@
  * into bounds, so the page never sets its own size. Each panel holds its window's shells.
  * IPC is answered only for a terminal view, and only about its own window's shells (§8).
  */
+import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { type BrowserWindow, clipboard, ipcMain, nativeTheme, shell, type WebContents, WebContentsView } from 'electron';
+import { type BrowserWindow, clipboard, dialog, ipcMain, nativeTheme, shell, type WebContents, WebContentsView } from 'electron';
 import { spawn } from 'node-pty';
 import { decideNavigation } from './policy.js';
-import { Shells, validSize } from './shells.js';
+import { type ShellInfo, Shells, validSize } from './shells.js';
 
 export interface PanelState {
   height: number;
@@ -53,7 +54,7 @@ export function registerTerminalHandlers(): void {
   });
   ipcMain.handle('terminal:create', (event, cols: unknown, rows: unknown) => {
     const size = validSize(cols, rows);
-    return size === undefined ? undefined : from(event)?.shells.create(size.cols, size.rows);
+    return size === undefined ? undefined : from(event)?.create(size.cols, size.rows);
   });
   ipcMain.on('terminal:input', (event, id: unknown, data: unknown) => {
     if (isId(id) && typeof data === 'string') from(event)?.shells.write(id, data);
@@ -97,7 +98,7 @@ export class TerminalPanel {
   constructor(
     private readonly window: BrowserWindow,
     private readonly site: WebContentsView,
-    root: string,
+    private readonly root: string,
     saved: PanelState,
     private readonly onChange: (state: PanelState) => void,
   ) {
@@ -147,11 +148,30 @@ export class TerminalPanel {
   }
 
   close(): void {
-    if (!this.state.open) return;
+    // A window going away: its `closed` handler ends the shells, and the state stays saved.
+    if (!this.state.open || this.window.isDestroyed()) return;
     this.state.open = false;
     this.layout();
     this.site.webContents.focus();
     this.onChange({ ...this.state });
+  }
+
+  /** A shell for the page, or none, with the reason shown, when it can't start. */
+  create(cols: number, rows: number): ShellInfo | undefined {
+    try {
+      // A missing folder doesn't fail the spawn: the shell starts and exits at once.
+      if (!existsSync(this.root)) throw new Error(`${this.root} no longer exists.`);
+      return this.shells.create(cols, rows);
+    } catch (error) {
+      if (!this.window.isDestroyed()) {
+        void dialog.showMessageBox(this.window, {
+          type: 'error',
+          message: 'Could not start a shell.',
+          detail: error instanceof Error ? error.message : String(error),
+        });
+      }
+      return undefined;
+    }
   }
 
   /** Sets both views' bounds from the window's content size and the panel state. */
