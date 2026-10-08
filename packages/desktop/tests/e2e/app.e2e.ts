@@ -402,6 +402,12 @@ describe('desktop app', () => {
     expect(views[1]).toMatchObject({ y: content - 280, height: 280, visible: true });
     expect(views[0]!.height).toBe(content - 280);
 
+    // A window resize lays both views out again.
+    await app!.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0]!.setSize(1000, 700));
+    await expect.poll(async () => (await layout()).views[0]!.height).not.toBe(content - 280);
+    ({ content, views } = await layout());
+    expect(views[1]).toMatchObject({ y: content - 280, height: 280 });
+
     // A splitter drag 100 px up, as the page reports it.
     await terminal()!.evaluate(() => {
       const api = (window as unknown as { seemore: { drag: (phase: string, y: number) => void } }).seemore;

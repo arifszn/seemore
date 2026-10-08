@@ -114,7 +114,9 @@ export class TerminalPanel {
       },
       spawn,
     );
-    window.on('resize', () => this.layout());
+    // The content view, not the window's `resize`: on Windows and Linux the menu bar takes its
+    // height from the content area after the first layout, with no `resize`.
+    window.contentView.on('bounds-changed', () => this.layout());
     // Closing the window, Close Folder and quitting all close it.
     window.once('closed', () => {
       this.shells.killAll();
