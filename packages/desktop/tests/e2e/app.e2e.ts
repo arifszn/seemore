@@ -30,9 +30,14 @@ beforeEach(() => {
 });
 
 afterEach(async () => {
+  // An uncaught exception in the main process fails the test; Electron would show a dialog.
+  const errors = await app
+    ?.evaluate(() => (globalThis as Record<string, unknown>).uncaught as string[])
+    .catch(() => [] as string[]);
   await app?.close().catch(() => undefined);
   app = undefined;
   rmSync(workDir, { recursive: true, force: true });
+  expect(errors ?? []).toEqual([]);
 });
 
 async function launch(...paths: string[]): Promise<ElectronApplication> {
@@ -51,6 +56,8 @@ async function launchWithEnv(env: Record<string, string>, ...paths: string[]): P
     g.dialogs = [];
     g.dialogResponse = undefined;
     g.opened = [];
+    g.uncaught = [];
+    process.on('uncaughtException', (error) => (g.uncaught as string[]).push(error.stack ?? error.message));
     dialog.showMessageBox = (async (...args: unknown[]) => {
       const options = (args.length > 1 ? args[1] : args[0]) as { message: string; defaultId?: number };
       (g.dialogs as string[]).push(options.message);
