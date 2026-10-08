@@ -1,7 +1,7 @@
 {
   "name": "seemore-desktop",
   "productName": "seemore",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "description": "Open a folder of Markdown as a seemore site in its own window.",
   "license": "MIT",
