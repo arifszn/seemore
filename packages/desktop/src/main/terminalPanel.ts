@@ -1,6 +1,6 @@
 /**
  * The terminal panel of a site window (DESKTOP-SPEC §7.4): a second `WebContentsView` below
- * the site view, created on first use. The panel owns the window's layout: the site takes
+ * the site view, created when it first opens. The panel owns the window's layout: the site takes
  * what the panel leaves. Its page drags a splitter strip; the main process turns the drag
  * into bounds, so the page never sets its own size. Each panel holds its window's shells.
  * IPC is answered only for a terminal view, and only about its own window's shells (§8).

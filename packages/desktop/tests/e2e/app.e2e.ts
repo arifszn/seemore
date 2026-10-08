@@ -96,6 +96,41 @@ async function sitePage(except: Page[] = []): Promise<Page> {
 /** Site pages open in the app; each site window also has its terminal page (§7.4). */
 const sitePages = () => app!.windows().filter((w) => w.url().startsWith('http'));
 
+/** Shell process ids across every site window (§7.4). */
+const shellPids = () =>
+  app!.evaluate(({ BrowserWindow }) =>
+    BrowserWindow.getAllWindows().flatMap((window) =>
+      (globalThis as unknown as { seemoreDesktop: { shellPids: (w: unknown) => number[] } }).seemoreDesktop.shellPids(window),
+    ),
+  );
+
+function alive(pid: number): boolean {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * A menu item, clicked as the menu would for the first window. Its shortcut can't be pressed
+ * instead: a synthetic key press never reaches the native menu.
+ */
+const clickMenu = (id: string) =>
+  app!.evaluate(({ Menu, BrowserWindow }, itemId) => {
+    const item = Menu.getApplicationMenu()!.getMenuItemById(itemId)!;
+    if (!item.enabled) throw new Error(`${itemId} is disabled`);
+    item.click(undefined, BrowserWindow.getAllWindows()[0], undefined);
+  }, id);
+
+/** The terminal panel's page in the first site window. */
+async function terminalPage(): Promise<Page> {
+  const find = () => app!.windows().find((w) => w.url().endsWith('terminal.html'));
+  await expect.poll(() => find() !== undefined).toBe(true);
+  return find()!;
+}
+
 async function settled(page: Page, pathname: string): Promise<void> {
   await page.waitForURL((url) => url.pathname === pathname);
   await page.waitForSelector('article h1, h1');
@@ -398,20 +433,6 @@ describe('desktop app', () => {
     await expect.poll(() => find() !== undefined).toBe(true);
     const terminal = find()!;
 
-    const shellPids = () =>
-      app!.evaluate(({ BrowserWindow }) =>
-        BrowserWindow.getAllWindows().flatMap((window) =>
-          (globalThis as unknown as { seemoreDesktop: { shellPids: (w: unknown) => number[] } }).seemoreDesktop.shellPids(window),
-        ),
-      );
-    const alive = (pid: number) => {
-      try {
-        process.kill(pid, 0);
-        return true;
-      } catch {
-        return false;
-      }
-    };
     const screen = () => terminal.evaluate(() => document.querySelector('.terminal-host:not([hidden]) .xterm-rows')?.textContent ?? '');
 
     // The panel opens with the window and starts a shell at the root.
@@ -451,14 +472,7 @@ describe('desktop app', () => {
     expect(await terminal.isVisible('#tabs')).toBe(true);
     const [first, second] = await shellPids();
 
-    // The Terminal menu's items, clicked as the menu would (its shortcuts never reach the
-    // menu from a synthetic key press).
-    const clickMenu = (id: string) =>
-      app!.evaluate(({ Menu, BrowserWindow }, itemId) => {
-        const item = Menu.getApplicationMenu()!.getMenuItemById(itemId)!;
-        if (!item.enabled) throw new Error(`${itemId} is disabled`);
-        item.click(undefined, BrowserWindow.getAllWindows()[0], undefined);
-      }, id);
+    // The Terminal menu's items.
     const activeTab = () => terminal.$$eval('#tabs li', (tabs) => tabs.findIndex((tab) => tab.classList.contains('active')));
     await clickMenu('terminal-previous');
     await expect.poll(activeTab).toBe(0);
@@ -489,6 +503,67 @@ describe('desktop app', () => {
     // Closing the window leaves no shell running.
     await app!.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0]!.close());
     await expect.poll(() => alive(second!), { timeout: 10_000 }).toBe(false);
+  });
+
+  it('gives the site page no route to a shell', async () => {
+    await launch(site);
+    const page = await sitePage();
+    await settled(page, '/');
+    await expect.poll(shellPids).toHaveLength(1);
+    // No preload: nothing from the terminal's bridge, and no Node.
+    expect(await page.evaluate(() => typeof (window as unknown as { seemore?: unknown }).seemore)).toBe('undefined');
+    expect(await page.evaluate(() => typeof (globalThis as { require?: unknown }).require)).toBe('undefined');
+  });
+
+  it('adds and kills terminals from the menu, hides the panel when the last shell exits, and opens it again', async () => {
+    await launch(site);
+    const page = await sitePage();
+    await settled(page, '/');
+    const terminal = await terminalPage();
+    await terminal.waitForSelector('.terminal-host .xterm');
+    await expect.poll(shellPids).toHaveLength(1);
+    const panelVisible = () => app!.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0]!.contentView.children[1]!.getVisible());
+
+    await clickMenu('terminal-new');
+    await expect.poll(shellPids).toHaveLength(2);
+    const [first, second] = await shellPids();
+    // Kill Terminal ends the active one, the newest.
+    await clickMenu('terminal-kill');
+    await expect.poll(() => alive(second!), { timeout: 10_000 }).toBe(false);
+    expect(await shellPids()).toEqual([first]);
+
+    // The last shell exiting on its own hides the panel, and the items that need it go grey.
+    await terminal.keyboard.type('exit\n');
+    await expect.poll(panelVisible, { timeout: 10_000 }).toBe(false);
+    expect(await shellPids()).toEqual([]);
+    expect(await app!.evaluate(({ Menu }) => Menu.getApplicationMenu()!.getMenuItemById('terminal-kill')!.enabled)).toBe(false);
+
+    // New Terminal opens the hidden panel with one shell, not two.
+    await clickMenu('terminal-new');
+    await expect.poll(panelVisible).toBe(true);
+    await expect.poll(shellPids).toHaveLength(1);
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    expect(await shellPids()).toHaveLength(1);
+  });
+
+  it('leaves no shell running after Close Folder, or after quitting', async () => {
+    await launch(site);
+    await settled(await sitePage(), '/');
+    await expect.poll(shellPids).toHaveLength(1);
+    const [closed] = await shellPids();
+    await app!.evaluate(({ BrowserWindow }) =>
+      (globalThis as unknown as { seemoreDesktop: { closeFolder: (w: unknown) => void } }).seemoreDesktop.closeFolder(
+        BrowserWindow.getAllWindows().find((w) => w.getTitle().startsWith('site'))!,
+      ),
+    );
+    await expect.poll(() => alive(closed!), { timeout: 10_000 }).toBe(false);
+
+    await open(site);
+    await expect.poll(shellPids).toHaveLength(1);
+    const [quit] = await shellPids();
+    await app!.close();
+    app = undefined;
+    await expect.poll(() => alive(quit!), { timeout: 10_000 }).toBe(false);
   });
 
   // The staged CLI is trimmed (scripts/trim-seemore.mjs); the two largest client-side
