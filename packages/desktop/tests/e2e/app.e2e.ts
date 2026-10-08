@@ -499,6 +499,15 @@ describe('desktop app', () => {
     await terminal.press('#tabs li.active input.rename', 'Enter');
     await expect.poll(() => terminal.textContent('#tabs li.active .name')).toBe('server');
 
+    // Dragging a terminal reorders the list, and Focus Previous and Next follow the new order.
+    const names = () => terminal.$$eval('#tabs .name', (els) => els.map((el) => el.textContent));
+    await terminal.dragAndDrop('#tabs li:nth-child(2)', '#tabs li:nth-child(1)', { targetPosition: { x: 20, y: 2 } });
+    await expect.poll(names).toEqual(['server', expect.any(String)]);
+    await clickMenu('terminal-next');
+    await expect.poll(activeTab).toBe(1);
+    await clickMenu('terminal-next');
+    await expect.poll(activeTab).toBe(0);
+
     // View > Reload reloads the site, not the focused terminal, whose shells keep running.
     const reloaded = page.waitForEvent('load');
     await app!.evaluate(({ Menu, BrowserWindow }) => {
@@ -508,16 +517,32 @@ describe('desktop app', () => {
     await reloaded;
     expect(await shellPids()).toEqual([first, second]);
 
-    // Killing the first from its tab ends its process and hides the list again.
+    // Killing the first from its tab (now the second shell) ends its process and hides the list.
     await terminal.hover('#tabs li:first-child');
     await terminal.click('#tabs li:first-child .kill');
-    await expect.poll(() => alive(first!), { timeout: 10_000 }).toBe(false);
-    await expect.poll(shellPids).toEqual([second]);
+    await expect.poll(() => alive(second!), { timeout: 10_000 }).toBe(false);
+    await expect.poll(shellPids).toEqual([first]);
     await terminal.waitForSelector('#tabs', { state: 'hidden' });
 
     // Closing the window leaves no shell running.
     await app!.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0]!.close());
-    await expect.poll(() => alive(second!), { timeout: 10_000 }).toBe(false);
+    await expect.poll(() => alive(first!), { timeout: 10_000 }).toBe(false);
+  });
+
+  it('follows the site’s theme toggle in the terminal', async () => {
+    await launch(site);
+    const page = await sitePage();
+    await settled(page, '/');
+    const terminal = await terminalPage();
+    await terminal.waitForSelector('.terminal-host .xterm');
+    const background = () => terminal.evaluate(() => getComputedStyle(document.querySelector('.xterm-viewport')!).backgroundColor);
+    for (const [dark, colour] of [[true, 'rgb(28, 28, 30)'], [false, 'rgb(255, 255, 255)']] as const) {
+      await page.evaluate((d) => {
+        document.documentElement.classList.toggle('dark', d);
+        document.documentElement.classList.toggle('light', !d);
+      }, dark);
+      await expect.poll(background).toBe(colour);
+    }
   });
 
   it('gives the site page no route to a shell', async () => {
@@ -525,7 +550,7 @@ describe('desktop app', () => {
     const page = await sitePage();
     await settled(page, '/');
     await expect.poll(shellPids).toHaveLength(1);
-    // No preload: nothing from the terminal's bridge, and no Node.
+    // Its preload exposes nothing: no terminal bridge, and no Node.
     expect(await page.evaluate(() => typeof (window as unknown as { seemore?: unknown }).seemore)).toBe('undefined');
     expect(await page.evaluate(() => typeof (globalThis as { require?: unknown }).require)).toBe('undefined');
   });

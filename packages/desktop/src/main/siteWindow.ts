@@ -1,6 +1,7 @@
 /**
  * A window showing one site: the dev server's page in a child `WebContentsView` filling the
- * window above the terminal panel, sandboxed, with no preload (DESKTOP-SPEC §7.4, §8). The
+ * window above the terminal panel, sandboxed, with a preload that only reports its theme
+ * (DESKTOP-SPEC §7.4, §8). The
  * window's own `webContents` loads nothing. Navigation, new
  * windows and permissions follow `policy.ts`.
  */
@@ -65,6 +66,7 @@ export function createSiteWindow(options: SiteWindowOptions): BrowserWindow {
 
   const view = new WebContentsView({
     webPreferences: {
+      preload: join(__dirname, 'preload-site.js'),
       sandbox: true,
       contextIsolation: true,
       nodeIntegration: false,

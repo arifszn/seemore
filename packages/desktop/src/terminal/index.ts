@@ -26,6 +26,7 @@ interface Api {
   onData: (listener: (id: number, data: string) => void) => void;
   onExit: (listener: (id: number, exitCode: number) => void) => void;
   onCommand: (listener: (command: string) => void) => void;
+  onTheme: (listener: (dark: boolean) => void) => void;
 }
 
 interface Session {
@@ -70,25 +71,30 @@ const ANSI = {
   },
 } satisfies Record<string, ITheme>;
 
-const dark = matchMedia('(prefers-color-scheme: dark)');
+const osDark = matchMedia('(prefers-color-scheme: dark)');
+/** The site's theme, once the main process has sent it; the OS's until then. */
+let siteDark: boolean | undefined;
 
 function theme(): ITheme {
-  const css = getComputedStyle(document.documentElement);
-  const v = (name: string) => css.getPropertyValue(name).trim();
+  // Resolved colours: start.css's tokens are `light-dark()` pairs, unresolved as properties.
+  const body = getComputedStyle(document.body);
+  const dark = siteDark ?? osDark.matches;
   return {
-    ...(dark.matches ? ANSI.dark : ANSI.light),
-    background: v('--bg'),
-    foreground: v('--fg'),
-    cursor: v('--fg'),
-    cursorAccent: v('--bg'),
-    selectionBackground: v('--selection'),
+    ...(dark ? ANSI.dark : ANSI.light),
+    background: body.backgroundColor,
+    foreground: body.color,
+    cursor: body.color,
+    cursorAccent: body.backgroundColor,
+    selectionBackground: dark ? 'rgba(124, 156, 255, 0.3)' : 'rgba(47, 91, 211, 0.25)',
   };
 }
 
-dark.addEventListener('change', () => {
+function applyTheme(): void {
+  if (siteDark !== undefined) document.documentElement.style.colorScheme = siteDark ? 'dark' : 'light';
   const next = theme();
   for (const session of sessions.values()) session.term.options.theme = next;
-});
+}
+osDark.addEventListener('change', applyTheme);
 
 function fitActive(): void {
   if (active === undefined || active.host.hidden) return;
@@ -170,6 +176,7 @@ async function createNow(): Promise<void> {
   }
   const tab = document.createElement('li');
   tab.setAttribute('role', 'tab');
+  tab.draggable = true;
   const label = document.createElement('span');
   label.className = 'name';
   label.textContent = created.name;
@@ -192,6 +199,7 @@ async function createNow(): Promise<void> {
     if (event.target !== trash) startRename(session);
   });
   trash.addEventListener('click', () => api.kill(session.id));
+  reorderable(session);
   activate(session);
 }
 
@@ -218,6 +226,8 @@ function startRename(session: Session): void {
   input.className = 'rename';
   input.value = session.name;
   label.replaceWith(input);
+  // Text in the field selects by dragging, rather than moving the tab.
+  session.tab.draggable = false;
   input.select();
   let done = false;
   const finish = (save: boolean) => {
@@ -230,6 +240,7 @@ function startRename(session: Session): void {
     }
     label.textContent = session.name;
     input.replaceWith(label);
+    session.tab.draggable = true;
     session.term.focus();
   };
   input.addEventListener('keydown', (event) => {
@@ -237,6 +248,55 @@ function startRename(session: Session): void {
     if (event.key === 'Escape') finish(false);
   });
   input.addEventListener('blur', () => finish(true));
+}
+
+// Reordering (as VS Code's tabs list): drag a terminal above or below another. The order is
+// the tabs list's, which Focus Previous and Next follow.
+let dragged: Session | undefined;
+
+function dropSide(tab: HTMLElement, event: DragEvent): 'before' | 'after' {
+  const box = tab.getBoundingClientRect();
+  return event.clientY < box.top + box.height / 2 ? 'before' : 'after';
+}
+
+function clearDrop(): void {
+  for (const tab of Array.from(tabsEl.children)) tab.classList.remove('drop-before', 'drop-after');
+}
+
+function reorderable(session: Session): void {
+  const { tab } = session;
+  tab.addEventListener('dragstart', (event) => {
+    dragged = session;
+    tab.classList.add('dragged');
+    event.dataTransfer?.setData('text/plain', session.name);
+    if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move';
+  });
+  tab.addEventListener('dragend', () => {
+    dragged = undefined;
+    tab.classList.remove('dragged');
+    clearDrop();
+  });
+  tab.addEventListener('dragover', (event) => {
+    if (dragged === undefined || dragged === session) return;
+    event.preventDefault();
+    clearDrop();
+    tab.classList.add(`drop-${dropSide(tab, event)}`);
+  });
+  tab.addEventListener('dragleave', () => tab.classList.remove('drop-before', 'drop-after'));
+  tab.addEventListener('drop', (event) => {
+    if (dragged === undefined || dragged === session) return;
+    event.preventDefault();
+    const side = dropSide(tab, event);
+    clearDrop();
+    if (side === 'before') tab.before(dragged.tab);
+    else tab.after(dragged.tab);
+    // The sessions follow the list, so Focus Previous and Next go by what is shown.
+    const order = Array.from(tabsEl.children);
+    const sorted = [...sessions.values()].sort((a, b) => order.indexOf(a.tab) - order.indexOf(b.tab));
+    sessions.clear();
+    for (const each of sorted) sessions.set(each.id, each);
+    dragged.term.focus();
+  });
 }
 
 function step(by: 1 | -1): void {
@@ -286,6 +346,10 @@ $('hide').addEventListener('click', () => api.hide());
 
 api.onData((id, data) => sessions.get(id)?.term.write(data));
 api.onExit((id) => remove(id));
+api.onTheme((dark) => {
+  siteDark = dark;
+  applyTheme();
+});
 api.onCommand((command) => {
   switch (command) {
     // The panel opened: a shell if it has none, and focus on the active one.

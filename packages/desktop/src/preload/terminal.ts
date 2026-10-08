@@ -23,6 +23,10 @@ contextBridge.exposeInMainWorld('seemore', {
   onExit: (listener: (id: number, exitCode: number) => void) => {
     ipcRenderer.on('terminal:exit', (_event, id: number, exitCode: number) => listener(id, exitCode));
   },
+  /** The site's theme, which the terminal follows: `true` for dark. */
+  onTheme: (listener: (dark: boolean) => void) => {
+    ipcRenderer.on('terminal:theme', (_event, dark: boolean) => listener(dark));
+  },
   /** From the main process: `opened`, and the Terminal menu's items (13.5). */
   onCommand: (listener: (command: string) => void) => {
     ipcRenderer.on('terminal:command', (_event, command: string) => listener(command));

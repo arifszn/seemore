@@ -13,6 +13,7 @@ export default defineConfig([
       'preload-start': 'src/preload/start.ts',
       'preload-build': 'src/preload/build.ts',
       'preload-terminal': 'src/preload/terminal.ts',
+      'preload-site': 'src/preload/site.ts',
     },
     format: ['cjs'],
     target: 'node22',

@@ -41,6 +41,8 @@ export function parsePanelState(value: unknown): PanelState {
 
 /** Terminal views by `webContents` id: the only senders the handlers answer. */
 const panels = new Map<number, TerminalPanel>();
+/** Each site view's panel, by the site's `webContents` id: for `site:theme` alone. */
+const bySite = new Map<number, TerminalPanel>();
 
 const isId = (id: unknown): id is number => typeof id === 'number' && Number.isInteger(id);
 
@@ -70,6 +72,10 @@ export function registerTerminalHandlers(): void {
     if (isId(id)) from(event)?.shells.kill(id);
   });
   ipcMain.on('terminal:hide', (event) => from(event)?.close());
+  // From a site view's preload: the site's theme, which the terminal follows.
+  ipcMain.on('site:theme', (event, dark: unknown) => {
+    if (typeof dark === 'boolean') bySite.get(event.sender.id)?.setDark(dark);
+  });
   ipcMain.on('terminal:copy', (event, text: unknown) => {
     if (from(event) !== undefined && typeof text === 'string' && text !== '') clipboard.writeText(text);
   });
@@ -93,6 +99,8 @@ export class TerminalPanel {
   private dragFrom: { screenY: number; height: number } | undefined;
   /** The page has loaded and listens for commands. */
   private loaded = false;
+  /** The site's theme, once its page has reported it; the OS's until then. */
+  private dark: boolean | undefined;
   readonly shells: Shells;
 
   constructor(
@@ -118,9 +126,12 @@ export class TerminalPanel {
     // The content view, not the window's `resize`: on Windows and Linux the menu bar takes its
     // height from the content area after the first layout, with no `resize`.
     window.contentView.on('bounds-changed', () => this.layout());
+    const siteId = site.webContents.id;
+    bySite.set(siteId, this);
     // Closing the window, Close Folder and quitting all close it.
     window.once('closed', () => {
       this.shells.killAll();
+      bySite.delete(siteId);
       if (this.page === undefined) return;
       panels.delete(this.page.id);
       if (!this.page.isDestroyed()) this.page.close();
@@ -214,6 +225,13 @@ export class TerminalPanel {
     else this.page?.once('did-finish-load', () => this.send('terminal:command', name));
   }
 
+  /** The site's theme changed: the terminal follows it. */
+  setDark(dark: boolean): void {
+    this.dark = dark;
+    this.view?.setBackgroundColor(background(dark));
+    if (this.loaded) this.send('terminal:theme', dark);
+  }
+
   private send(channel: string, ...args: unknown[]): void {
     if (this.page !== undefined && !this.page.isDestroyed()) this.page.send(channel, ...args);
   }
@@ -229,12 +247,13 @@ export class TerminalPanel {
         webSecurity: true,
       },
     });
-    view.setBackgroundColor(nativeTheme.shouldUseDarkColors ? '#1c1c1e' : '#ffffff');
+    view.setBackgroundColor(background(this.dark ?? nativeTheme.shouldUseDarkColors));
     const page = view.webContents;
     page.on('will-navigate', (details) => details.preventDefault());
     page.setWindowOpenHandler(() => ({ action: 'deny' }));
     page.once('did-finish-load', () => {
       this.loaded = true;
+      if (this.dark !== undefined) this.send('terminal:theme', this.dark);
       if (this.state.open) this.send('terminal:command', 'opened');
     });
     panels.set(page.id, this);
@@ -244,4 +263,9 @@ export class TerminalPanel {
     this.window.contentView.addChildView(view);
     void page.loadFile(join(__dirname, 'terminal.html')).catch(() => undefined);
   }
+}
+
+/** The terminal page's `--bg` (start.css), so nothing flashes while it loads. */
+function background(dark: boolean): string {
+  return dark ? '#1c1c1e' : '#ffffff';
 }
