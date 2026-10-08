@@ -96,12 +96,17 @@ async function sitePage(except: Page[] = []): Promise<Page> {
 /** Site pages open in the app; each site window also has its terminal page (§7.4). */
 const sitePages = () => app!.windows().filter((w) => w.url().startsWith('http'));
 
-/** Shell process ids across every site window (§7.4). */
+/**
+ * Shell process ids across every site window (§7.4). On Windows a ConPTY shell's pid reads 0
+ * until it has started, so only started shells count.
+ */
 const shellPids = () =>
   app!.evaluate(({ BrowserWindow }) =>
-    BrowserWindow.getAllWindows().flatMap((window) =>
-      (globalThis as unknown as { seemoreDesktop: { shellPids: (w: unknown) => number[] } }).seemoreDesktop.shellPids(window),
-    ),
+    BrowserWindow.getAllWindows()
+      .flatMap((window) =>
+        (globalThis as unknown as { seemoreDesktop: { shellPids: (w: unknown) => number[] } }).seemoreDesktop.shellPids(window),
+      )
+      .filter((pid) => pid > 0),
   );
 
 function alive(pid: number): boolean {
@@ -439,14 +444,18 @@ describe('desktop app', () => {
     await expect.poll(() => find() !== undefined).toBe(true);
     const terminal = find()!;
 
-    const screen = () => terminal.evaluate(() => document.querySelector('.terminal-host:not([hidden]) .xterm-rows')?.textContent ?? '');
-
     // The panel opens with the window and starts a shell at the root.
     await terminal.waitForSelector('.terminal-host .xterm');
     await expect.poll(shellPids).toHaveLength(1);
     const probe = process.platform === 'win32' ? '(Get-Location).Path' : 'echo "$PWD"';
     await terminal.keyboard.type(`${probe}; echo https://example.com/docs\n`);
-    await expect.poll(screen, { timeout: 20_000 }).toContain(site);
+    // Lines of output, not the prompt: PowerShell's prompt already shows the root.
+    const rows = () =>
+      terminal.evaluate(() =>
+        Array.from(document.querySelectorAll('.terminal-host:not([hidden]) .xterm-rows > div'), (r) => r.textContent ?? ''),
+      );
+    await expect.poll(rows, { timeout: 20_000 }).toContainEqual(expect.stringMatching(/^https:\/\/example\.com\/docs/));
+    expect(await rows()).toContainEqual(expect.stringMatching(new RegExp(`^${site.replace(/[\\^$.*+?()[\]{}|]/g, '\\$&')}`)));
 
     // A link in the output opens in the browser.
     const link = await terminal.evaluate(() => {
@@ -536,7 +545,8 @@ describe('desktop app', () => {
     // Kill Terminal ends the active one, the newest.
     await clickMenu('terminal-kill');
     await expect.poll(() => alive(second!), { timeout: 10_000 }).toBe(false);
-    expect(await shellPids()).toEqual([first]);
+    // On Windows node-pty reports the exit a moment after the process ends.
+    await expect.poll(shellPids).toEqual([first]);
 
     // The last shell exiting on its own hides the panel, and the items that need it go grey.
     await terminal.keyboard.type('exit\n');
