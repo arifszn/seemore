@@ -93,6 +93,8 @@ export function createSiteWindow(options: SiteWindowOptions): BrowserWindow {
 
   webContents.on('page-title-updated', (event, title) => {
     event.preventDefault();
+    // The view outlives its window by a moment as the window closes.
+    if (window.isDestroyed()) return;
     // The loading and error pages are ours, not the site's: the folder name alone.
     const local = webContents.getURL().startsWith('file:');
     window.setTitle(title === '' || local ? basename(root) : `${basename(root)} - ${title}`);
