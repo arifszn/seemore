@@ -14,7 +14,8 @@ import { type Job, startJob } from './jobs.js';
 import { buildMenu, MENU_IDS } from './menu.js';
 import { addRecent, parseRecents, type RecentEntry } from './recents.js';
 import { type Lease, ServerRegistry } from './serverRegistry.js';
-import { createSiteWindow, type SavedBounds, showOpening, siteContents } from './siteWindow.js';
+import { createSiteWindow, type SavedBounds, showOpening, siteContents, terminalPanel } from './siteWindow.js';
+import { type PanelState, parsePanelState, registerTerminalHandlers } from './terminalPanel.js';
 import { createStartWindow, registerStartHandlers } from './startWindow.js';
 import { resolveTarget } from './target.js';
 import { createUpdater } from './update/index.js';
@@ -47,6 +48,8 @@ interface SiteInfo {
 
 interface WindowsFile {
   bounds: Record<string, SavedBounds>;
+  /** Terminal panel height and open state, per root (§7.4). */
+  terminal: Record<string, PanelState>;
   /** Windows open at quit, for session restore (§5). */
   session: { root: string; path: string }[];
 }
@@ -114,6 +117,8 @@ export class DesktopApp {
       recents: () => this.recentList,
       onOpenPath: (path) => void this.open(path),
     });
+
+    registerTerminalHandlers();
 
     registerBuildHandlers({
       run: (root, outDir, base, password, onOutput) =>
@@ -284,6 +289,11 @@ export class DesktopApp {
     });
   }
 
+  /** View > Terminal (§7.4). */
+  toggleTerminal(window: BrowserWindow): void {
+    if (this.records.has(window.id)) terminalPanel(window).toggle();
+  }
+
   /** Export or build is running; the update banner waits (§10.1, §16). */
   jobsRunning(): boolean {
     return this.runningJobs > 0;
@@ -422,6 +432,8 @@ export class DesktopApp {
     if (exportItem !== null) exportItem.enabled = live && (record?.site?.pageActions.includes('export-html') ?? true);
     if (buildItem !== null) buildItem.enabled = live;
     if (closeFolderItem !== null) closeFolderItem.enabled = record !== undefined;
+    const terminalItem = menu.getMenuItemById(MENU_IDS.terminal);
+    if (terminalItem !== null) terminalItem.enabled = record !== undefined;
   }
 
   private async routeFor(record: SiteRecord, file: string): Promise<{ ok: true; url: string } | { ok: false; reason: string }> {
@@ -456,6 +468,11 @@ export class DesktopApp {
       bounds: this.windowsFile.bounds[root],
       origin: () => record.origin,
       onOpenPath: (path) => void this.open(path, { newWindow: true }),
+      panel: parsePanelState(this.windowsFile.terminal[root]),
+      onPanelChange: (state) => {
+        this.windowsFile.terminal[root] = state;
+        writeJson(this.paths.windows, this.windowsFile);
+      },
     });
     record.page = siteContents(record.window);
     const id = record.window.id;
@@ -650,6 +667,7 @@ function parseWindowsFile(value: unknown): WindowsFile {
   const file = (typeof value === 'object' && value !== null ? value : {}) as Partial<WindowsFile>;
   return {
     bounds: typeof file.bounds === 'object' && file.bounds !== null ? file.bounds : {},
+    terminal: typeof file.terminal === 'object' && file.terminal !== null ? file.terminal : {},
     session: Array.isArray(file.session)
       ? file.session.filter(
           (entry): entry is { root: string; path: string } =>

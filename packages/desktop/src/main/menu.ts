@@ -6,7 +6,7 @@ import type { DesktopApp } from './desktopApp.js';
 import type { RecentEntry } from './recents.js';
 import type { Updater } from './update/updater.js';
 
-export const MENU_IDS = { export: 'export-page', build: 'build-site', closeFolder: 'close-folder' } as const;
+export const MENU_IDS = { export: 'export-page', build: 'build-site', closeFolder: 'close-folder', terminal: 'toggle-terminal' } as const;
 
 export function buildMenu(desktop: DesktopApp, recents: readonly RecentEntry[], updater: Updater | undefined): void {
   const isMac = process.platform === 'darwin';
@@ -128,6 +128,18 @@ export function buildMenu(desktop: DesktopApp, recents: readonly RecentEntry[], 
         { role: 'reload' },
         { role: 'forceReload' },
         { role: 'toggleDevTools' },
+        { type: 'separator' },
+        {
+          id: MENU_IDS.terminal,
+          label: 'Terminal',
+          // VS Code's default on every platform, Ctrl even on macOS (§7.4).
+          accelerator: 'Ctrl+`',
+          enabled: false,
+          click: () => {
+            const window = focused();
+            if (desktop.isSiteWindow(window)) desktop.toggleTerminal(window!);
+          },
+        },
         { type: 'separator' },
         { role: 'resetZoom' },
         { role: 'zoomIn' },

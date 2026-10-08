@@ -11,6 +11,7 @@ export default defineConfig({
     main: 'src/main/index.ts',
     'preload-start': 'src/preload/start.ts',
     'preload-build': 'src/preload/build.ts',
+    'preload-terminal': 'src/preload/terminal.ts',
   },
   format: ['cjs'],
   target: 'node22',

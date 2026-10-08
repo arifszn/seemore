@@ -1,12 +1,13 @@
 /**
  * A window showing one site: the dev server's page in a child `WebContentsView` filling the
- * window, sandboxed, with no preload (DESKTOP-SPEC §7.4, §8). The window's own `webContents`
- * loads nothing; the view is what a terminal panel will share the window with. Navigation, new
+ * window above the terminal panel, sandboxed, with no preload (DESKTOP-SPEC §7.4, §8). The
+ * window's own `webContents` loads nothing. Navigation, new
  * windows and permissions follow `policy.ts`.
  */
 import { basename, join } from 'node:path';
 import { BrowserWindow, nativeTheme, type Rectangle, shell, type WebContents, WebContentsView } from 'electron';
 import { allowPermission, decideNavigation, decideNewWindow } from './policy.js';
+import { type PanelState, TerminalPanel } from './terminalPanel.js';
 
 export interface SavedBounds extends Partial<Rectangle> {
   maximized?: boolean;
@@ -19,6 +20,9 @@ export interface SiteWindowOptions {
   origin: () => string | undefined;
   /** A file dropped on the window (§4.4). */
   onOpenPath: (path: string) => void;
+  /** The terminal panel's saved height and open state for this root (§7.4). */
+  panel: PanelState;
+  onPanelChange: (state: PanelState) => void;
 }
 
 /** Origin each site window's `webContents` may use, for the session-wide permission handlers. */
@@ -26,12 +30,20 @@ const origins = new Map<number, () => string | undefined>();
 
 /** Each site window's site view, the page every caller means by the window's page. */
 const sites = new WeakMap<BrowserWindow, WebContents>();
+const terminals = new WeakMap<BrowserWindow, TerminalPanel>();
 
 /** The site page of a window made by `createSiteWindow`. */
 export function siteContents(window: BrowserWindow): WebContents {
   const contents = sites.get(window);
   if (contents === undefined) throw new Error('not a site window');
   return contents;
+}
+
+/** The terminal panel of a window made by `createSiteWindow`. */
+export function terminalPanel(window: BrowserWindow): TerminalPanel {
+  const panel = terminals.get(window);
+  if (panel === undefined) throw new Error('not a site window');
+  return panel;
 }
 
 export function createSiteWindow(options: SiteWindowOptions): BrowserWindow {
@@ -64,13 +76,9 @@ export function createSiteWindow(options: SiteWindowOptions): BrowserWindow {
   // Kept: `view.webContents` reads undefined once the window destroys the view.
   const webContents = view.webContents;
   sites.set(window, webContents);
-  const fit = () => {
-    const { width, height } = window.getContentBounds();
-    view.setBounds({ x: 0, y: 0, width, height });
-  };
-  fit();
-  window.on('resize', fit);
   window.contentView.addChildView(view);
+  // Lays both views out, now and on every resize.
+  terminals.set(window, new TerminalPanel(window, view, options.panel, options.onPanelChange));
   // Focus belongs to the site, never to the window's own empty page.
   window.on('focus', () => {
     if (window.webContents.isFocused()) webContents.focus();

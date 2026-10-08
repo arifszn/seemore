@@ -329,6 +329,57 @@ describe('desktop app', () => {
     expect(await app!.evaluate(() => process.env.SEEMORE_PASSWORD)).toBeUndefined();
   });
 
+  it('opens the terminal panel below the site, resizes it, and restores it on relaunch', async () => {
+    await launch(site);
+    const page = await sitePage();
+    await settled(page, '/');
+
+    const layout = () =>
+      app!.evaluate(({ BrowserWindow }) => {
+        const window = BrowserWindow.getAllWindows()[0]!;
+        return {
+          content: window.getContentBounds().height,
+          views: window.contentView.children.map((view) => ({ ...view.getBounds(), visible: view.getVisible() })),
+        };
+      });
+    const toggle = () =>
+      app!.evaluate(({ BrowserWindow }) =>
+        (globalThis as unknown as { seemoreDesktop: { toggleTerminal: (w: unknown) => void } }).seemoreDesktop.toggleTerminal(
+          BrowserWindow.getAllWindows()[0],
+        ),
+      );
+
+    // No terminal view until first use.
+    expect((await layout()).views).toHaveLength(1);
+    await toggle();
+    const terminal = () => app!.windows().find((w) => w.url().endsWith('terminal.html'));
+    await expect.poll(() => terminal() !== undefined).toBe(true);
+    await terminal()!.waitForSelector('#splitter');
+    let { content, views } = await layout();
+    expect(views[1]).toMatchObject({ y: content - 280, height: 280, visible: true });
+    expect(views[0]!.height).toBe(content - 280);
+
+    // A splitter drag 100 px up, as the page reports it.
+    await terminal()!.evaluate(() => {
+      const api = (window as unknown as { seemore: { drag: (phase: string, y: number) => void } }).seemore;
+      api.drag('start', 500);
+      api.drag('move', 450);
+      api.drag('end', 400);
+    });
+    await expect.poll(async () => (await layout()).views[1]!.height).toBe(380);
+
+    await toggle();
+    ({ content, views } = await layout());
+    expect(views[0]!.height).toBe(content);
+    expect(views[1]!.visible).toBe(false);
+
+    await toggle();
+    await app!.close();
+    await launch();
+    await sitePage();
+    await expect.poll(async () => (await layout()).views.find((v) => v.visible && v.y > 0)?.height).toBe(380);
+  });
+
   // The staged CLI is trimmed (scripts/trim-seemore.mjs); the two largest client-side
   // dependencies must still load from it.
   it('renders mermaid and D2 diagrams with the trimmed CLI', async () => {
