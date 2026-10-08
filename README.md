@@ -7,7 +7,7 @@
     <a href="https://www.npmjs.com/package/seemore">
       <img src="https://img.shields.io/npm/v/seemore"/>
     </a>
-    <a href="https://arifszn.github.io/seemore/download">
+    <a href="https://arifszn.github.io/seemore/desktop-app">
       <img src="https://img.shields.io/badge/Desktop-macOS%20%C2%B7%20Windows%20%C2%B7%20Linux-111111"/>
     </a>
     <a href="https://open-vsx.org/extension/arifszn/seemore-vscode">
@@ -49,7 +49,7 @@ You can use seemore in two ways.
 
 ### Desktop app
 
-Download the app for macOS, Windows or Linux from the [download page](https://arifszn.github.io/seemore/download). Open a folder or a `.md` file, and it opens as a site.
+Download the app for macOS, Windows or Linux from the [download page](https://arifszn.github.io/seemore/desktop-app). Open a folder or a `.md` file, and it opens as a site.
 
 ### Command line
 
@@ -136,7 +136,7 @@ Inline editing works only for local previews.
 
 ## Open with the desktop app
 
-Download the app from the [download page](https://arifszn.github.io/seemore/download). It opens a folder or a `.md` file as a site in its own window, with an integrated terminal.
+Download the app from the [download page](https://arifszn.github.io/seemore/desktop-app). It opens a folder or a `.md` file as a site in its own window, with an integrated terminal.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/desktop-app.png" alt="The seemore desktop app in the black theme, showing a folder of research notes as a site: a paragraph's Markdown source open in the inline editor above a flowchart, and the integrated terminal listing the folder's Markdown files" width="640"/>
