@@ -170,7 +170,8 @@ describe('desktop app', () => {
     const page = await sitePage();
     await settled(page, '/');
     await expect.poll(() => opening() === undefined).toBe(true);
-    expect(await app!.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().map((w) => w.contentView.children.length))).toEqual([0]);
+    // The site view alone (§7.4).
+    expect(await app!.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().map((w) => w.contentView.children.length))).toEqual([1]);
   });
 
   it('opens a second window on the same server', async () => {
