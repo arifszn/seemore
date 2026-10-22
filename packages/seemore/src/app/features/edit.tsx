@@ -125,7 +125,7 @@ export function InlineEditor({ entry }: { entry: RouteEntry }) {
     };
 
     const open = async (block: HTMLElement, start: number, end: number) => {
-      const query = new URLSearchParams({ file: entry.absPath, start: String(start), end: String(end) });
+      const query = new URLSearchParams({ file: entry.file, start: String(start), end: String(end) });
       let original: string;
       try {
         const response = await fetch(`${ENDPOINT}?${query.toString()}`);
@@ -163,7 +163,7 @@ export function InlineEditor({ entry }: { entry: RouteEntry }) {
 
     host.addEventListener('dblclick', onDoubleClick);
     return () => host.removeEventListener('dblclick', onDoubleClick);
-  }, [entry.absPath]);
+  }, [entry.file]);
 
   useEffect(() => {
     editingRef.current = editing;
@@ -224,9 +224,9 @@ export function InlineEditor({ entry }: { entry: RouteEntry }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(
           current.append
-            ? { file: entry.absPath, append: true, text: field.value }
+            ? { file: entry.file, append: true, text: field.value }
             : {
-                file: entry.absPath,
+                file: entry.file,
                 start: current.start,
                 end: current.end,
                 expected: current.original,
@@ -248,7 +248,7 @@ export function InlineEditor({ entry }: { entry: RouteEntry }) {
     } finally {
       setSaving(false);
     }
-  }, [editing, entry.absPath, close, saving, refused]);
+  }, [editing, entry.file, close, saving, refused]);
 
   return (
     <div className="seemore-editor-layer" ref={layer}>
