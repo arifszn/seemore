@@ -1,6 +1,6 @@
 {
   "name": "seemore",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Zero config documentation tool - Let AI write the Markdown. Let seemore show it better.",
   "license": "MIT",
   "type": "module",
