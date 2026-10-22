@@ -64,15 +64,16 @@ export interface ClientConfig {
   favicon?: string;
   pageActions: ActionId[];
   search: ClientSearchConfig;
-  contentRoot: string;
 }
 
 /** One entry of `virtual:seemore/routes`. */
 export interface RouteEntry {
   url: string;
-  /** Virtual path relative to the content root — what an edit link points at. */
+  /**
+   * Virtual path relative to the content root — what an edit link points at, and what the
+   * inline editor names to the dev server. Never an absolute path: this ships to the public.
+   */
   file: string;
-  absPath: string;
   title: string;
   description: string | null;
   /** Content hash; a new value means `load()` now resolves to a different module. */

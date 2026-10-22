@@ -1,7 +1,7 @@
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { compile } from '@mdx-js/mdx';
 import { appendSource, dominantEol, spliceSource } from '../src/node/content/edit.js';
 import { rehypeSeemorePositions } from '../src/node/vite/positions.js';
@@ -192,6 +192,41 @@ describe('the dev server source endpoint', () => {
     });
     expect(write.status).toBe(200);
     expect(readFileSync(file, 'utf8')).toBe('# Title\n\nRewritten para.\n');
+  });
+
+  it('takes the content-relative path the browser is given', async () => {
+    const markdown = '# Title\n\nFirst para.\n';
+    const { url, file } = await startDev(markdown, {});
+    const start = markdown.indexOf('First para.');
+    const end = start + 'First para.'.length;
+
+    const read = await fetch(`${url}/__seemore/source?file=page.md&start=${start}&end=${end}`);
+    expect(await read.json()).toEqual({ text: 'First para.' });
+
+    const write = await fetch(`${url}/__seemore/source`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ file: 'page.md', start, end, expected: 'First para.', text: 'Rewritten para.' }),
+    });
+    expect(write.status).toBe(200);
+    expect(readFileSync(file, 'utf8')).toBe('# Title\n\nRewritten para.\n');
+  });
+
+  it('finds a nested page by its forward-slash path on every platform', async () => {
+    // `RouteEntry.file` is POSIX even on Windows; the lookup must not depend on `sep`.
+    const { url } = await startDev('# Title\n', {});
+    mkdirSync(join(contentRoot, 'guide'));
+    writeFileSync(join(contentRoot, 'guide', 'deep.md'), '# Deep\n\nNested para.\n');
+    await vi.waitFor(async () => {
+      const read = await fetch(`${url}/__seemore/source?file=${encodeURIComponent('guide/deep.md')}&start=8&end=20`);
+      expect(await read.json()).toEqual({ text: 'Nested para.' });
+    }, { timeout: 10_000, interval: 200 });
+  });
+
+  it('refuses a relative path that climbs out of the site', async () => {
+    const { url } = await startDev('# Title\n', {});
+    const response = await fetch(`${url}/__seemore/source?file=${encodeURIComponent('../page.md')}&start=0&end=1`);
+    expect(response.status).toBe(404);
   });
 
   it('appends to the end of the file', async () => {

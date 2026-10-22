@@ -378,12 +378,16 @@ function write(res: ServerResponse, file: string, content: string): void {
 /**
  * The file a request names, but only if it is a page of this site.
  *
- * The comparison goes through {@link canonicalise} for the same reason `/__seemore/route`
- * does — a caller's spelling of a path is not seemore's — and it doubles as the containment
- * check: a path that is not one of the scanned pages is not writable, whatever it points at.
+ * The browser names a page by its content-relative `file`, the only path it is given. An
+ * absolute path is accepted too, compared through {@link canonicalise} for the same reason
+ * `/__seemore/route` does — a caller's spelling of a path is not seemore's. Either way the
+ * lookup doubles as the containment check: a path that is not one of the scanned pages is
+ * not writable, whatever it points at.
  */
 function resolvePage(ctx: SeemoreContext, file: string | null | undefined): ContentPage | undefined {
   if (typeof file !== 'string' || file === '') return undefined;
+  const byFile = ctx.pages().find((page) => page.file === file);
+  if (byFile !== undefined) return byFile;
   const absFile = canonicalise(file);
   return ctx.pages().find((page) => page.absPath === absFile);
 }
@@ -450,7 +454,6 @@ function renderRoutesValue(ctx: SeemoreContext): string {
       '  {',
       `    url: ${json(page.url)},`,
       `    file: ${json(page.file)},`,
-      `    absPath: ${json(page.absPath)},`,
       `    version: ${json(page.version)},`,
       `    title: ${json(page.data.title)},`,
       `    description: ${json(page.data.description ?? null)},`,
@@ -483,7 +486,6 @@ export function clientConfig(ctx: SeemoreContext) {
       config.search.provider === 'static'
         ? { provider: 'static' as const, from: withBase(config.base, '/api/search.json') }
         : config.search,
-    contentRoot: config.root,
   };
 }
 

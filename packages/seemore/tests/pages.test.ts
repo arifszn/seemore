@@ -8,7 +8,6 @@ function route(url: string, version: string, load?: () => Promise<PageModule>): 
   return {
     url,
     file: `${url.replace(/^\//, '')}.md`,
-    absPath: `/content${url}.md`,
     title: url,
     description: null,
     version,

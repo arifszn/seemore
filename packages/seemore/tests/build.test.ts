@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { load } from 'cheerio';
@@ -37,6 +37,17 @@ describe('seemore build', () => {
 
   afterAll(() => {
     rmSync(outDir, { recursive: true, force: true });
+  });
+
+  it("leaks no path from the build machine's filesystem", () => {
+    // A published site is public: the author's directory layout, and usually their username,
+    // have no business in it. Dev-only features resolve content-relative paths server-side.
+    const root = realpathSync(FIXTURE);
+    const leaks = readdirSync(outDir, { recursive: true, withFileTypes: true })
+      .filter((entry) => entry.isFile())
+      .map((entry) => join(entry.parentPath, entry.name))
+      .filter((path) => readFileSync(path).includes(root));
+    expect(leaks).toEqual([]);
   });
 
   it('ships each page as Markdown for the copy action', () => {
