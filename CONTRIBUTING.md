@@ -54,7 +54,7 @@ pnpm typecheck
 pnpm test
 ```
 
-CI runs them on Node 20, 22 and 24, on Linux and Windows. Windows is not optional here: seemore is fundamentally a path resolver, and that is where those bugs live.
+CI runs them on Node 22 and 24, on Linux and Windows. Windows is not optional here: seemore is fundamentally a path resolver, and that is where those bugs live.
 
 A few things that make a pull request easy to merge:
 

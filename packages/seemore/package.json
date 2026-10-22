@@ -28,7 +28,7 @@
     "LICENSE"
   ],
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "scripts": {
     "prepack": "node -e \"for (const f of ['README.md','LICENSE']) require('fs').copyFileSync('../../'+f, f)\"",
