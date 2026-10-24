@@ -137,7 +137,7 @@
      toward min-content sizing like break-all, but only breaks mid-word when a word doesn't fit on
      its own line, same as break-words otherwise. */
   .seemore-sidebar-link {
-    @apply flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-sm wrap-anywhere text-fd-muted-foreground transition-colors;
+    @apply flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-start text-sm wrap-anywhere text-fd-muted-foreground transition-colors;
   }
 
   .seemore-sidebar-link:hover {
