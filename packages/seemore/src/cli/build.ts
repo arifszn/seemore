@@ -12,6 +12,7 @@ import { normaliseBase } from '../shared/base.js';
 import { resolveContentRoot } from '../node/paths.js';
 import { applyTemplate, outputPathFor, writeHtml } from '../node/prerender/emit.js';
 import { writeDeployArtifacts } from '../node/prerender/deploy.js';
+import { buildSitemap } from '../node/prerender/sitemap.js';
 import { loadPrerenderModule } from '../node/prerender/render.js';
 import { buildSearchIndex, formatBytes, measureIndex } from '../node/search/build.js';
 import { generateSocialCards } from '../node/social/cards.js';
@@ -38,6 +39,10 @@ export async function runBuild(options: BuildOptions): Promise<{ outDir: string;
 
   // Checked before any work, so a missing password never leaves a half-built site.
   const password = config.auth === undefined ? undefined : readPassword('npx seemore build');
+  // A protected build publishes no route slugs, and a sitemap is a list of them.
+  if (password !== undefined && config.url !== undefined) {
+    ctx.warnings.add('`url` is ignored under `auth`: a sitemap would list every page address of a password-protected site.');
+  }
 
   const scan = ctx.source.current();
   failOnErrors(ctx.errors(), contentRoot);
@@ -107,6 +112,11 @@ async function prerenderPages(ctx: SeemoreContext, outDir: string, template: str
     const notFound = applyTemplate(template, await prerender.render('/__seemore_not_found'));
     writeHtml(outDir, '404.html', notFound);
     writeDeployArtifacts(outDir, ctx.config.base, notFound);
+
+    if (ctx.config.url !== undefined) {
+      writeFileSync(join(outDir, 'sitemap.xml'), buildSitemap(ctx.config.url, ctx.config.base, routes), 'utf8');
+      console.log(pc.dim(`seemore  sitemap.xml with ${routes.length} URLs`));
+    }
 
     return routes.length;
   } finally {

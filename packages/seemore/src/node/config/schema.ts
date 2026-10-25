@@ -111,6 +111,8 @@ export const configSchema = z.object({
   favicon: z.string().optional(),
   /** Subpath the site is served from, e.g. `/my-repo/`. Never inferred. */
   base: z.string().optional(),
+  /** Address the site is served from, origin only, e.g. `https://example.com`. Used for `sitemap.xml`. */
+  url: z.string().optional(),
   theme: z.enum(THEMES).default('neutral'),
   /** A CSS file appended after everything else, so it wins. */
   css: z.string().optional(),
@@ -171,6 +173,8 @@ export interface ResolvedSeemoreConfig {
   favicon?: string;
   /** Always normalised to leading + trailing slash. */
   base: string;
+  /** Origin only, no trailing slash. Present when the author set `url`. */
+  url?: string;
   theme: Theme;
   /** Absolute path, resolved against the config file's directory. */
   css?: string;

@@ -6,6 +6,7 @@ import { normaliseBase } from '../base.js';
 import { FEATURES, resolveFeatures, type FeaturesInput, type ResolvedFeatures } from './features.js';
 import { CONFIG_NAMES } from './names.js';
 import { configSchema, THEMES, type SeemoreConfig, type ResolvedSeemoreConfig, type SearchConfig } from './schema.js';
+import { normaliseUrl } from './url.js';
 
 export interface LoadConfigOptions {
   /**
@@ -46,6 +47,7 @@ export function resolveConfig(
     description: parsed.description,
     favicon: parsed.favicon,
     base: normaliseBase(parsed.base),
+    url: normaliseUrl(parsed.url),
     theme: parsed.theme,
     css: parsed.css === undefined ? undefined : resolveFrom(options.root, parsed.css),
     features,

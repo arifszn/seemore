@@ -2,6 +2,7 @@ export default {
   title: 'seemore',
   description: 'Zero config documentation tool - Let AI write the Markdown. Let seemore show it better.',
   base: '/seemore/',
+  url: 'https://arifszn.github.io',
   theme: 'neutral',
   css: './custom.css',
   features: { 'social.cards': true },
