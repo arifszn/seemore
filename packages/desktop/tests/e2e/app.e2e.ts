@@ -491,6 +491,15 @@ describe('desktop app', () => {
     await terminal.keyboard.press('Escape');
     await terminal.waitForSelector('#find', { state: 'hidden' });
 
+    // Cmd+Left goes to the line start, which xterm alone does not do (#31).
+    if (process.platform === 'darwin') {
+      await terminal.keyboard.type('lineedit-marker');
+      await terminal.keyboard.press('Meta+ArrowLeft');
+      await terminal.keyboard.type('echo ');
+      await terminal.keyboard.press('Enter');
+      await expect.poll(rows, { timeout: 20_000 }).toContainEqual(expect.stringMatching(/^lineedit-marker/));
+    }
+
     // A second terminal brings up the tabs list.
     await terminal.click('#new');
     await expect.poll(shellPids).toHaveLength(2);
