@@ -84,3 +84,42 @@ describe('keyAction on Linux', () => {
     expect(on(key('End', { shiftKey: true }))).toEqual({ kind: 'scroll', to: 'bottom' });
   });
 });
+
+describe('send keys', () => {
+  const send = (data: string) => ({ kind: 'send', data });
+
+  it('moves and deletes by line and word on macOS', () => {
+    const on = (event: KeyLike) => keyAction(event, 'darwin', false);
+    expect(on(key('ArrowLeft', { metaKey: true }))).toEqual(send('\x01'));
+    expect(on(key('ArrowRight', { metaKey: true }))).toEqual(send('\x05'));
+    expect(on(key('Backspace', { metaKey: true }))).toEqual(send('\x15'));
+    expect(on(key('ArrowLeft', { altKey: true }))).toEqual(send('\x1bb'));
+    expect(on(key('ArrowRight', { altKey: true }))).toEqual(send('\x1bf'));
+    expect(on(key('Delete', { altKey: true }))).toEqual(send('\x1bd'));
+    expect(on(key('ArrowUp', { altKey: true }))).toEqual(send('\x1b[1;5A'));
+  });
+
+  it('leaves Shift+Cmd+Left (selection) and plain arrows to xterm', () => {
+    const on = (event: KeyLike) => keyAction(event, 'darwin', false);
+    expect(on(key('ArrowLeft', { metaKey: true, shiftKey: true }))).toBeUndefined();
+    expect(on(key('ArrowLeft'))).toBeUndefined();
+    expect(on(key('Backspace'))).toBeUndefined();
+  });
+
+  it('maps Alt+arrows to Ctrl+arrows and Ctrl+Delete to delete-word on Windows and Linux', () => {
+    for (const platform of ['win32', 'linux']) {
+      const on = (event: KeyLike) => keyAction(event, platform, false);
+      expect(on(key('ArrowLeft', { altKey: true }))).toEqual(send('\x1b[1;5D'));
+      expect(on(key('ArrowRight', { altKey: true }))).toEqual(send('\x1b[1;5C'));
+      expect(on(key('ArrowDown', { altKey: true }))).toEqual(send('\x1b[1;5B'));
+      expect(on(key('Delete', { ctrlKey: true }))).toEqual(send('\x1bd'));
+      expect(on(key('ArrowLeft', { metaKey: true }))).toBeUndefined();
+    }
+  });
+
+  it('deletes the word left with Ctrl+Backspace on Linux only', () => {
+    expect(keyAction(key('Backspace', { ctrlKey: true }), 'linux', false)).toEqual(send('\x17'));
+    expect(keyAction(key('Backspace', { ctrlKey: true }), 'win32', false)).toBeUndefined();
+    expect(keyAction(key('Backspace', { ctrlKey: true }), 'darwin', false)).toBeUndefined();
+  });
+});

@@ -3,6 +3,10 @@
  * read 2026-10-08), decided before xterm sees the key. Copy and paste are the page's own on
  * every platform: on macOS the Edit menu's native `copy:` and `paste:` don't reach xterm in
  * a child view, and a key the page handles never reaches the menu.
+ *
+ * `send` keys are VS Code's terminalContrib/sendSequence defaults (microsoft/vscode, read
+ * 2026-10-25), only where xterm 6.0.0's own output for the key differs: xterm sends nothing for
+ * Cmd+arrows and `ESC [ 1 ; 3 D` for Opt+Left, which shells don't bind.
  */
 export type KeyAction =
   /** A Terminal or View menu shortcut: neither xterm nor the page takes it, so the menu does. */
@@ -10,6 +14,8 @@ export type KeyAction =
   | { kind: 'find' }
   | { kind: 'copy' }
   | { kind: 'paste' }
+  /** Bytes for the shell, in place of whatever xterm would send for the key. */
+  | { kind: 'send'; data: string }
   | { kind: 'scroll'; by: 'line' | 'page'; amount: 1 | -1 }
   | { kind: 'scroll'; to: 'top' | 'bottom' };
 
@@ -46,6 +52,14 @@ export function keyAction(event: KeyLike, platform: string, hasSelection: boolea
     if (key === 'f' && only(event, 'meta')) return { kind: 'find' };
     if (key === 'c' && only(event, 'meta')) return hasSelection ? { kind: 'copy' } : undefined;
     if (key === 'v' && only(event, 'meta')) return { kind: 'paste' };
+    if (key === 'ArrowLeft' && only(event, 'meta')) return { kind: 'send', data: '\x01' };
+    if (key === 'ArrowRight' && only(event, 'meta')) return { kind: 'send', data: '\x05' };
+    if (key === 'Backspace' && only(event, 'meta')) return { kind: 'send', data: '\x15' };
+    if (key === 'ArrowLeft' && only(event, 'alt')) return { kind: 'send', data: '\x1bb' };
+    if (key === 'ArrowRight' && only(event, 'alt')) return { kind: 'send', data: '\x1bf' };
+    if (key === 'Delete' && only(event, 'alt')) return { kind: 'send', data: '\x1bd' };
+    if (key === 'ArrowUp' && only(event, 'alt')) return { kind: 'send', data: '\x1b[1;5A' };
+    if (key === 'ArrowDown' && only(event, 'alt')) return { kind: 'send', data: '\x1b[1;5B' };
     if (key === 'PageUp' && only(event, 'alt', 'meta')) return { kind: 'scroll', by: 'line', amount: -1 };
     if (key === 'PageDown' && only(event, 'alt', 'meta')) return { kind: 'scroll', by: 'line', amount: 1 };
     if (key === 'PageUp' && only(event)) return { kind: 'scroll', by: 'page', amount: -1 };
@@ -54,6 +68,15 @@ export function keyAction(event: KeyLike, platform: string, hasSelection: boolea
     if (key === 'End' && only(event, 'meta')) return { kind: 'scroll', to: 'bottom' };
     return undefined;
   }
+
+  // Alt+arrows act as Ctrl+arrows, and Ctrl+Delete deletes the word to the right.
+  if (key === 'ArrowLeft' && only(event, 'alt')) return { kind: 'send', data: '\x1b[1;5D' };
+  if (key === 'ArrowRight' && only(event, 'alt')) return { kind: 'send', data: '\x1b[1;5C' };
+  if (key === 'ArrowUp' && only(event, 'alt')) return { kind: 'send', data: '\x1b[1;5A' };
+  if (key === 'ArrowDown' && only(event, 'alt')) return { kind: 'send', data: '\x1b[1;5B' };
+  if (key === 'Delete' && only(event, 'ctrl')) return { kind: 'send', data: '\x1bd' };
+  // Not on Windows: cmd.exe wants ^H, which is what xterm already sends there.
+  if (key === 'Backspace' && only(event, 'ctrl') && platform !== 'win32') return { kind: 'send', data: '\x17' };
 
   if (key === 'f' && only(event, 'ctrl')) return { kind: 'find' };
   if ((key === 'PageUp' || key === 'PageDown') && only(event, 'ctrl')) return { kind: 'menu' };

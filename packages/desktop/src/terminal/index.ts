@@ -135,6 +135,7 @@ function runKey(session: Session, event: KeyboardEvent): boolean {
   if (action.kind === 'find') openFind();
   else if (action.kind === 'copy') api.copy(session.term.getSelection());
   else if (action.kind === 'paste') api.paste();
+  else if (action.kind === 'send') session.term.input(action.data, true);
   else if ('to' in action) {
     if (action.to === 'top') session.term.scrollToTop();
     else session.term.scrollToBottom();
