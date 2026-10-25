@@ -3,26 +3,27 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { runBuild } from '../src/cli/build.js';
-import { buildSitemap, normaliseSite } from '../src/node/prerender/sitemap.js';
+import { normaliseUrl } from '../src/node/config/url.js';
+import { buildSitemap } from '../src/node/prerender/sitemap.js';
 
 const FIXTURE = join(import.meta.dirname, 'fixtures', 'site');
 
-describe('normaliseSite', () => {
+describe('normaliseUrl', () => {
   it('leaves the sitemap off when unset', () => {
-    expect(normaliseSite(undefined)).toBeUndefined();
-    expect(normaliseSite('')).toBeUndefined();
+    expect(normaliseUrl(undefined)).toBeUndefined();
+    expect(normaliseUrl('')).toBeUndefined();
   });
 
   it('keeps the origin and drops a trailing slash', () => {
-    expect(normaliseSite('https://example.com/')).toBe('https://example.com');
-    expect(normaliseSite('http://localhost:4040')).toBe('http://localhost:4040');
+    expect(normaliseUrl('https://example.com/')).toBe('https://example.com');
+    expect(normaliseUrl('http://localhost:4040')).toBe('http://localhost:4040');
   });
 
   it('rejects anything that is not an http(s) origin', () => {
-    expect(() => normaliseSite('example.com')).toThrow(/Invalid `site`/);
-    expect(() => normaliseSite('ftp://example.com')).toThrow(/http/);
-    expect(() => normaliseSite('https://example.com/docs')).toThrow(/base: '\/docs'/);
-    expect(() => normaliseSite('https://example.com/?a=1')).toThrow(/origin only/);
+    expect(() => normaliseUrl('example.com')).toThrow(/Invalid `url`/);
+    expect(() => normaliseUrl('ftp://example.com')).toThrow(/http/);
+    expect(() => normaliseUrl('https://example.com/docs')).toThrow(/base: '\/docs'/);
+    expect(() => normaliseUrl('https://example.com/?a=1')).toThrow(/origin only/);
   });
 });
 
@@ -51,7 +52,7 @@ describe('buildSitemap', () => {
   });
 });
 
-describe('seemore build with site', () => {
+describe('seemore build with url', () => {
   let root: string;
 
   beforeAll(() => {
@@ -70,7 +71,7 @@ describe('seemore build with site', () => {
   }
 
   it('writes sitemap.xml with one URL per page', async () => {
-    const outDir = await build('on', "export default { title: 'Fixture', site: 'https://example.com', base: '/docs/' };");
+    const outDir = await build('on', "export default { title: 'Fixture', url: 'https://example.com', base: '/docs/' };");
     const xml = readFileSync(join(outDir, 'sitemap.xml'), 'utf8');
     expect(xml).toContain('<loc>https://example.com/docs/</loc>');
     expect(xml).toContain('<loc>https://example.com/docs/getting-started/</loc>');
@@ -81,14 +82,14 @@ describe('seemore build with site', () => {
   it('writes nothing under `auth`, which publishes no route slugs', async () => {
     process.env.SEEMORE_PASSWORD = 'correct horse battery staple';
     try {
-      const outDir = await build('auth', "export default { title: 'Fixture', site: 'https://example.com', auth: true };");
+      const outDir = await build('auth', "export default { title: 'Fixture', url: 'https://example.com', auth: true };");
       expect(existsSync(join(outDir, 'sitemap.xml'))).toBe(false);
     } finally {
       delete process.env.SEEMORE_PASSWORD;
     }
   }, 300_000);
 
-  it('writes nothing without `site`', async () => {
+  it('writes nothing without `url`', async () => {
     const outDir = await build('off', "export default { title: 'Fixture' };");
     expect(existsSync(join(outDir, 'sitemap.xml'))).toBe(false);
   }, 300_000);

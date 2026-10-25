@@ -40,8 +40,8 @@ export async function runBuild(options: BuildOptions): Promise<{ outDir: string;
   // Checked before any work, so a missing password never leaves a half-built site.
   const password = config.auth === undefined ? undefined : readPassword('npx seemore build');
   // A protected build publishes no route slugs, and a sitemap is a list of them.
-  if (password !== undefined && config.site !== undefined) {
-    ctx.warnings.add('`site` is ignored under `auth`: a sitemap would list every page address of a password-protected site.');
+  if (password !== undefined && config.url !== undefined) {
+    ctx.warnings.add('`url` is ignored under `auth`: a sitemap would list every page address of a password-protected site.');
   }
 
   const scan = ctx.source.current();
@@ -113,8 +113,8 @@ async function prerenderPages(ctx: SeemoreContext, outDir: string, template: str
     writeHtml(outDir, '404.html', notFound);
     writeDeployArtifacts(outDir, ctx.config.base, notFound);
 
-    if (ctx.config.site !== undefined) {
-      writeFileSync(join(outDir, 'sitemap.xml'), buildSitemap(ctx.config.site, ctx.config.base, routes), 'utf8');
+    if (ctx.config.url !== undefined) {
+      writeFileSync(join(outDir, 'sitemap.xml'), buildSitemap(ctx.config.url, ctx.config.base, routes), 'utf8');
       console.log(pc.dim(`seemore  sitemap.xml with ${routes.length} URLs`));
     }
 
