@@ -204,7 +204,7 @@ export default {
   description: 'Everything about the thing.',
   favicon: './favicon.svg',
   base: '/my-repo/',
-  url: 'https://you.github.io', // address of the site, used for sitemap.xml
+  url: 'https://you.github.io', // optional: address of the site, used for sitemap.xml
   theme: 'ocean',
   css: './custom.css',
   features: { 'navigation.path': true, 'navigation.instant.preview': true },
