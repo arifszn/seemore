@@ -48,6 +48,20 @@ The result is a `dist/` folder of plain web files. Drop it on [Netlify](https://
 > [!TIP]
 > Do you publish to GitHub Pages at `username.github.io/my-repo/`, not at the root? Set the subpath once with `base: '/my-repo/'` (or `--base /my-repo/` on the CLI).
 
+### Sitemap
+
+A sitemap lists absolute URLs, so seemore needs the address the site is served from. Set `site` to the origin and `seemore build` writes `sitemap.xml` into `dist/`, with one entry per page under your `base`:
+
+```ts
+// seemore.config.ts
+export default {
+  site: 'https://username.github.io',
+  base: '/my-repo/',
+};
+```
+
+Without `site`, nothing is written. A password-protected site never gets a sitemap, since the file would list every page address. Submit the file in your search engine's webmaster tools; seemore does not write a `robots.txt`.
+
 This site is built the same way. See its [`seemore.config.ts`](https://github.com/arifszn/seemore/blob/main/packages/site/seemore.config.ts) and the [features](./features.md) page for what publishing gives you by default.
 
 ## Password protection

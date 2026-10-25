@@ -15,6 +15,7 @@ export default {
   description: 'Everything about the thing.',
   favicon: './favicon.svg',
   base: '/my-repo/',
+  site: 'https://you.github.io', // turns on sitemap.xml
   theme: 'ocean',
   css: './custom.css',
   features: { 'navigation.path': true, 'navigation.instant.preview': true },

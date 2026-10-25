@@ -3,6 +3,7 @@ import { dirname, isAbsolute, resolve } from 'node:path';
 import { createJiti } from 'jiti';
 import { z } from 'zod';
 import { normaliseBase } from '../base.js';
+import { normaliseSite } from '../prerender/sitemap.js';
 import { FEATURES, resolveFeatures, type FeaturesInput, type ResolvedFeatures } from './features.js';
 import { CONFIG_NAMES } from './names.js';
 import { configSchema, THEMES, type SeemoreConfig, type ResolvedSeemoreConfig, type SearchConfig } from './schema.js';
@@ -46,6 +47,7 @@ export function resolveConfig(
     description: parsed.description,
     favicon: parsed.favicon,
     base: normaliseBase(parsed.base),
+    site: normaliseSite(parsed.site),
     theme: parsed.theme,
     css: parsed.css === undefined ? undefined : resolveFrom(options.root, parsed.css),
     features,
