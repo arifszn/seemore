@@ -45,6 +45,9 @@ jobs:
 
       - run: pnpm --filter site build
 
+      - run: |
+          printf 'google-site-verification: google935698d796088a49.html' > packages/site/dist/google935698d796088a49.html
+
       - uses: actions/configure-pages@v6
 
       - uses: actions/upload-pages-artifact@v5
