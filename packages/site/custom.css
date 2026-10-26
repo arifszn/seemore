@@ -11,6 +11,7 @@
 .seemore-hero {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 1.25rem;
   padding-block: 1.5rem 2.5rem;
 }
@@ -21,7 +22,7 @@
   line-height: 1.05;
   font-weight: 700;
   letter-spacing: -0.03em;
-  max-width: 20ch;
+  width: min(100%, 38rem);
 }
 
 /* the MDX renderer wraps the heading's content in a <p>, which — being a flex
@@ -36,7 +37,8 @@
 
 .seemore-hero-lede {
   margin: 0;
-  max-width: 56ch;
+  width: min(100%, 38rem);
+  text-align: justify;
   font-size: 1.0625rem;
   line-height: 1.6;
   color: var(--color-fd-muted-foreground);
@@ -46,6 +48,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: center;
   gap: 0.75rem;
   margin-top: 0.25rem;
 }
@@ -70,6 +73,17 @@
   transform: translateY(-1px);
 }
 
+.seemore-btn-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* the MDX renderer wraps the label after the icon in a <p> */
+.seemore-landing .seemore-btn p {
+  margin: 0 !important;
+  line-height: inherit;
+}
+
 .seemore-btn-primary {
   background: var(--color-fd-primary);
   color: var(--color-fd-primary-foreground);
@@ -91,29 +105,85 @@
 
 .seemore-trust-line {
   margin: 0.25rem 0 0;
+  text-align: center;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 0.75rem;
   color: var(--color-fd-muted-foreground);
 }
 
-/* ---------- Hero demo: terminal → arrow → browser preview ---------- */
+/* ---------- Hero demo: browser preview, terminal in front, installer window ---------- */
 
-.seemore-hero-demo {
+.seemore-cli-hint {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 1.1rem;
+  justify-content: center;
+  gap: 0.6rem;
+  font-size: 0.9rem;
+  color: var(--color-fd-muted-foreground);
 }
 
-/* — a macOS terminal window, self-contained colours by design: a dark gray on both themes,
+.seemore-cli-chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 0.6rem;
+  padding: 0.4rem 0.8rem;
+  background: #282a36;
+  color: #f8f8f2;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.8rem;
+  text-decoration: none !important;
+}
+
+.seemore-cli-chip .seemore-cli-chevron {
+  margin-left: 0;
+}
+
+/* a tinted card holding the windows, padded evenly around the group (not the stage box):
+   the terminal overhangs the stage 6% on the left and stops 6% short of its bottom */
+.seemore-hero-demo::before {
+  --pad: 2.5rem;
+  content: '';
+  position: absolute;
+  inset: calc(-1 * var(--pad)) calc(-1 * var(--pad)) calc(6% - var(--pad)) calc(-6% - var(--pad));
+  z-index: -1;
+  border-radius: 1.4rem;
+  border: 1px solid #e3e3e8;
+  background: linear-gradient(160deg, #ececf3, #f7f4ee);
+}
+
+.dark .seemore-hero-demo::before {
+  border-color: #2a2a30;
+  background: linear-gradient(160deg, #1c1c24, #201e1b);
+}
+
+/* a fixed 2:1 stage: every window is placed and sized in percentages of it, so the
+   composition scales as one picture and the browser keeps its aspect ratio */
+.seemore-hero-demo {
+  position: relative;
+  width: 100%;
+  max-width: 40rem;
+  aspect-ratio: 2 / 1;
+  margin: 3.25rem auto 2.25rem;
+  /* the terminal overhangs the left edge by 6%: nudge the stage right to keep the group centred */
+  transform: translateX(3%);
+  text-align: left;
+}
+
+/* — a macOS terminal window, self-contained colours by design: near-black on both themes,
    so it never matches the hero's buttons, which take the theme's primary (near-black on
    light, near-white on dark) — */
 
 .seemore-cli {
-  flex: 1.5;
-  min-width: 0;
+  position: absolute;
+  left: -6%;
+  bottom: 6%;
+  z-index: 2;
+  width: 40%;
+  min-width: 15rem;
   border-radius: 0.75rem;
   overflow: hidden;
-  background: #3a3a3c;
+  background: #282a36;
   box-shadow:
     0 24px 48px -24px rgba(0, 0, 0, 0.4),
     0 0 0 1px rgba(0, 0, 0, 0.1);
@@ -125,7 +195,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.7rem 0.95rem;
-  background: #48484a;
+  background: #343746;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
@@ -154,7 +224,7 @@
   transform: translateX(-50%);
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 0.72rem;
-  color: #aeaeb2;
+  color: #9aa0b8;
   white-space: nowrap;
 }
 
@@ -163,7 +233,7 @@
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 0.75rem;
   line-height: 1.75;
-  color: #f2f2f7;
+  color: #f8f8f2;
   overflow-x: auto;
 }
 
@@ -173,11 +243,11 @@
 }
 
 .seemore-cli-prompt {
-  color: #aeaeb2;
+  color: #9aa0b8;
 }
 
 .seemore-cli-chevron {
-  color: #4ee06a;
+  color: #50fa7b;
   margin: 0 0.75ch 0 0.6ch;
 }
 
@@ -196,7 +266,7 @@
   height: 1.05em;
   margin-left: 1px;
   vertical-align: text-bottom;
-  background: #f2f2f7;
+  background: #f8f8f2;
   animation: seemore-cli-blink 1.1s steps(1, end) infinite;
 }
 
@@ -210,33 +280,107 @@
 }
 
 .seemore-cli-brand {
-  color: #4ee06a;
+  color: #50fa7b;
   margin-right: 1ch;
 }
 
 .seemore-cli-url {
-  color: #f2f2f7;
+  color: #8be9fd;
 }
 
 .seemore-cli-dim {
-  color: #aeaeb2;
+  color: #9aa0b8;
 }
 
-/* — the arrow from command to result — */
+/* — a macOS installer window: the app icon next to an Applications folder — */
 
-.seemore-hero-arrow {
+.seemore-dmg {
+  position: absolute;
+  right: 0;
+  top: 28%;
+  z-index: 3;
+  width: 28%;
+  min-width: 11.5rem;
+  border-radius: 0.65rem;
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 22px 44px -22px rgba(0, 0, 0, 0.5);
+}
+
+.seemore-dmg-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.7rem;
+  background: #f5f5f6;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.seemore-dmg-bar .seemore-tl {
+  width: 0.55rem;
+  height: 0.55rem;
+}
+
+.seemore-dmg-title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #555;
+}
+
+.seemore-dmg-body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.1rem;
+  padding: 1.5rem 1rem 1.6rem;
+  color: #a1a1a6;
+}
+
+/* the MDX renderer wraps the icon in a <p> */
+.seemore-landing .seemore-dmg-body p {
+  margin: 0 !important;
+  display: flex;
+}
+
+.seemore-dmg-arrow {
+  width: 1.5rem;
   flex-shrink: 0;
-  width: 2rem;
-  color: var(--color-fd-muted-foreground);
-  opacity: 0;
-  animation: seemore-arrow-in 7.5s ease infinite;
+}
+
+.seemore-appicon {
+  width: 3.25rem;
+  height: 3.25rem;
+  flex-shrink: 0;
+  filter: drop-shadow(0 8px 10px rgba(0, 0, 0, 0.3));
+}
+
+.seemore-dmg-folder {
+  width: 3.25rem;
+  height: 2.8rem;
+  flex-shrink: 0;
+  border-radius: 0.55rem;
+  background: #8ec5ff;
+  box-shadow: inset 0 -0.4rem 0 rgba(0, 0, 0, 0.08);
 }
 
 /* — a light Safari-style preview of the served site — */
 
 .seemore-browser {
-  flex: 1;
-  min-width: 0;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 80%;
+  aspect-ratio: 2 / 1;
+  /* sits back: faded and slightly soft, so the terminal and installer lead */
+  opacity: 0.6;
+  filter: blur(0.6px);
+  display: flex;
+  flex-direction: column;
   border-radius: 0.75rem;
   overflow: hidden;
   background: #ffffff;
@@ -245,6 +389,7 @@
 }
 
 .seemore-browser-bar {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: 0.4rem;
@@ -261,7 +406,8 @@
 .seemore-browser-page {
   display: flex;
   align-items: stretch;
-  min-height: 10.5rem;
+  flex: 1;
+  min-height: 0;
 }
 
 /* — a miniature docs sidebar, always "loaded" — */
@@ -367,7 +513,7 @@
   margin-left: 1.28rem;
 }
 
-/* — one 7.5s loop: type, serve, arrow, page appears, reset — */
+/* — one 7.5s loop: type, serve, reset — */
 
 @keyframes seemore-cli-type {
   0% {
@@ -425,26 +571,6 @@
   }
 }
 
-@keyframes seemore-arrow-in {
-  0%,
-  30% {
-    opacity: 0;
-    transform: translateX(-8px);
-  }
-
-  40%,
-  86% {
-    opacity: 0.45;
-    transform: none;
-  }
-
-  92%,
-  100% {
-    opacity: 0;
-    transform: translateX(-8px);
-  }
-}
-
 @keyframes seemore-sk-pulse {
   0%,
   100% {
@@ -469,16 +595,36 @@
 }
 
 @media (max-width: 767px) {
+  /* same overlap as desktop, drawn smaller: the terminal and installer are scaled down
+     from their own corner, so the whole picture fits a phone */
   .seemore-hero-demo {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.9rem;
+    transform: none;
+    margin: 2.25rem 0 1.5rem;
   }
 
-  .seemore-hero-arrow {
-    width: 1.75rem;
-    margin: 1.1rem auto;
-    rotate: 90deg;
+  .seemore-hero-demo::before {
+    --pad: 0.9rem;
+    inset: calc(-1 * var(--pad)) calc(-1 * var(--pad)) calc(4% - var(--pad));
+  }
+
+  .seemore-browser {
+    opacity: 1;
+    filter: none;
+  }
+
+  .seemore-cli {
+    left: 0;
+    bottom: 4%;
+    width: 17.5rem;
+    transform: scale(0.58);
+    transform-origin: bottom left;
+  }
+
+  .seemore-dmg {
+    top: 30%;
+    width: 11.5rem;
+    transform: scale(0.58);
+    transform-origin: top right;
   }
 }
 
@@ -486,7 +632,6 @@
   .seemore-cli-typed,
   .seemore-cli-caret,
   .seemore-cli-out,
-  .seemore-hero-arrow,
   .seemore-sk-bar,
   .seemore-sk-box {
     animation: none;
@@ -498,11 +643,6 @@
 
   .seemore-cli-out {
     opacity: 1;
-    transform: none;
-  }
-
-  .seemore-hero-arrow {
-    opacity: 0.45;
     transform: none;
   }
 }
