@@ -104,7 +104,7 @@
   gap: 1.1rem;
 }
 
-/* — a macOS terminal window, self-contained colours by design: a dark gray on both themes,
+/* — a macOS terminal window, self-contained colours by design: near-black on both themes,
    so it never matches the hero's buttons, which take the theme's primary (near-black on
    light, near-white on dark) — */
 
@@ -113,7 +113,7 @@
   min-width: 0;
   border-radius: 0.75rem;
   overflow: hidden;
-  background: #3a3a3c;
+  background: #282a36;
   box-shadow:
     0 24px 48px -24px rgba(0, 0, 0, 0.4),
     0 0 0 1px rgba(0, 0, 0, 0.1);
@@ -125,7 +125,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.7rem 0.95rem;
-  background: #48484a;
+  background: #343746;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
