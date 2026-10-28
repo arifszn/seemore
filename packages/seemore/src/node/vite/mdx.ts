@@ -25,7 +25,7 @@ import {
   type SeemoreRemarkOptions,
 } from './remark.js';
 import { rehypeSeemorePositions } from './positions.js';
-import { rehypeSeemoreRawHtml } from './raw.js';
+import { rehypeSeemoreHeadingHtml, rehypeSeemoreRawHtml } from './raw.js';
 import { rehypeSeemoreMedia, type SeemoreMediaOptions } from './media.js';
 
 /** The named export `remark-llms` writes the page's Markdown to, read by the copy action. */
@@ -135,6 +135,8 @@ export function createRehypePlugins(options: SeemoreRehypeOptions): PluggableLis
     // on the page, not a dead one: `plaintext` is special-cased by Shiki and never needs
     // loading.
     [rehypeCode, { fallbackLanguage: 'plaintext' }],
+    // Before `rehype-toc`, which cannot serialise a heading that still holds a `raw` node.
+    rehypeSeemoreHeadingHtml,
     rehypeToc,
     // After `rehype-code`, so a fence Shiki rebuilt is passed over rather than stamped with
     // the position of whatever it replaced.

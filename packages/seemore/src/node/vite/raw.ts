@@ -1,6 +1,7 @@
 import rehypeRaw from 'rehype-raw';
 import type { Root } from 'hast';
 import type { Transformer } from 'unified';
+import { visit } from 'unist-util-visit';
 import type { VFile } from 'vfile';
 
 /**
@@ -43,11 +44,49 @@ export function rehypeSeemoreRawHtml(): Transformer<Root, Root> {
   const transform = rehypeRaw({ passThrough: [...MDX_NODE_TYPES] });
 
   return (tree, file: VFile) => {
-    // Vite ids arrive with a query string (`?import`, an HMR timestamp), so match the
-    // extension inside the path rather than trusting `file.extname` to have been parsed off.
-    const path = file.path ?? '';
-    if (!/\.(?:md|markdown)(?:$|\?)/.test(path)) return tree;
+    if (!isMarkdown(file)) return tree;
 
     return transform(tree, file);
   };
+}
+
+/**
+ * Renders the HTML inside headings, ahead of `rehype-toc`.
+ *
+ * The table of contents serialises each heading to JSX with `hast-util-to-estree`, which
+ * throws on a `raw` node. A heading like `### Never a browser <input type="date">` carries
+ * one, and the throw fails the whole page. The full reparse in `rehypeSeemoreRawHtml` has to
+ * run last (see `createRehypePlugins`), so this reparses the headings alone, early.
+ */
+export function rehypeSeemoreHeadingHtml(): Transformer<Root, Root> {
+  const transform = rehypeRaw({ passThrough: [...MDX_NODE_TYPES] });
+
+  return (tree, file: VFile) => {
+    if (!isMarkdown(file)) return tree;
+
+    visit(tree, 'element', (heading, index, parent) => {
+      if (!/^h[1-6]$/.test(heading.tagName) || parent === undefined || index === undefined) {
+        return;
+      }
+
+      let hasRaw = false;
+      visit(heading, 'raw', () => {
+        hasRaw = true;
+        return false;
+      });
+      if (!hasRaw) return 'skip';
+
+      const fragment = transform({ type: 'root', children: [heading] }, file) as Root;
+      parent.children.splice(index, 1, ...fragment.children);
+      return 'skip';
+    });
+
+    return tree;
+  };
+}
+
+// Vite ids arrive with a query string (`?import`, an HMR timestamp), so match the extension
+// inside the path rather than trusting `file.extname` to have been parsed off.
+function isMarkdown(file: VFile): boolean {
+  return /\.(?:md|markdown)(?:$|\?)/.test(file.path ?? '');
 }
