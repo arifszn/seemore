@@ -527,6 +527,30 @@ describe('HTML written in a Markdown file', () => {
     expect($('b').text()).toBe('bold');
   });
 
+  // `rehype-toc` serialises headings to JSX and throws on a `raw` node, which failed the page.
+  it('renders HTML inside a heading', async () => {
+    const $ = load(await render('index.md', '# Title\n\n### Pick a date, not an <input type="date"> or <domain>\n\nBody.\n'));
+    expect($('h3 input[type="date"]')).toHaveLength(1);
+    expect($('body').text()).toContain('Body.');
+  });
+
+  it.each([
+    ['unclosed tag', '### Open <b>bold'],
+    ['stray closer', '### Close </span> here'],
+    ['comment', '### Title <!-- note --> end'],
+    ['only a tag', '### <br>'],
+    ['setext', 'Setext <kbd>K</kbd>\n======'],
+    ['inside emphasis', '### *em <b>x</b>*'],
+    ['in a table', '| a |\n|---|\n| <b>x</b> |'],
+    ['in a list', '- item <i>x</i>\n- ## head <u>y</u>'],
+    ['in a blockquote', '> ### quoted <code>x</code>'],
+    ['with toc-only tag', '### Hidden <b>x</b> [toc]'],
+    ['with no-toc tag', '### Skipped <b>x</b> [!toc]'],
+  ])('survives heading HTML: %s', async (_name, md) => {
+    const $ = load(await render('index.md', `# Title\n\n${md}\n\nBody.\n`));
+    expect($('body').text()).toContain('Body.');
+  });
+
   // `.mdx` parses HTML as JSX, so it has no raw nodes to reparse. `rehype-raw` must leave it
   // alone: its tree still carries MDX nodes that a reparse would mangle.
   it('leaves an .mdx page to the JSX parser', async () => {
