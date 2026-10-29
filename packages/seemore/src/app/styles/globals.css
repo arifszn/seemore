@@ -206,9 +206,15 @@
      word is wider than the column, and an overflowing heading or inline code drags a
      horizontal scrollbar onto the whole page. Fenced blocks are exempt: they get their own
      scroller from fumadocs, and breaking code mid-line there would be a lie. */
-  .seemore-article :is(h1, h2, h3, h4, h5, h6),
-  .seemore-article :not(pre) > code {
+  .seemore-article :is(h1, h2, h3, h4, h5, h6) {
     @apply break-words;
+  }
+
+  /* Inline code needs `wrap-anywhere`, not `break-words`: `overflow-wrap: break-word` is left
+     out of min-content sizing, so in an auto-layout table a long path still sets its column's
+     minimum width. The table then runs past the article and squeezes the other columns. */
+  .seemore-article :not(pre) > code {
+    @apply wrap-anywhere;
   }
 
   /* fumadocs renders a heading as a flex row — the link, then the copy-anchor button — and a
