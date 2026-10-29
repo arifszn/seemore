@@ -210,12 +210,13 @@
     @apply break-words;
   }
 
-  /* Inline code, links and table cells need `wrap-anywhere`, not `break-words`:
-     `overflow-wrap: break-word` is left out of min-content sizing, so in an auto-layout table a
-     long path or bare URL still sets its column's minimum width. The table then runs past the
-     article and squeezes the other columns; outside a table a bare URL overflows the page. */
+  /* Inline code and links need `wrap-anywhere`, not `break-words`: `overflow-wrap: break-word`
+     is left out of min-content sizing, so in an auto-layout table a long path or bare URL still
+     sets its column's minimum width. The table then runs past the article and squeezes the other
+     columns; outside a table a bare URL overflows the page. Not on `td`/`th`: it would let any
+     cell shrink to one character, splitting ids like `F1` and ordinary words in a narrow table. */
   .seemore-article :not(pre) > code,
-  .seemore-article :is(a, td, th) {
+  .seemore-article a {
     @apply wrap-anywhere;
   }
 
@@ -229,6 +230,26 @@
 
   .seemore-toc {
     @apply sticky top-16 hidden h-[calc(100vh-4rem)] flex-col w-56 shrink-0 py-8 pe-4 text-sm lg:flex xl:pe-8;
+  }
+
+  /* With the rail hidden, the prose keeps its measure; lines past ~75 characters read worse,
+     not better. What changes is placement and the blocks that need room. */
+  @media screen and (min-width: 80rem) {
+    /* A start pad as wide as the TOC, so the article centres on the viewport instead of on
+       the space left of the TOC. The TOC nav renders even when empty, so `:has` holds. Only
+       from `xl`: below it the pad would squeeze the column under its own max width. */
+    :root[data-sidebar-collapsed='true'] .seemore-body:has(> .seemore-toc) {
+      @apply ps-56;
+    }
+
+    /* Tables and code blocks break out of the column, centred on it, into the space the rail
+       gave back: the viewport (capped like `.seemore-body`) less the TOC, the pad and a 1rem
+       gutter on each side, never narrower than the column itself. */
+    :root[data-sidebar-collapsed='true'] .seemore-article > :is(div:has(> table), figure) {
+      --seemore-breakout: max(100%, min(100vw, 1400px) - 30rem);
+      width: var(--seemore-breakout);
+      margin-inline: calc((100% - var(--seemore-breakout)) / 2);
+    }
   }
 
   .seemore-toc-title {
