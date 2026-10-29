@@ -210,10 +210,12 @@
     @apply break-words;
   }
 
-  /* Inline code needs `wrap-anywhere`, not `break-words`: `overflow-wrap: break-word` is left
-     out of min-content sizing, so in an auto-layout table a long path still sets its column's
-     minimum width. The table then runs past the article and squeezes the other columns. */
-  .seemore-article :not(pre) > code {
+  /* Inline code, links and table cells need `wrap-anywhere`, not `break-words`:
+     `overflow-wrap: break-word` is left out of min-content sizing, so in an auto-layout table a
+     long path or bare URL still sets its column's minimum width. The table then runs past the
+     article and squeezes the other columns; outside a table a bare URL overflows the page. */
+  .seemore-article :not(pre) > code,
+  .seemore-article :is(a, td, th) {
     @apply wrap-anywhere;
   }
 
