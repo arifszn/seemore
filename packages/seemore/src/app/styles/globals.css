@@ -602,10 +602,12 @@
 
 /* Unlayered, for the same reason: the prose plugin sets `width: 100%` on tables from the
    utilities layer. A table follows GitHub instead: as wide as its content, capped at the
-   column, so two short columns do not stretch across the page. */
+   column, so two short columns do not stretch across the page. Digits are fixed-width, so
+   numbers in a column line up. */
 .seemore-article table {
   width: max-content;
   max-width: 100%;
+  font-variant-numeric: tabular-nums;
 }
 
 /* The single-page export reuses this same stylesheet — the exported file inlines it — so
