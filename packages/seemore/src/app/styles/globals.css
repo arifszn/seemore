@@ -210,14 +210,19 @@
     @apply break-words;
   }
 
-  /* Inline code and links need `wrap-anywhere`, not `break-words`: `overflow-wrap: break-word`
-     is left out of min-content sizing, so in an auto-layout table a long path or bare URL still
-     sets its column's minimum width. The table then runs past the article and squeezes the other
-     columns; outside a table a bare URL overflows the page. Not on `td`/`th`: it would let any
-     cell shrink to one character, splitting ids like `F1` and ordinary words in a narrow table. */
+  /* Outside a table, a long path or bare URL is one unbreakable word that overflows the page,
+     so inline code and links take `wrap-anywhere`. `break-words` would not do: it is left out
+     of min-content sizing, so the word still sets the minimum width. */
   .seemore-article :not(pre) > code,
   .seemore-article a {
     @apply wrap-anywhere;
+  }
+
+  /* Tables follow GitHub and never break a word mid-way: a path or URL too long for the
+     column scrolls the table, inside the wrapper fumadocs gives it, instead of splitting
+     `src/app/router.ts` across lines. Their width is set further down, unlayered. */
+  .seemore-article :is(td, th) :is(code, a) {
+    overflow-wrap: normal;
   }
 
   /* fumadocs renders a heading as a flex row — the link, then the copy-anchor button — and a
@@ -249,6 +254,21 @@
       --seemore-breakout: max(100%, min(100vw, 1400px) - 30rem);
       width: var(--seemore-breakout);
       margin-inline: calc((100% - var(--seemore-breakout)) / 2);
+    }
+
+    /* A table's wrapper takes only what its table needs, between the column and the breakout
+       width. A narrow table then stays flush with the prose; a wide one is shifted back by half
+       its overhang, so it stays centred on the column. `cqw` is the column, `%` the wrapper. */
+    :root[data-sidebar-collapsed='true'] .seemore-article {
+      container-type: inline-size;
+    }
+
+    :root[data-sidebar-collapsed='true'] .seemore-article > div:has(> table) {
+      width: max-content;
+      min-width: 100%;
+      max-width: var(--seemore-breakout);
+      margin-inline: 0;
+      translate: calc((100cqw - 100%) / 2);
     }
   }
 
@@ -578,6 +598,14 @@
    flush, with no underline. */
 .seemore-pdf-fallback {
   text-decoration-line: none;
+}
+
+/* Unlayered, for the same reason: the prose plugin sets `width: 100%` on tables from the
+   utilities layer. A table follows GitHub instead: as wide as its content, capped at the
+   column, so two short columns do not stretch across the page. */
+.seemore-article table {
+  width: max-content;
+  max-width: 100%;
 }
 
 /* The single-page export reuses this same stylesheet — the exported file inlines it — so
