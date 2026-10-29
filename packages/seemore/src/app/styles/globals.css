@@ -250,13 +250,17 @@
     /* The main column takes the whole space the rail gave back, and everything in it keeps
        the usual measure (`max-w-3xl` less `md:px-8`) except tables and code blocks. Every
        block shares one start edge: a wide table or code block runs on past the prose toward
-       the TOC, a narrow table stays as narrow as its content. */
+       the TOC, a narrow table stays as narrow as its content. `CodeBlockTabs` has no class of
+       its own; it is the `div` whose tab list holds code. The inline editor's layer overlays
+       the whole article, so it is left out too. */
     :root[data-sidebar-collapsed='true'] .seemore-main {
       @apply max-w-none;
     }
 
     :root[data-sidebar-collapsed='true'] .seemore-main > :not(.seemore-article),
-    :root[data-sidebar-collapsed='true'] .seemore-article > :not(div:has(> table), figure) {
+    :root[data-sidebar-collapsed='true']
+      .seemore-article
+      > :not(div:has(> table), figure, div:has(> [role='tablist']):has(figure), .seemore-editor-layer) {
       max-width: 44rem;
     }
   }
