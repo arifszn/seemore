@@ -249,26 +249,32 @@
 
     /* Tables and code blocks break out of the column, centred on it, into the space the rail
        gave back: the viewport (capped like `.seemore-body`) less the TOC, the pad and a 1rem
-       gutter on each side, never narrower than the column itself. */
-    :root[data-sidebar-collapsed='true'] .seemore-article > :is(div:has(> table), figure) {
+       gutter on each side, never narrower than the column itself. The `100%` resolves where
+       the property is used, so it is the column. The article is also a size container, so
+       `cqw` below is the column too; fumadocs' cards and type tables bring their own. */
+    :root[data-sidebar-collapsed='true'] .seemore-article {
       --seemore-breakout: max(100%, min(100vw, 1400px) - 30rem);
+      container-type: inline-size;
+    }
+
+    :root[data-sidebar-collapsed='true'] .seemore-article > figure {
       width: var(--seemore-breakout);
       margin-inline: calc((100% - var(--seemore-breakout)) / 2);
     }
 
     /* A table's wrapper takes only what its table needs, between the column and the breakout
        width. A narrow table then stays flush with the prose; a wide one is shifted back by half
-       its overhang, so it stays centred on the column. `cqw` is the column, `%` the wrapper. */
-    :root[data-sidebar-collapsed='true'] .seemore-article {
-      container-type: inline-size;
-    }
-
+       its overhang, so it stays centred on the column. `cqw` is the column, `%` the wrapper.
+       In RTL the wrapper grows leftwards from the column's right edge, so the shift flips. */
     :root[data-sidebar-collapsed='true'] .seemore-article > div:has(> table) {
       width: max-content;
       min-width: 100%;
       max-width: var(--seemore-breakout);
-      margin-inline: 0;
       translate: calc((100cqw - 100%) / 2);
+    }
+
+    :root[data-sidebar-collapsed='true'] .seemore-article > div:has(> table):dir(rtl) {
+      translate: calc((100% - 100cqw) / 2);
     }
   }
 
