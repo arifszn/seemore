@@ -240,41 +240,24 @@
   /* With the rail hidden, the prose keeps its measure; lines past ~75 characters read worse,
      not better. What changes is placement and the blocks that need room. */
   @media screen and (min-width: 80rem) {
-    /* A start pad as wide as the TOC, so the article centres on the viewport instead of on
-       the space left of the TOC. The TOC nav renders even when empty, so `:has` holds. Only
+    /* A start pad as wide as the TOC, so the content area centres on the viewport instead of
+       on the space left of the TOC. The TOC nav renders even when empty, so `:has` holds. Only
        from `xl`: below it the pad would squeeze the column under its own max width. */
     :root[data-sidebar-collapsed='true'] .seemore-body:has(> .seemore-toc) {
       @apply ps-56;
     }
 
-    /* Tables and code blocks break out of the column, centred on it, into the space the rail
-       gave back: the viewport (capped like `.seemore-body`) less the TOC, the pad and a 1rem
-       gutter on each side, never narrower than the column itself. The `100%` resolves where
-       the property is used, so it is the column. The article is also a size container, so
-       `cqw` below is the column too; fumadocs' cards and type tables bring their own. */
-    :root[data-sidebar-collapsed='true'] .seemore-article {
-      --seemore-breakout: max(100%, min(100vw, 1400px) - 30rem);
-      container-type: inline-size;
+    /* The main column takes the whole space the rail gave back, and everything in it keeps
+       the usual measure (`max-w-3xl` less `md:px-8`) except tables and code blocks. Every
+       block shares one start edge: a wide table or code block runs on past the prose toward
+       the TOC, a narrow table stays as narrow as its content. */
+    :root[data-sidebar-collapsed='true'] .seemore-main {
+      @apply max-w-none;
     }
 
-    :root[data-sidebar-collapsed='true'] .seemore-article > figure {
-      width: var(--seemore-breakout);
-      margin-inline: calc((100% - var(--seemore-breakout)) / 2);
-    }
-
-    /* A table's wrapper takes only what its table needs, between the column and the breakout
-       width. A narrow table then stays flush with the prose; a wide one is shifted back by half
-       its overhang, so it stays centred on the column. `cqw` is the column, `%` the wrapper.
-       In RTL the wrapper grows leftwards from the column's right edge, so the shift flips. */
-    :root[data-sidebar-collapsed='true'] .seemore-article > div:has(> table) {
-      width: max-content;
-      min-width: 100%;
-      max-width: var(--seemore-breakout);
-      translate: calc((100cqw - 100%) / 2);
-    }
-
-    :root[data-sidebar-collapsed='true'] .seemore-article > div:has(> table):dir(rtl) {
-      translate: calc((100% - 100cqw) / 2);
+    :root[data-sidebar-collapsed='true'] .seemore-main > :not(.seemore-article),
+    :root[data-sidebar-collapsed='true'] .seemore-article > :not(div:has(> table), figure) {
+      max-width: 44rem;
     }
   }
 
