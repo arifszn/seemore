@@ -178,7 +178,7 @@ SEEMORE_PASSWORD='a-long-passphrase' npx seemore build
 ```
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/password-protection.png" alt="A seemore.config.ts file with auth: true, in front of a browser window showing the site's lock screen: the site icon, the title Team Handbook, a password field and an Unlock button" width="560"/>
+  <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/password-protection.png" alt="The lock screen of a password-protected site: the site icon, the title Acme Handbook, a password field with a password typed in, and an Unlock button" width="560"/>
 </p>
 
 seemore encrypts the site content, so nobody can read a copy of the build without the password. A short password can be guessed offline, so use a long one.
@@ -226,7 +226,7 @@ export default {
 seemore has twelve built-in colour presets: `neutral` (default), `black`, `catppuccin`, `dusk`, `ocean`, `purple`, `ruby`, `solar`, `aspen`, `emerald`, `vitepress`, `shadcn`. Dark and light modes follow your system setting, with a toggle that remembers your choice. For anything else, put your own CSS in `css`. seemore appends it last, so it wins.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes.png" alt="Six seemore windows fanned out, each in a different theme: catppuccin, ocean, ruby, emerald, purple and aspen" width="640"/>
+  <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes.png" alt="Six seemore windows in a cascade, alternating light and dark, each in a different theme: aspen, ocean, ruby, purple, catppuccin and emerald" width="640"/>
 </p>
 
 The [themes page](https://arifszn.github.io/seemore/themes) shows all twelve.
