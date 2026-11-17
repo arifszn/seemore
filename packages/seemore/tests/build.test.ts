@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { load } from 'cheerio';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { runBuild } from '../src/cli/build.js';
@@ -232,6 +232,45 @@ describe('the generated index page', () => {
     expect(datePage('title').text()).toBe('2026 11 17 · Docs');
     // The generated page is counted with the rest.
     expect(result.routes).toBe(6);
+
+    rmSync(contentRoot, { recursive: true, force: true });
+  }, 300_000);
+
+  it('groups folders into sections, folding folders that only hold folders', async () => {
+    const contentRoot = mkdtempSync(join(tmpdir(), 'seemore-toc-folders-'));
+    const outDir = join(contentRoot, 'dist');
+    const write = (file: string, text: string): void => {
+      mkdirSync(dirname(join(contentRoot, file)), { recursive: true });
+      writeFileSync(join(contentRoot, file), text);
+    };
+    write('intro.md', '# Intro\n');
+    write('later.md', '# Later\n');
+    write('meta.json', JSON.stringify({ pages: ['intro', 'notes', 'later'] }));
+    write('notes/README.md', '---\ntitle: Notes\ndescription: Weekly notes.\n---\n\n# Notes\n');
+    write('notes/week-1.md', '# Week 1\n');
+    write('notes/archive/2025/q4/retro.md', '# Retro\n');
+    write('notes/archive/2024/meta.json', JSON.stringify({ description: 'Last year.' }));
+    write('notes/archive/2024/q1/plan.md', '# Plan\n');
+
+    await runBuild({ cwd: contentRoot, outDir });
+
+    const $ = load(readFileSync(join(outDir, 'index.html'), 'utf8'));
+    const titles = $('.seemore-overview-section-title')
+      .map((_, h) => $(h).text().replace(/\s+/g, ' ').trim())
+      .get();
+    // "Archive" holds only folders, so it folds into its children's headings; so does "2025".
+    // "2024" has a description, so it keeps a section of its own.
+    expect(titles).toEqual(['Notes', 'Archive /2024', 'Q1', 'Archive /2025 /Q4']);
+    // A README.md leads its folder like an index.md: it is the heading link, and its
+    // description is the section's.
+    expect($('.seemore-overview-section-title a').attr('href')).toBe('/notes');
+    expect($('.seemore-overview-section-description').first().text()).toBe('Weekly notes.');
+    // A folder with a description keeps its own section rather than being folded.
+    expect($('.seemore-overview-section-description').text()).toContain('Last year.');
+    // Without a description, a card shows its address.
+    expect($('.seemore-overview-card[href="/intro"] .seemore-overview-card-url').text()).toBe('/intro');
+    // Pages after a folder are set apart from it.
+    expect($('.seemore-overview-grid-separated .seemore-overview-card').attr('href')).toBe('/later');
 
     rmSync(contentRoot, { recursive: true, force: true });
   }, 300_000);

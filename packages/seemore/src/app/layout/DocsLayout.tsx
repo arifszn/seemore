@@ -225,15 +225,20 @@ function OverviewSections({
         const { folder } = segment;
         const indexPage = folderIndex(folder);
         const children = folder.children.filter((child) => child !== indexPage);
+        const description = folder.description ?? indexPage?.description;
         // A nested folder holding only folders adds nothing but a heading: its name moves into
-        // its children's headings instead ("2025 / Q4").
-        if (depth > 0 && indexPage === undefined && children.every((child) => child.type === 'folder')) {
+        // its children's headings instead ("2025 / Q4"). One with a description keeps its section.
+        if (
+          depth > 0 &&
+          indexPage === undefined &&
+          !hasText(description) &&
+          children.every((child) => child.type === 'folder')
+        ) {
           return (
             <OverviewSections key={index} nodes={children} depth={depth} trail={[...trail, folder.name]} />
           );
         }
 
-        const description = folder.description ?? indexPage?.description;
         return (
           <section key={index} className="seemore-overview-section">
             <Heading className="seemore-overview-section-title">
@@ -252,7 +257,7 @@ function OverviewSections({
                 </a>
               )}
             </Heading>
-            {typeof description === 'string' && description !== '' ? (
+            {hasText(description) ? (
               <p className="seemore-overview-section-description">{description}</p>
             ) : undefined}
             <OverviewSections nodes={children} depth={depth + 1} />
@@ -274,7 +279,7 @@ function OverviewGrid({ pages, separated }: { pages: PageTree.Item[]; separated:
             {page.icon}
             {dateTitle(page.url, nameText(page.name)) ?? page.name}
           </span>
-          {typeof page.description === 'string' && page.description !== '' ? (
+          {hasText(page.description) ? (
             <span className="seemore-overview-card-description">{page.description}</span>
           ) : (
             <span className="seemore-overview-card-url">{page.url}</span>
@@ -283,6 +288,10 @@ function OverviewGrid({ pages, separated }: { pages: PageTree.Item[]; separated:
       ))}
     </div>
   );
+}
+
+function hasText(value: unknown): value is string {
+  return typeof value === 'string' && value !== '';
 }
 
 /** `index.md` or `README.md` (any content extension), as the tree's `$id` names the file. */

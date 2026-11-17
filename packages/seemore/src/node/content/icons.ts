@@ -22,10 +22,13 @@ export function iconsPlugin(): LoaderPlugin {
 }
 
 type IconComponent = Parameters<typeof createElement>[0];
-const aliases = lucide as unknown as Record<string, IconComponent | undefined>;
+const icons = lucide.icons as Record<string, IconComponent | undefined>;
+const exports = lucide as unknown as Record<string, IconComponent | undefined>;
+/** Every icon, by identity: an alias export is the same component as its canonical icon. */
+const iconComponents = new Set(Object.values(icons));
 
 function resolveIcon(name: string): ReactElement | undefined {
-  const icon = (lucide.icons as Record<string, IconComponent | undefined>)[name] ?? aliasFor(name);
+  const icon = (Object.hasOwn(icons, name) ? icons[name] : undefined) ?? aliasFor(name);
   if (icon === undefined) {
     console.warn(`[seemore] Unknown icon "${name}": use a lucide icon name, such as BookOpen.`);
     return undefined;
@@ -33,8 +36,11 @@ function resolveIcon(name: string): ReactElement | undefined {
   return createElement(icon);
 }
 
-/** Icon exports are PascalCase; the module's other exports (`icons`, `createLucideIcon`) are not. */
+/**
+ * An export that is one of the icons. Other exports, PascalCase ones included (`Icon`,
+ * `LucideProvider`), are not, and resolve to nothing.
+ */
 function aliasFor(name: string): IconComponent | undefined {
-  if (!/^[A-Z][A-Za-z0-9]*$/.test(name)) return undefined;
-  return aliases[name];
+  const component = Object.hasOwn(exports, name) ? exports[name] : undefined;
+  return component !== undefined && iconComponents.has(component) ? component : undefined;
 }

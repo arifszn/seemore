@@ -248,8 +248,10 @@ describe('icons', () => {
   it('does not take a non-icon export for an icon', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     try {
-      const icons = await serializedIcons({ 'index.md': '---\ntitle: Home\nicon: createLucideIcon\n---\n' });
-      expect(icons.Home).toBeUndefined();
+      for (const name of ['createLucideIcon', 'Icon', 'LucideProvider']) {
+        const icons = await serializedIcons({ 'index.md': `---\ntitle: Home\nicon: ${name}\n---\n` });
+        expect(icons.Home).toBeUndefined();
+      }
     } finally {
       warn.mockRestore();
     }

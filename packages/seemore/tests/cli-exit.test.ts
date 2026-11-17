@@ -14,10 +14,11 @@ const JITI_REGISTER = pathToFileURL(
 ).href;
 
 /** Runs the CLI from source with the event loop held open; resolves with the exit code. */
-function run(args: string[], cwd: string): Promise<number | null> {
+function run(args: string[], cwd: string, env: NodeJS.ProcessEnv = process.env): Promise<number | null> {
   return new Promise((resolve, reject) => {
     const child = spawn(process.execPath, ['--import', JITI_REGISTER, '--import', KEEP_ALIVE, CLI, ...args], {
       cwd,
+      env,
       stdio: 'ignore',
     });
     const timer = setTimeout(() => {
@@ -46,6 +47,16 @@ describe('one-shot commands exit when they finish', () => {
     writeFileSync(join(site, 'index.md'), '# Home\n');
 
     expect(await run(['build', 'site', '--out', 'dist'], dir)).toBe(0);
+  });
+
+  it('exits 0 after a build with a frontmatter icon, run without NODE_ENV as a user runs it', async () => {
+    dir = mkdtempSync(join(tmpdir(), 'seemore-exit-icon-'));
+    writeFileSync(join(dir, 'index.md'), '---\nicon: BookOpen\n---\n\n# Home\n');
+    // vitest sets NODE_ENV=test, which hides the crash: React loads in one mode and the
+    // renderer for the page tree's icons in another only when NODE_ENV starts unset.
+    const { NODE_ENV: _, ...env } = process.env;
+
+    expect(await run(['build', '.', '--out', join(dir, 'dist')], dir, env)).toBe(0);
   });
 
   it('exits 1 after a failed build', async () => {
