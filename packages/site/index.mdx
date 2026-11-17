@@ -5,7 +5,6 @@ order: 1
 ---
 
 import promo from './assets/seemore.mp4';
-import appIcon from './assets/app-icon.png';
 
 <div className="seemore-landing">
 
@@ -39,114 +38,8 @@ import appIcon from './assets/app-icon.png';
   <Link className="seemore-cli-chip" href="/cli"><span className="seemore-cli-chevron">❯</span>npx seemore</Link>
 </div>
 
-<div className="seemore-hero-demo" role="img" aria-label="A browser preview of a rendered docs site, a terminal running npx seemore in front of it, and a macOS installer window with the seemore app icon next to an Applications folder">
-
-<div className="seemore-browser">
-
-<div className="seemore-browser-bar">
-
-<span className="seemore-tl seemore-tl-r"></span>
-<span className="seemore-tl seemore-tl-y"></span>
-<span className="seemore-tl seemore-tl-g"></span>
-
-</div>
-
-<div className="seemore-browser-page">
-
-<div className="seemore-browser-side" aria-hidden="true">
-
-<span className="seemore-browser-side-brand"></span>
-<span className="seemore-browser-side-item"></span>
-<span className="seemore-browser-side-item"></span>
-<span className="seemore-browser-side-item"></span>
-<span className="seemore-browser-side-item"></span>
-<span className="seemore-browser-side-item"></span>
-
-</div>
-
-<div className="seemore-browser-main">
-
-<div className="seemore-browser-skeleton" aria-hidden="true">
-
-<span className="seemore-sk-bar seemore-sk-title"></span>
-
-<span className="seemore-sk-row">
-  <span className="seemore-sk-box"></span>
-  <span className="seemore-sk-bar"></span>
-</span>
-
-<span className="seemore-sk-row">
-  <span className="seemore-sk-box"></span>
-  <span className="seemore-sk-bar seemore-sk-w70"></span>
-</span>
-
-<span className="seemore-sk-bar seemore-sk-w55"></span>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-<div className="seemore-cli">
-
-<div className="seemore-cli-bar">
-
-<span className="seemore-tl seemore-tl-r"></span>
-<span className="seemore-tl seemore-tl-y"></span>
-<span className="seemore-tl seemore-tl-g"></span>
-<span className="seemore-cli-title">zsh · ~/notes</span>
-
-</div>
-
-<div className="seemore-cli-body">
-
-<div className="seemore-cli-line seemore-cli-cmd">
-  <span className="seemore-cli-prompt">~/notes</span>
-  <span className="seemore-cli-chevron">❯</span>
-  <span className="seemore-cli-typed">npx seemore</span>
-  <span className="seemore-cli-caret"></span>
-</div>
-
-<div className="seemore-cli-line seemore-cli-out">
-  <span className="seemore-cli-brand">seemore</span>
-  <span className="seemore-cli-url">{"http://localhost:4040"}</span>
-</div>
-
-<div className="seemore-cli-line seemore-cli-out seemore-cli-out2 seemore-cli-dim">24 pages from ~/notes</div>
-
-</div>
-
-</div>
-
-<div className="seemore-dmg" aria-hidden="true">
-
-<div className="seemore-dmg-bar">
-
-<span className="seemore-tl seemore-tl-r"></span>
-<span className="seemore-tl seemore-tl-y"></span>
-<span className="seemore-tl seemore-tl-g"></span>
-<span className="seemore-dmg-title">seemore</span>
-
-</div>
-
-<div className="seemore-dmg-body">
-
-<img className="seemore-appicon" src={appIcon} alt="" />
-
-<svg className="seemore-dmg-arrow" viewBox="0 0 44 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-  <line x1="3" y1="12" x2="37" y2="12" />
-  <polyline points="29 4 38 12 29 20" />
-</svg>
-
-<span className="seemore-dmg-folder"></span>
-
-</div>
-
-</div>
-
+<div className="seemore-shot seemore-shot--video seemore-hero-video">
+  <video src={promo} controls muted playsInline preload="metadata"></video>
 </div>
 
 <div className="seemore-trust-line">zero config · static export · inline editing</div>
@@ -207,9 +100,6 @@ references, specs, an engineering handbook.
 
 </div>
 
-<div className="seemore-shot seemore-shot--video">
-  <video src={promo} controls muted playsInline preload="metadata"></video>
-</div>
 
 <Cards>
   <Card
@@ -288,7 +178,7 @@ its Markdown in place. seemore writes the change straight back to the file.
 </div>
 
 <div className="seemore-shot">
-  ![seemore rendering a folder of Markdown in the browser, with a paragraph's Markdown source open in the inline editor](./assets/inline-editor.png)
+  ![A seemore page in a browser window, with a paragraph open in the inline editor showing its Markdown source, next to the words: Double-click a paragraph, fix it, Save.](./assets/inline-editor.png)
 </div>
 
 </div>
