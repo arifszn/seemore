@@ -4,7 +4,49 @@ description: Zero config documentation tool - Let AI write the Markdown. Let see
 order: 1
 ---
 
+import { useRef, useState } from 'react';
 import promo from './assets/seemore.mp4';
+import poster from './assets/seemore-poster.jpg';
+import posterDark from './assets/seemore-poster-dark.jpg';
+
+export const FEATURES = [
+  ['Zero config', 'No config file, no code, no files to move. A plain folder of Markdown works in the browser, in your editor, and as a static build.'],
+  ['Live preview', 'Add, rename, retitle or delete a file and the site updates immediately, navigation and search included.'],
+  ['Edit in place', 'Double-click any block in the preview to fix its Markdown, and seemore writes the change straight back to the file.'],
+  ['Editor integration', 'One extension covers VS Code, Cursor, Antigravity and other VS Code-compatible editors, remote workspaces included.'],
+  ['Documentation framework', "seemore build prerenders the whole site to HTML, ready to deploy anywhere, and writes each host's convention files for you."],
+  ['Password protection', 'Protect the built site with one shared password. No server is needed. Visitors unlock it in the browser.'],
+  ['Page actions', 'Copy a page as Markdown, or export it as one self-contained HTML file to drop into Slack, email or an AI chat.'],
+  ['Search built in', 'Static, zero-setup full-text search out of the box, with shareable highlighted results. Algolia and Orama Cloud for hosted indexes.'],
+  ['Rich Markdown', 'GitHub Flavoured Markdown, admonitions, steps, [[wikilinks]], Mermaid and D2 diagrams, click-to-zoom images, embedded PDFs.'],
+  ['Full MDX', 'When Markdown is not enough, .mdx pages take real JSX: your own components, inline SVG and custom CSS. This page is built that way.'],
+  ['12 themes', 'Dark and light follow the system, with a toggle that remembers your choice. Your own CSS always wins.'],
+];
+
+{/* The promo film behind a cover: a poster for each theme and a play button. The video's own
+    controls appear once it plays. */}
+export function HeroVideo() {
+  const video = useRef(null);
+  const [started, setStarted] = useState(false);
+  const play = () => {
+    setStarted(true);
+    video.current?.play();
+  };
+  return (
+    <div className="seemore-shot seemore-shot--video seemore-hero-video">
+      <video ref={video} src={promo} controls={started} muted playsInline preload="metadata"></video>
+      {!started && (
+        <button type="button" className="seemore-video-cover" aria-label="Play the seemore video" onClick={play}>
+          <span className="seemore-poster seemore-poster-light" style={{ backgroundImage: `url(${poster})` }}></span>
+          <span className="seemore-poster seemore-poster-dark" style={{ backgroundImage: `url(${posterDark})` }}></span>
+          <span className="seemore-video-play">
+            <svg viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0L10 6L0 12z" /></svg>
+          </span>
+        </button>
+      )}
+    </div>
+  );
+}
 
 <div className="seemore-landing">
 
@@ -38,9 +80,7 @@ import promo from './assets/seemore.mp4';
   <Link className="seemore-cli-chip" href="/cli"><span className="seemore-cli-chevron">❯</span>npx seemore</Link>
 </div>
 
-<div className="seemore-shot seemore-shot--video seemore-hero-video">
-  <video src={promo} controls muted playsInline preload="metadata"></video>
-</div>
+<HeroVideo />
 
 <div className="seemore-trust-line">zero config · static export · inline editing</div>
 
@@ -101,52 +141,17 @@ references, specs, an engineering handbook.
 </div>
 
 
-<Cards>
-  <Card
-    title="Zero config"
-    description="No config file, no code, no files to move. A plain folder of Markdown works in the browser, in your editor, and as a static build."
-  />
-  <Card
-    title="Live preview"
-    description="Add, rename, retitle or delete a file and the site updates immediately, navigation and search included."
-  />
-  <Card
-    title="Edit in place"
-    description="Double-click any block in the preview to fix its Markdown, and seemore writes the change straight back to the file."
-  />
-  <Card
-    title="Editor integration"
-    description="One extension covers VS Code, Cursor, Antigravity and other VS Code-compatible editors, remote workspaces included."
-  />
-  <Card
-    title="Documentation framework"
-    description="seemore build prerenders the whole site to HTML, ready to deploy anywhere, and writes each host's convention files for you."
-  />
-  <Card
-    title="Password protection"
-    description="Protect the built site with one shared password. No server is needed. Visitors unlock it in the browser."
-  />
-  <Card
-    title="Page actions"
-    description="Copy a page as Markdown, or export it as one self-contained HTML file to drop into Slack, email or an AI chat."
-  />
-  <Card
-    title="Search built in"
-    description="Static, zero-setup full-text search out of the box, with shareable highlighted results. Algolia and Orama Cloud for hosted indexes."
-  />
-  <Card
-    title="Rich Markdown"
-    description="GitHub Flavoured Markdown, admonitions, steps, [[wikilinks]], Mermaid and D2 diagrams, click-to-zoom images, embedded PDFs."
-  />
-  <Card
-    title="Full MDX"
-    description="When Markdown is not enough, .mdx pages take real JSX: your own components, inline SVG and custom CSS. This page is built that way."
-  />
-  <Card
-    title="12 themes"
-    description="Dark and light follow the system, with a toggle that remembers your choice. Your own CSS always wins."
-  />
-</Cards>
+<div className="seemore-features">
+  {FEATURES.map(([title, text], i) => (
+    <div className="seemore-feature" key={title}>
+      <span className="seemore-feature-n">{String(i + 1).padStart(2, '0')}</span>
+      <div>
+        <div className="seemore-feature-title">{title}</div>
+        <div className="seemore-feature-text">{text}</div>
+      </div>
+    </div>
+  ))}
+</div>
 
 <div className="seemore-section-head">
 
@@ -177,7 +182,7 @@ its Markdown in place. seemore writes the change straight back to the file.
 
 </div>
 
-<div className="seemore-shot">
+<div className="seemore-panel">
   ![A seemore page in a browser window, with a paragraph open in the inline editor showing its Markdown source, next to the words: Double-click a paragraph, fix it, Save.](./assets/inline-editor.png)
 </div>
 

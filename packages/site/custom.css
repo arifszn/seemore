@@ -84,48 +84,50 @@
   line-height: inherit;
 }
 
-.seemore-btn-primary {
-  background: linear-gradient(#3a3a3a, #171717);
-  color: #fafafa;
-  box-shadow:
-    inset 0 1px 0 #ffffff30,
-    inset 0 -2px 0 #0004,
-    0 1px 2px #0005,
-    0 8px 22px -8px #0008;
+/* Solid ink with a hard offset shadow: indigo on the main button and the npx chip, ink on the
+   secondary button. */
+.seemore-btn-primary,
+.seemore-btn-secondary,
+.seemore-cli-chip {
+  border: 1.5px solid var(--color-fd-foreground);
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease;
 }
 
-/* the neutral theme's primary flips to white in dark mode; the button follows it */
-.dark .seemore-btn-primary {
-  background: linear-gradient(#ffffff, #e4e4e4);
-  color: #171717;
-  box-shadow:
-    inset 0 1px 0 #fff,
-    inset 0 -2px 0 #0002,
-    0 1px 2px #0006,
-    0 8px 22px -8px #ffffff30;
-}
-
-.seemore-btn-primary:hover {
-  filter: brightness(1.12);
-}
-
-.dark .seemore-btn-primary:hover {
-  filter: brightness(0.96);
-}
-
-.seemore-btn-primary:active {
-  translate: 0 1px;
-  box-shadow: inset 0 2px 4px #0004;
+.seemore-btn-primary,
+.seemore-cli-chip {
+  background: var(--color-fd-foreground);
+  color: var(--color-fd-background);
+  box-shadow: 3px 3px 0 #6d5ef5;
 }
 
 .seemore-btn-secondary {
   background: var(--color-fd-card);
   color: var(--color-fd-foreground);
-  border-color: var(--color-fd-border);
+  box-shadow: 3px 3px 0 var(--color-fd-foreground);
+}
+
+.seemore-btn-primary:hover,
+.seemore-btn-secondary:hover,
+.seemore-cli-chip:hover {
+  transform: translate(-1px, -1px);
+}
+
+.seemore-btn-primary:hover,
+.seemore-cli-chip:hover {
+  box-shadow: 4px 4px 0 #6d5ef5;
 }
 
 .seemore-btn-secondary:hover {
-  border-color: var(--color-fd-primary);
+  box-shadow: 4px 4px 0 var(--color-fd-foreground);
+}
+
+.seemore-btn-primary:active,
+.seemore-btn-secondary:active,
+.seemore-cli-chip:active {
+  transform: translate(3px, 3px);
+  box-shadow: none;
 }
 
 .seemore-trust-line {
@@ -153,40 +155,9 @@
   align-items: center;
   border-radius: 0.6rem;
   padding: 0.4rem 0.8rem;
-  background: linear-gradient(#3a3a3a, #171717);
-  color: #fafafa;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 0.8rem;
   text-decoration: none !important;
-  box-shadow:
-    inset 0 1px 0 #ffffff30,
-    inset 0 -2px 0 #0004,
-    0 1px 2px #0005,
-    0 8px 22px -8px #0008;
-  transition: filter 0.15s ease;
-}
-
-.dark .seemore-cli-chip {
-  background: linear-gradient(#ffffff, #e4e4e4);
-  color: #171717;
-  box-shadow:
-    inset 0 1px 0 #fff,
-    inset 0 -2px 0 #0002,
-    0 1px 2px #0006,
-    0 8px 22px -8px #ffffff30;
-}
-
-.seemore-cli-chip:hover {
-  filter: brightness(1.12);
-}
-
-.dark .seemore-cli-chip:hover {
-  filter: brightness(0.96);
-}
-
-.seemore-cli-chip:active {
-  translate: 0 1px;
-  box-shadow: inset 0 2px 4px #0004;
 }
 
 .seemore-cli-chip .seemore-cli-chevron {
@@ -203,16 +174,89 @@
 }
 
 .seemore-shot.seemore-hero-video {
+  position: relative;
   width: 100%;
+  border: 1px solid var(--color-fd-border);
   margin: 1.25rem 0 0.25rem;
+}
+
+/* The cover over the video until it plays: the theme's poster and a play button. */
+.seemore-hero-video video {
+  aspect-ratio: 16 / 9;
+}
+
+.seemore-video-cover {
+  position: absolute;
+  inset: 0;
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.seemore-video-cover:focus-visible {
+  outline: 2px solid #6d5ef5;
+  outline-offset: -4px;
+}
+
+.seemore-poster {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+}
+
+.seemore-poster-dark,
+.dark .seemore-poster-light {
+  display: none;
+}
+
+.dark .seemore-poster-dark {
+  display: block;
+}
+
+.seemore-video-play {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: clamp(3.25rem, 9vw, 4.75rem);
+  height: clamp(3.25rem, 9vw, 4.75rem);
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #6d5ef5;
+  color: #fff;
+  box-shadow:
+    0 0 0 0.5rem #6d5ef522,
+    0 1.25rem 2.5rem -1rem #4338ca99;
+  transition: transform 0.15s ease;
+}
+
+.seemore-video-cover:hover .seemore-video-play {
+  transform: scale(1.06);
+}
+
+.seemore-video-play svg {
+  width: 36%;
+  height: 36%;
+  margin-left: 8%;
+  fill: currentColor;
 }
 
 /* ---------- Three ways to use it ---------- */
 
+/* Side by side, one card under the other on narrow screens. */
 .seemore-ways {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.9rem;
+}
+
+@media (max-width: 640px) {
+  .seemore-ways {
+    grid-template-columns: 1fr;
+  }
 }
 
 .seemore-way {
@@ -285,6 +329,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .seemore-video-play {
+    transition: none;
+  }
+
   .seemore-way {
     transition: none;
   }
@@ -372,6 +420,8 @@
 
 .seemore-shot video {
   display: block;
+  /* The prose styles give a video 2em above and below, which shows as grey bands in the frame. */
+  margin: 0;
   width: 100%;
   height: auto;
   background: var(--color-fd-muted);
@@ -381,6 +431,23 @@
   border: none;
   box-shadow: none;
   margin-bottom: 2.5rem;
+}
+
+/* An indigo panel image from readme-art: no frame of its own, and the PNG's white edge (kept for
+   the README) is clipped so only the rounded panel shows, in light and dark. */
+.seemore-panel p {
+  margin: 0;
+}
+
+.seemore-panel img {
+  display: block;
+  /* Wider than the column by the clipped edge, so the panel lines up with the text. */
+  width: calc(100% / 0.9438);
+  max-width: none;
+  margin: -2.316% 0 -2.316% -2.977% !important;
+  border: none !important;
+  border-radius: 0 !important;
+  clip-path: inset(3.94% 2.81% round 4.06% / 7.32%);
 }
 
 .seemore-shot img {
@@ -592,4 +659,51 @@
   margin-top: 2rem !important;
   font-size: 0.875rem;
   color: var(--color-fd-muted-foreground);
+}
+
+/* ---------- What you get: a numbered list in two columns ---------- */
+
+.seemore-features {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 1.75rem;
+  margin-top: 1rem;
+}
+
+.seemore-feature {
+  display: grid;
+  grid-template-columns: 2.25rem 1fr;
+  padding: 0.85rem 0;
+  border-top: 1px solid var(--color-fd-border);
+}
+
+.seemore-feature-n {
+  padding-top: 0.15rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #6d5ef5;
+}
+
+.dark .seemore-feature-n {
+  color: #a5a0fa;
+}
+
+.seemore-feature-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.seemore-feature-text {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--color-fd-muted-foreground);
+}
+
+@media (max-width: 640px) {
+  .seemore-features {
+    grid-template-columns: 1fr;
+  }
 }
