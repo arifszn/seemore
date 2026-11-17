@@ -1,6 +1,5 @@
 /* The two loaders: preparing.html (a small window while the CLI unpacks) and opening.html (a
-   site window while its server starts). Both show a page being rendered: its lines draw
-   in from the middle, fade, and it starts over. */
+   site window while its server starts). Both show an open book whose pages keep turning. */
 html,
 body {
   height: 100%;
@@ -36,61 +35,65 @@ p.sub {
   color: var(--muted);
 }
 
-/* The page being rendered. --u scales it; the opening window uses a larger one. */
-.doc {
+/* The book. --u scales it; the opening window uses a larger one. Two still pages, and three
+   that turn from the right-hand page to the left, one after another. */
+.book {
   --u: 1px;
   flex: none;
-  display: grid;
-  gap: calc(6 * var(--u));
-  width: calc(32 * var(--u));
-}
-.ln {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  height: calc(6 * var(--u));
+  position: relative;
+  perspective: calc(300 * var(--u));
 }
-.ln b {
-  height: calc(3 * var(--u));
-  width: var(--w);
-  border-radius: var(--u);
-  background: var(--muted);
-  transform-origin: center;
-  transform: scaleX(0);
-  animation: draw 2.6s cubic-bezier(0.3, 0.7, 0.2, 1) infinite;
-  animation-delay: calc(var(--i) * 0.16s);
+.pg {
+  display: block;
+  box-sizing: border-box;
+  width: calc(45 * var(--u));
+  height: calc(56 * var(--u));
+  padding: calc(6 * var(--u));
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 0 calc(3 * var(--u)) calc(3 * var(--u)) 0;
 }
-.ln.h b {
-  height: calc(5 * var(--u));
-  background: var(--fg);
+.pg.left {
+  border-radius: calc(3 * var(--u)) 0 0 calc(3 * var(--u));
 }
-.ln:nth-child(1) {
-  --i: 0;
-  --w: calc(26 * var(--u));
+.pg b {
+  display: block;
+  height: calc(2 * var(--u));
+  margin-bottom: calc(3 * var(--u));
+  background: var(--line);
 }
-.ln:nth-child(2) {
-  --i: 1;
-  --w: calc(32 * var(--u));
+.pg b.t {
+  height: calc(3.5 * var(--u));
+  width: 60%;
+  background: var(--faint);
 }
-.ln:nth-child(3) {
-  --i: 2;
-  --w: calc(20 * var(--u));
+.pg b:nth-child(3) {
+  width: 80%;
 }
-@keyframes draw {
-  0%,
-  6% {
-    transform: scaleX(0);
-    opacity: 1;
+.pg b:nth-child(5) {
+  width: 55%;
+}
+.turn {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform-origin: 0 50%;
+  animation: turn 1.8s ease-in-out infinite;
+}
+.turn:nth-child(4) {
+  animation-delay: 0.6s;
+}
+.turn:nth-child(5) {
+  animation-delay: 1.2s;
+}
+@keyframes turn {
+  0% {
+    transform: rotateY(0);
   }
-  32%,
-  84% {
-    transform: scaleX(1);
-    opacity: 1;
-  }
-  96%,
+  60%,
   100% {
-    transform: scaleX(1);
-    opacity: 0;
+    transform: rotateY(-180deg);
   }
 }
 
@@ -99,7 +102,7 @@ p.sub {
   flex-direction: column;
   gap: 18px;
 }
-.opening .doc {
+.opening .book {
   --u: 2px;
 }
 .opening p {
@@ -110,8 +113,7 @@ p.sub {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ln b {
+  .turn {
     animation: none;
-    transform: none;
   }
 }
