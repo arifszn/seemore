@@ -202,24 +202,36 @@ describe('the generated index page', () => {
     const contentRoot = mkdtempSync(join(tmpdir(), 'seemore-toc-'));
     const outDir = join(contentRoot, 'dist');
     writeFileSync(join(contentRoot, 'beta.md'), '---\ntitle: Beta\ndescription: The beta docs.\n---\n\n# Beta\n');
-    writeFileSync(join(contentRoot, 'alpha.md'), '---\ntitle: Alpha\n---\n\n# Alpha\n');
+    // `History` is a renamed lucide icon, kept only as an alias export.
+    writeFileSync(join(contentRoot, 'alpha.md'), '---\ntitle: Alpha\nicon: History\n---\n\n# Alpha\n');
     mkdirSync(join(contentRoot, 'guide'));
     writeFileSync(join(contentRoot, 'guide/index.md'), '---\ntitle: Guide overview\n---\n\n# Guide\n');
     writeFileSync(join(contentRoot, 'guide/deep.md'), '---\ntitle: Deep\n---\n\n# Deep\n');
+    writeFileSync(join(contentRoot, 'guide/2026-11-17.md'), '# Notes\n');
 
     const result = await runBuild({ cwd: contentRoot, outDir });
 
     const $ = load(readFileSync(join(outDir, 'index.html'), 'utf8'));
     // The full shell, sidebar included — the generated page is laid out like any other.
     expect($('aside.seemore-sidebar').length).toBe(1);
-    expect($('.seemore-overview-card').length).toBe(4);
     const hrefs = $('article a').map((_, a) => $(a).attr('href')).get();
     // Every page is listed, in the order the sidebar shows.
-    expect(hrefs).toEqual(['/alpha', '/beta', '/guide', '/guide/deep']);
+    expect(hrefs).toEqual(['/alpha', '/beta', '/guide', '/guide/2026-11-17', '/guide/deep']);
+    // A folder's index page is its heading's link, not a card of its own.
+    expect($('.seemore-overview-section-title a').attr('href')).toBe('/guide');
+    const cards = $('.seemore-overview-card').map((_, a) => $(a).attr('href')).get();
+    expect(cards).toEqual(['/alpha', '/beta', '/guide/2026-11-17', '/guide/deep']);
     expect($('article').text()).toContain('The beta docs.');
     expect($('article').text()).not.toContain('Page not found');
+    // A frontmatter icon sits beside the title; a page without one has none.
+    expect($('.seemore-overview-card[href="/alpha"] .seemore-overview-card-title svg').length).toBe(1);
+    expect($('.seemore-overview-card[href="/beta"] svg').length).toBe(0);
+    // A date-named page reads as a date here; the page itself keeps the title from the file name.
+    expect($('.seemore-overview-card[href="/guide/2026-11-17"]').text()).toContain('17 Nov 2026');
+    const datePage = load(readFileSync(join(outDir, 'guide/2026-11-17/index.html'), 'utf8'));
+    expect(datePage('title').text()).toBe('2026 11 17 · Docs');
     // The generated page is counted with the rest.
-    expect(result.routes).toBe(5);
+    expect(result.routes).toBe(6);
 
     rmSync(contentRoot, { recursive: true, force: true });
   }, 300_000);
