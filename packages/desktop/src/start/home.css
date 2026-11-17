@@ -5,14 +5,28 @@
   user-select: none;
   cursor: default;
 }
-/* A full-height column: the header stays put and the recents list scrolls in what is left. */
+/* A full-height column: the header stays put and the recents grid scrolls in what is left. */
 .home main {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
   height: 100%;
-  max-width: 672px;
-  padding: 64px 40px 0 72px;
+  max-width: 760px;
+  padding: 56px 48px 0;
+}
+.home header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px 24px;
+}
+.home header > div:first-child {
+  flex: 1 1 240px;
+  min-width: 0;
+}
+.home header .actions {
+  flex: none;
 }
 .home h1 {
   margin: 0 0 10px;
@@ -22,7 +36,7 @@
   letter-spacing: -0.035em;
 }
 .home .lede {
-  margin: 0 0 28px;
+  margin: 0;
   font-size: 15px;
 }
 
@@ -39,10 +53,22 @@
   font-size: 14px;
   font-weight: 500;
 }
+.home .actions button.primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  /* White on the light accent; the dark accent is pale, so dark text there (8:1, not 2.5:1). */
+  color: light-dark(#fff, var(--bg));
+}
+.home .actions button.primary:hover {
+  background: color-mix(in srgb, var(--accent) 88%, var(--fg));
+}
 .home kbd {
   font-family: inherit;
   font-size: 12px;
   opacity: 0.55;
+}
+.home .primary kbd {
+  opacity: 0.75;
 }
 .home kbd:empty {
   display: none;
@@ -58,9 +84,9 @@
   font-size: 11px;
 }
 
-/* Recents */
+/* Recents: a grid of cards */
 .home h2 {
-  margin: 44px 0 10px;
+  margin: 36px 0 10px;
   font-size: 13px;
   font-weight: 600;
   color: var(--muted);
@@ -76,26 +102,42 @@
   min-height: 0;
   overflow-y: auto;
   list-style: none;
-  /* The padding keeps the hover fill and focus rings inside the scroller; the negative
-     margins put the rows back where they were. */
-  margin: 0 -12px;
-  padding: 2px 12px 32px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: max-content;
+  gap: 10px;
+  /* The padding keeps the focus rings inside the scroller; the negative margins put the
+     cards back in line with the header. */
+  margin: 0 -4px;
+  padding: 4px 4px 32px;
 }
 .home ul.more {
   mask-image: linear-gradient(to bottom, #000 calc(100% - 56px), transparent);
 }
+.home li {
+  min-width: 0;
+}
 .home li button {
   display: block;
-  width: calc(100% + 16px);
-  margin-left: -8px;
+  width: 100%;
+  min-width: 0;
   text-align: left;
-  border: 0;
-  border-radius: 6px;
-  padding: 4px 8px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px;
 }
-.home li button:hover .name,
-.home li button:focus-visible .name {
-  color: var(--accent);
+.home li button:hover,
+.home li button:focus-visible {
+  border-color: var(--accent);
+}
+.home li .icon {
+  display: block;
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 1.3;
+  stroke-linejoin: round;
 }
 .home li .name,
 .home li .path {
@@ -105,14 +147,17 @@
   white-space: nowrap;
 }
 .home li .name {
-  font-size: 12px;
-  font-weight: 500;
+  margin-top: 10px;
+  font-size: 13px;
+  font-weight: 600;
 }
 .home li .path {
-  margin-top: 1px;
-  font-size: 10.5px;
+  margin-top: 2px;
+  font-size: 11px;
   color: var(--muted);
-  opacity: 0.75;
+}
+.home li .path:empty::before {
+  content: '\00a0';
 }
 
 /* Drag and drop. Only a highlight: the drop itself is left to the browser's default, which
@@ -138,7 +183,10 @@
 
 @media (max-width: 480px) {
   .home main {
-    padding: 40px 20px 32px 44px;
+    padding: 40px 20px 0;
+  }
+  .home ul {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 @media (prefers-reduced-motion: reduce) {
