@@ -12,3 +12,10 @@ overrides:
   dompurify: '>=3.4.16'
   esbuild: '>=0.28.1 <0.29.0'
   source-map-js: '>=1.2.2'
+  # pnpm audit, Nov 2026: build and dev tools only (electron-builder, electron's downloader, vsce).
+  fast-uri: '>=3.1.9 <4.0.0'
+  undici@6: '>=6.29.1 <7.0.0'
+  undici@7: '>=7.30.1 <8.0.0'
+  brace-expansion@5: '>=5.0.12 <6.0.0'
+  markdown-it: '>=14.3.3 <15.0.0'
+  qs: '>=6.16.1 <7.0.0'

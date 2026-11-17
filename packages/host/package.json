@@ -18,9 +18,9 @@
     "seemore": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "^26.4.0",
-    "oxlint": "^1.80.0",
+    "@types/node": "^26.6.6",
+    "oxlint": "^1.94.0",
     "typescript": "5.9.3",
-    "vitest": "4.1.11"
+    "vitest": "4.1.12"
   }
 }
