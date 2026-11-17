@@ -433,6 +433,23 @@
   margin-bottom: 2.5rem;
 }
 
+/* An indigo panel image from readme-art: no frame of its own, and the PNG's white edge (kept for
+   the README) is clipped so only the rounded panel shows, in light and dark. */
+.seemore-panel p {
+  margin: 0;
+}
+
+.seemore-panel img {
+  display: block;
+  /* Wider than the column by the clipped edge, so the panel lines up with the text. */
+  width: calc(100% / 0.9438);
+  max-width: none;
+  margin: -2.316% 0 -2.316% -2.977% !important;
+  border: none !important;
+  border-radius: 0 !important;
+  clip-path: inset(3.94% 2.81% round 4.06% / 7.32%);
+}
+
 .seemore-shot img {
   display: block;
   margin: 0 !important;
