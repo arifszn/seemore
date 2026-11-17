@@ -105,20 +105,22 @@ function remarkSeemoreLLMs(this: Processor, options: SeemoreRemarkOptions): Tran
       options.onWarning(
         `Could not convert ${file.path} back to Markdown for copying (${(error as Error).message}); the raw file is copied instead.`,
       );
-      // An `html` node stringifies verbatim, so the export carries the source as written.
-      const fallback: Root = { type: 'root', children: [{ type: 'html', value: sourceOf(tree, file) }] };
+      // The stringifier slices the source by position, so an empty root spanning the page
+      // after its frontmatter exports the source as written, and the export is its only child.
+      const fallback: Root = { type: 'root', position: bodyOf(tree, file), children: [] };
       snapshot(fallback, file);
-      tree.children.unshift(...fallback.children.slice(0, -1));
+      tree.children.unshift(...fallback.children);
     }
   };
 }
 
 /** The file's text after its frontmatter block, which is metadata, not content. */
-function sourceOf(tree: Root, file: VFile): string {
-  const source = String(file.value);
+function bodyOf(tree: Root, file: VFile): NonNullable<Root['position']> {
   const yaml = tree.children[0]?.type === 'yaml' ? tree.children[0] : undefined;
-  const end = yaml?.position?.end.offset;
-  return end === undefined ? source : source.slice(end).trimStart();
+  return {
+    start: yaml?.position?.end ?? { line: 1, column: 1, offset: 0 },
+    end: tree.position?.end ?? { line: 1, column: 1, offset: String(file.value).length },
+  };
 }
 
 export interface SeemoreRehypeOptions extends SeemoreMediaOptions {
