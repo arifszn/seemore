@@ -240,6 +240,21 @@ describe('icons', () => {
     expect(icons.Home).toContain('lucide-rocket');
   });
 
+  it('resolves a renamed icon by its old name, which lucide keeps only as an alias', async () => {
+    const icons = await serializedIcons({ 'index.md': '---\ntitle: Home\nicon: History\n---\n' });
+    expect(icons.Home).toContain('<svg');
+  });
+
+  it('does not take a non-icon export for an icon', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      const icons = await serializedIcons({ 'index.md': '---\ntitle: Home\nicon: createLucideIcon\n---\n' });
+      expect(icons.Home).toBeUndefined();
+    } finally {
+      warn.mockRestore();
+    }
+  });
+
   it('resolves a folder icon from its meta.json', async () => {
     const icons = await serializedIcons({
       'guide/index.md': '---\ntitle: Guide\n---\n',
@@ -253,7 +268,7 @@ describe('icons', () => {
     try {
       const icons = await serializedIcons({ 'index.md': '---\ntitle: Home\nicon: NotAnIcon\n---\n' });
       expect(icons.Home).toBeUndefined();
-      expect(warn).toHaveBeenCalledWith('[lucide-icons-plugin] Unknown icon detected: NotAnIcon.');
+      expect(warn).toHaveBeenCalledWith('[seemore] Unknown icon "NotAnIcon": use a lucide icon name, such as BookOpen.');
     } finally {
       warn.mockRestore();
     }
