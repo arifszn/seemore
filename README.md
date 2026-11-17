@@ -39,9 +39,7 @@ AI tools write Markdown fast. They write specs, notes, guides, READMEs, and whol
 
 **seemore** points at that folder and renders it as a real site. Other docs frameworks need a project first: a scaffold, a config file, a `docs/` layout, and a build step in your repo. seemore needs only a folder that already exists. It does not move your files, and it does not need any code. If you stop using seemore, your files stay where they are.
 
-<p align="center">
-  <video src="https://github.com/user-attachments/assets/10f105c9-924e-4a89-bcba-4d46eefe928d" width="640" controls muted></video>
-</p>
+https://github.com/user-attachments/assets/7af3ad4f-bb64-4759-913e-77a4182fce90
 
 ## Quick start
 
