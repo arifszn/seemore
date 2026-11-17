@@ -9,14 +9,18 @@
   </head>
   <body class="home">
     <main>
-      <h1>seemore</h1>
-      <p class="lede">Open a folder of Markdown, or a single file, as a site.</p>
-      <div class="actions">
-        <button id="open-folder" type="button">
-          Open Folder…<kbd data-keys="shift+o"></kbd>
-        </button>
-        <button id="open-file" type="button">Open File…<kbd data-keys="o"></kbd></button>
-      </div>
+      <header>
+        <div>
+          <h1>seemore</h1>
+          <p class="lede">Open a folder of Markdown, or a single file, as a site.</p>
+        </div>
+        <div class="actions">
+          <button id="open-file" type="button">Open File…<kbd data-keys="o"></kbd></button>
+          <button id="open-folder" class="primary" type="button">
+            Open Folder…<kbd data-keys="shift+o"></kbd>
+          </button>
+        </div>
+      </header>
       <p class="drop-hint">Or drop a folder or <code>.md</code> file on this window.</p>
       <section id="recents" hidden>
         <h2>Recent</h2>

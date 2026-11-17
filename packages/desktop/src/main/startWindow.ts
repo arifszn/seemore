@@ -4,7 +4,7 @@
  * a start window's own `webContents`.
  */
 import { join } from 'node:path';
-import { BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain } from 'electron';
 import { decideNewWindow } from './policy.js';
 import type { RecentEntry } from './recents.js';
 
@@ -75,7 +75,7 @@ export function createStartWindow(actions: Pick<StartActions, 'recents' | 'onOpe
   });
 
   void window.loadFile(join(__dirname, 'index.html'), {
-    query: { recents: JSON.stringify(actions.recents()) },
+    query: { recents: JSON.stringify(actions.recents()), home: app.getPath('home') },
   });
   return window;
 }

@@ -129,7 +129,7 @@ Point seemore at any Markdown you already have: AI-written notes, project docs, 
 The preview is also an editor. Double-click any paragraph, heading, list item, quote or table cell. A small editor opens with that block's **Markdown source**: `**bold**` stays `**bold**`, links stay links, tables stay tables. Fix the text, press **Save**, and seemore writes the change to the file on disk.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/inline-editor.png" alt="seemore rendering a folder of Markdown in the browser, with a paragraph's Markdown source open in the inline editor" width="640"/>
+  <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/inline-editor.png" alt="A seemore page in a browser window, with a paragraph open in the inline editor showing its Markdown source, next to the words: Double-click a paragraph, fix it, Save." width="640"/>
 </p>
 
 Inline editing works only for local previews.
@@ -151,7 +151,7 @@ Download the app from the [download page](https://arifszn.github.io/seemore/desk
 Install **seemore** from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=arifszn.seemore-vscode) or [Open VSX](https://open-vsx.org/extension/arifszn/seemore-vscode). You get the same rendered site as a panel beside your editor, with no terminal and no browser tab to manage. The extension bundles the CLI, so nothing downloads and nothing goes on your PATH.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/vscode-extension.png" alt="VS Code with features.md open in the editor and the seemore panel beside it, rendering the same page with a paragraph's Markdown source open in the inline editor" width="640"/>
+  <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/vscode-extension.png" alt="VS Code with features.md on the left, labelled Your Markdown, and the seemore panel on the right, labelled seemore panel, rendering the same page with a paragraph open in the inline editor" width="640"/>
 </p>
 
 1. Open any Markdown file.
@@ -178,7 +178,7 @@ SEEMORE_PASSWORD='a-long-passphrase' npx seemore build
 ```
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/password-protection.png" alt="The lock screen of a password-protected seemore site: the site's icon and title above a password field and an Unlock button" width="560"/>
+  <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/password-protection.png" alt="The lock screen of a password-protected site: the site icon, the title Acme Handbook, a password field with a password typed in, and an Unlock button" width="560"/>
 </p>
 
 seemore encrypts the site content, so nobody can read a copy of the build without the password. A short password can be guessed offline, so use a long one.
@@ -225,9 +225,9 @@ export default {
 
 seemore has twelve built-in colour presets: `neutral` (default), `black`, `catppuccin`, `dusk`, `ocean`, `purple`, `ruby`, `solar`, `aspen`, `emerald`, `vitepress`, `shadcn`. Dark and light modes follow your system setting, with a toggle that remembers your choice. For anything else, put your own CSS in `css`. seemore appends it last, so it wins.
 
-| `neutral` (default) | `black` |
-| :--- | :--- |
-| <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/neutral.png" alt="neutral theme" width="100%"> | <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes/black.png" alt="black theme" width="100%"> |
+<p align="center">
+  <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/themes.png" alt="Six seemore windows in a cascade, alternating light and dark, each in a different theme: aspen, ocean, ruby, purple, catppuccin and emerald" width="640"/>
+</p>
 
 The [themes page](https://arifszn.github.io/seemore/themes) shows all twelve.
 
@@ -236,7 +236,7 @@ The [themes page](https://arifszn.github.io/seemore/themes) shows all twelve.
 Works with `.md`, `.markdown` and `.mdx`. **[Mermaid](https://mermaid.js.org)** and **[D2](https://d2lang.com)** diagrams render live in the browser, straight from a ` ```mermaid ` or ` ```d2 ` code fence:
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/diagrams.png" alt="A mermaid code fence on the Diagrams page, with the flowchart it produces below: folder of .md into seemore, then a live site and static HTML" width="640"/>
+  <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/diagrams.png" alt="A diagrams.md file with a mermaid code fence, in front of the rendered page showing the flowchart it produces: folder of .md into seemore, then live site and static HTML" width="640"/>
 </p>
 
 Reference a PDF with image syntax, and it opens inline with a download link underneath:
@@ -246,7 +246,7 @@ Reference a PDF with image syntax, and it opens inline with a download link unde
 ```
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/pdf-viewer.png" alt="A sample PDF rendered inline on the page in the browser's native PDF viewer, with a Download sample document link underneath" width="640"/>
+  <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/pdf-viewer.png" alt="The PDF viewer page: a PDF rendered inline in the browser's PDF viewer, with a Download field-notes.pdf link underneath" width="640"/>
 </p>
 
 Page order comes from a `meta.json` file, a frontmatter `order` field, or the title, checked in that order. The [content page](https://arifszn.github.io/seemore/content) renders every syntax seemore supports, live.
