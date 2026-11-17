@@ -61,7 +61,7 @@ An `.mdx` file can use these without importing anything:
 | Component | What it is |
 | --- | --- |
 | `<Callout type="warn" title="…">` | The box `:::note` produces. `type` is `info`, `warn`, `error`, `success` or `idea` |
-| `<Card>`, `<Cards>` | The link cards the generated index page is built from |
+| `<Card>`, `<Cards>` | Link cards, one per linked page, laid out in a grid |
 | `<CodeBlockTabs>` | One code block per tab: npm, pnpm, yarn, bun |
 | `<Mermaid>`, `<D2>` | What a ` ```mermaid ` or ` ```d2 ` code fence compiles to. You can also use it directly |
 | `<Pdf>` | The viewer a linked PDF opens in |
@@ -113,7 +113,7 @@ Numbered headings become a numbered sequence, with the rule and the marker drawn
 | `guide/index.md` | `/guide` |
 | `guide/Deep Dive.md` | `/guide/deep-dive` |
 
-Both `/guide` and `/guide/` work on every host. If nothing claims `/`, with no root `index.md` and no root `README.md`, seemore generates the home page for you: a card grid of every page in the site. In any one directory, `index.md` wins over `README.md`. seemore warns and names the file it ignored. Two different files that slugify to the same address cause a build error naming both.
+Both `/guide` and `/guide/` work on every host. If nothing claims `/`, with no root `index.md` and no root `README.md`, seemore generates the home page for you: a card for every page in the site, grouped by folder. In any one directory, `index.md` wins over `README.md`. seemore warns and names the file it ignored. Two different files that slugify to the same address cause a build error naming both.
 
 ## Ordering
 

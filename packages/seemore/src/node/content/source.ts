@@ -1,6 +1,7 @@
 import { dynamicLoader } from 'fumadocs-core/source';
-import { lucideIconsPlugin } from 'fumadocs-core/source/plugins/lucide-icons';
-import type { Root } from 'fumadocs-core/page-tree';
+import { visit, type Root } from 'fumadocs-core/page-tree';
+import { renderToString } from 'react-dom/server';
+import { iconsPlugin } from './icons.js';
 import { scan, type ContentPage, type ScanOptions, type ScanResult } from './scan.js';
 
 export interface SeemoreSource {
@@ -36,7 +37,7 @@ export function createSource(options: ScanOptions): SeemoreSource {
         cached = undefined;
       },
     },
-    { baseUrl: '/', plugins: [lucideIconsPlugin()] },
+    { baseUrl: '/', plugins: [iconsPlugin()] },
   );
 
   return {
@@ -53,7 +54,27 @@ export function createSource(options: ScanOptions): SeemoreSource {
     },
     async serializeTree() {
       const output = await loader.get();
-      return output.serializePageTree(output.getPageTree());
+      return serializePageTree(output.getPageTree());
     },
+  };
+}
+
+/**
+ * fumadocs' `serializePageTree`, with `react-dom/server` imported here rather than on first
+ * call. React picks its development or production build from `NODE_ENV` when it first loads;
+ * `vite build` sets `NODE_ENV=production` after `react` has already loaded, so fumadocs' lazy
+ * import got the production renderer for development React, and any icon crashed the build.
+ * Imported together, the two always match. The output is what `deserializePageTree` reads.
+ */
+function serializePageTree(tree: Root): { $fumadocs_loader: 'page-tree'; data: Root } {
+  return {
+    $fumadocs_loader: 'page-tree',
+    data: visit(tree, (node) => {
+      const copy = { ...node };
+      if ('icon' in copy && copy.icon !== undefined && copy.icon !== null) copy.icon = renderToString(copy.icon);
+      if ('name' in copy && copy.name !== undefined && copy.name !== null) copy.name = renderToString(copy.name);
+      if ('children' in copy) copy.children = [...copy.children];
+      return copy;
+    }),
   };
 }

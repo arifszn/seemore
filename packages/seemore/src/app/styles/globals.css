@@ -297,42 +297,95 @@
     @apply mt-auto flex flex-wrap gap-4 border-t border-fd-border pt-6 text-sm text-fd-muted-foreground;
   }
 
-  /* The generated index page: pages as cards, folders as titled sections of cards. */
+  /* The generated index page: the site's title over a rule, then pages as text cards and
+     folders as headed sections of them. The list sits outside `prose`, so headings, links and
+     paragraphs here take only the styles below. */
+
+  .seemore-overview-header {
+    @apply border-b border-fd-border pb-5;
+  }
+
+  .seemore-overview-header > h1 {
+    @apply mb-2;
+  }
+
+  .seemore-overview-header > p {
+    @apply my-0 text-fd-muted-foreground;
+  }
+
+  .seemore-overview {
+    @apply mt-8;
+  }
 
   .seemore-overview-grid {
-    @apply mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2;
+    @apply grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3;
+  }
+
+  .seemore-overview-section > .seemore-overview-grid {
+    @apply mt-4;
+  }
+
+  /* Pages that follow a folder: a rule above sets them apart from it. */
+  .seemore-overview-grid-separated {
+    @apply mt-12 border-t border-fd-border pt-8;
   }
 
   .seemore-overview-card {
-    @apply flex flex-col gap-1.5 rounded-xl border border-fd-border bg-fd-card p-4 no-underline transition-colors hover:border-fd-primary/60;
-  }
-
-  .seemore-overview-card-row {
-    @apply flex items-center justify-between gap-3;
+    @apply flex min-h-28 min-w-0 flex-col justify-between gap-4 rounded-lg border border-fd-border bg-fd-card px-5 py-4 transition-colors hover:border-fd-muted-foreground;
   }
 
   .seemore-overview-card-title {
-    @apply font-semibold text-fd-card-foreground;
+    @apply flex min-w-0 items-center gap-2 font-medium text-fd-card-foreground;
   }
 
-  .seemore-overview-card-icon {
-    @apply size-4 shrink-0 text-fd-muted-foreground transition-all group-hover:translate-x-0.5 group-hover:text-fd-primary;
+  /* A frontmatter `icon` arrives as lucide's 24px svg; here it sits beside the title. */
+  .seemore-overview-card-title svg {
+    @apply size-4 shrink-0 text-fd-muted-foreground;
   }
 
   .seemore-overview-card-description {
     @apply text-sm text-fd-muted-foreground;
   }
 
+  .seemore-overview-card-url {
+    @apply truncate font-mono text-xs text-fd-muted-foreground;
+  }
+
   .seemore-overview-section {
-    @apply mt-10;
+    @apply mt-12;
+  }
+
+  .seemore-overview-section .seemore-overview-section {
+    @apply mt-8;
   }
 
   .seemore-overview-section-title {
-    @apply text-fd-foreground;
+    @apply flex flex-wrap items-center gap-x-2 text-base font-semibold text-fd-foreground;
+  }
+
+  /* Only the top-level headings are ruled; nested ones are smaller and plain. */
+  .seemore-overview > .seemore-overview-section > .seemore-overview-section-title {
+    @apply border-b border-fd-border pb-3 text-xl;
+  }
+
+  .seemore-overview-section-trail {
+    @apply font-normal text-fd-muted-foreground;
+  }
+
+  .seemore-overview-section-link {
+    @apply inline-flex items-center gap-2;
+  }
+
+  .seemore-overview-section-link svg {
+    @apply size-4 text-fd-muted-foreground transition-transform;
+  }
+
+  .seemore-overview-section-link:hover svg {
+    @apply translate-x-0.5 text-fd-foreground;
   }
 
   .seemore-overview-section-description {
-    @apply mt-1 text-sm text-fd-muted-foreground;
+    @apply mt-2.5 text-sm text-fd-muted-foreground;
   }
 
   .seemore-back-to-top {
@@ -597,6 +650,13 @@
    utilities layer. A table follows GitHub instead: as wide as its content, capped at the
    column, so two short columns do not stretch across the page. Digits are fixed-width, so
    numbers in a column line up. */
+/* Unlayered, for the same reason: fumadocs sizes each page-tree name to its sidebar row with
+   an unlayered `width: 100%`. On the generated index, names sit inline in headings, where a
+   full-width name pushes the folded path ("2025 / Q4") onto separate lines. */
+.seemore-overview .fd-page-tree-item-name {
+  width: auto;
+}
+
 .seemore-article table {
   width: max-content;
   max-width: 100%;

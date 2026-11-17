@@ -1,6 +1,7 @@
 import type * as PageTree from 'fumadocs-core/page-tree';
 import { TreeContextProvider } from 'fumadocs-ui/contexts/tree';
 import { SidebarProvider } from 'fumadocs-ui/components/sidebar/base';
+import { isValidElement } from 'react';
 import { ArrowRight, Pencil } from 'lucide-react';
 import { config } from 'virtual:seemore/config';
 import type { RouteEntry } from '../../shared/types.js';
@@ -8,6 +9,7 @@ import { usePageModule } from '../lib/pages.js';
 import { useRouteUrl } from '../router.js';
 import { feature } from '../lib/features.js';
 import { pruneTree, usePageTree } from '../lib/tree.js';
+import { dateTitle } from '../lib/date-title.js';
 import { mdxComponents } from '../mdx/components.js';
 import { usePrefetch } from '../features/prefetch.js';
 import { PagePreview } from '../features/preview.js';
@@ -164,9 +166,13 @@ export function Overview() {
 
         <main className="seemore-main">
           <article className="seemore-article prose">
-            <h1>{config.title}</h1>
-            {config.description !== undefined ? <p>{config.description}</p> : undefined}
-            <OverviewSections nodes={tree.children} />
+            <header className="seemore-overview-header">
+              <h1>{config.title}</h1>
+              {config.description !== undefined ? <p>{config.description}</p> : undefined}
+            </header>
+            <div className="seemore-overview not-prose">
+              <OverviewSections nodes={tree.children} />
+            </div>
           </article>
 
           <SiteFooter />
@@ -185,7 +191,16 @@ type Segment = { pages: PageTree.Item[] } | { folder: PageTree.Folder };
 /** h2 at the top level, one step smaller per nesting level, capped at h6. */
 const SECTION_HEADING_TAGS = ['h2', 'h3', 'h4', 'h5', 'h6'] as const;
 
-function OverviewSections({ nodes, depth = 0 }: { nodes: PageTree.Node[]; depth?: number }) {
+function OverviewSections({
+  nodes,
+  depth = 0,
+  trail = [],
+}: {
+  nodes: PageTree.Node[];
+  depth?: number;
+  /** Names of the folders folded into this level's headings, outermost first. */
+  trail?: React.ReactNode[];
+}) {
   const segments: Segment[] = [];
   for (const node of nodes) {
     if (node.type === 'page') {
@@ -201,49 +216,110 @@ function OverviewSections({ nodes, depth = 0 }: { nodes: PageTree.Node[]; depth?
 
   return (
     <>
-      {segments.map((segment, index) =>
-        'pages' in segment ? (
-          <OverviewGrid key={index} pages={segment.pages} />
-        ) : (
+      {segments.map((segment, index) => {
+        if ('pages' in segment) {
+          // Pages after a folder are set apart, so they do not read as that folder's last pages.
+          return <OverviewGrid key={index} pages={segment.pages} separated={index > 0} />;
+        }
+
+        const { folder } = segment;
+        const indexPage = folderIndex(folder);
+        const children = folder.children.filter((child) => child !== indexPage);
+        const description = folder.description ?? indexPage?.description;
+        // A nested folder holding only folders adds nothing but a heading: its name moves into
+        // its children's headings instead ("2025 / Q4"). One with a description keeps its section.
+        if (
+          depth > 0 &&
+          indexPage === undefined &&
+          !hasText(description) &&
+          children.every((child) => child.type === 'folder')
+        ) {
+          return (
+            <OverviewSections key={index} nodes={children} depth={depth} trail={[...trail, folder.name]} />
+          );
+        }
+
+        return (
           <section key={index} className="seemore-overview-section">
-            <Heading className="seemore-overview-section-title">{segment.folder.name}</Heading>
-            {typeof segment.folder.description === 'string' && segment.folder.description !== '' ? (
-              <p className="seemore-overview-section-description">{segment.folder.description}</p>
+            <Heading className="seemore-overview-section-title">
+              {trail.map((name, i) => (
+                <span key={i} className="seemore-overview-section-trail">
+                  {name} /
+                </span>
+              ))}
+              {/* A folder with an index page links to it here, instead of listing it as a card. */}
+              {indexPage === undefined ? (
+                folder.name
+              ) : (
+                <a href={indexPage.url} className="seemore-overview-section-link">
+                  {folder.name}
+                  <ArrowRight aria-hidden="true" />
+                </a>
+              )}
+            </Heading>
+            {hasText(description) ? (
+              <p className="seemore-overview-section-description">{description}</p>
             ) : undefined}
-            {/* A folder stands for its index page when it has one, and lists the rest under it. */}
-            <OverviewSections
-              nodes={
-                segment.folder.index === undefined
-                  ? segment.folder.children
-                  : [segment.folder.index, ...segment.folder.children]
-              }
-              depth={depth + 1}
-            />
+            <OverviewSections nodes={children} depth={depth + 1} />
           </section>
-        ),
-      )}
+        );
+      })}
     </>
   );
 }
 
-function OverviewGrid({ pages }: { pages: PageTree.Item[] }) {
+function OverviewGrid({ pages, separated }: { pages: PageTree.Item[]; separated: boolean }) {
   if (pages.length === 0) return undefined;
 
   return (
-    <div className="seemore-overview-grid">
+    <div className={separated ? 'seemore-overview-grid seemore-overview-grid-separated' : 'seemore-overview-grid'}>
       {pages.map((page) => (
-        <a key={page.url} href={page.url} className="seemore-overview-card group">
-          <span className="seemore-overview-card-row">
-            <span className="seemore-overview-card-title">{page.name}</span>
-            <ArrowRight className="seemore-overview-card-icon" aria-hidden="true" />
+        <a key={page.url} href={page.url} className="seemore-overview-card">
+          <span className="seemore-overview-card-title">
+            {page.icon}
+            {dateTitle(page.url, nameText(page.name)) ?? page.name}
           </span>
-          {typeof page.description === 'string' && page.description !== '' ? (
+          {hasText(page.description) ? (
             <span className="seemore-overview-card-description">{page.description}</span>
-          ) : undefined}
+          ) : (
+            <span className="seemore-overview-card-url">{page.url}</span>
+          )}
         </a>
       ))}
     </div>
   );
+}
+
+function hasText(value: unknown): value is string {
+  return typeof value === 'string' && value !== '';
+}
+
+/** `index.md` or `README.md` (any content extension), as the tree's `$id` names the file. */
+const INDEX_FILE = /(?:^|\/)(?:index|readme)\.(?:mdx?|markdown)$/i;
+
+/**
+ * A folder's index page. The `meta.json` seemore writes to lead a directory with its index
+ * lists that page by name, so fumadocs keeps it as an ordinary child rather than setting
+ * `folder.index`; the file name is what marks it.
+ */
+function folderIndex(folder: PageTree.Folder): PageTree.Item | undefined {
+  if (folder.index !== undefined) return folder.index;
+  return folder.children.find(
+    (child): child is PageTree.Item => child.type === 'page' && INDEX_FILE.test(child.$id ?? ''),
+  );
+}
+
+/**
+ * The plain text of a tree name. On the client, fumadocs turns each name into a span that
+ * carries it as HTML; elsewhere it is still the string.
+ */
+function nameText(name: React.ReactNode): string | undefined {
+  if (typeof name === 'string') return name;
+  if (isValidElement<{ dangerouslySetInnerHTML?: { __html?: unknown } }>(name)) {
+    const html = name.props.dangerouslySetInnerHTML?.__html;
+    if (typeof html === 'string') return html;
+  }
+  return undefined;
 }
 
 function joinUrl(base: string, path: string): string {
