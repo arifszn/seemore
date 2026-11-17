@@ -200,9 +200,11 @@
   outline-offset: -4px;
 }
 
+/* Each poster's own background colour, so the video never shows through while the image loads. */
 .seemore-poster {
   position: absolute;
   inset: 0;
+  background-color: #efeff3;
   background-size: cover;
   background-position: center;
 }
@@ -214,6 +216,7 @@
 
 .dark .seemore-poster-dark {
   display: block;
+  background-color: #18181b;
 }
 
 .seemore-video-play {

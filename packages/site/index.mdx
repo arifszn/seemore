@@ -34,7 +34,7 @@ export function HeroVideo() {
   };
   return (
     <div className="seemore-shot seemore-shot--video seemore-hero-video">
-      <video ref={video} src={promo} controls={started} muted playsInline preload="metadata"></video>
+      <video ref={video} src={promo} controls={started} muted playsInline preload="none"></video>
       {!started && (
         <button type="button" className="seemore-video-cover" aria-label="Play the seemore video" onClick={play}>
           <span className="seemore-poster seemore-poster-light" style={{ backgroundImage: `url(${poster})` }}></span>
