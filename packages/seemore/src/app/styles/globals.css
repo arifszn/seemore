@@ -257,6 +257,12 @@
       @apply max-w-none;
     }
 
+    /* The generated index has no TOC to balance and no wide blocks, so it keeps its usual
+       column, centred on the viewport. */
+    :root[data-sidebar-collapsed='true'] .seemore-main:has(.seemore-overview) {
+      @apply max-w-3xl;
+    }
+
     :root[data-sidebar-collapsed='true'] .seemore-main > :not(.seemore-article),
     :root[data-sidebar-collapsed='true']
       .seemore-article
