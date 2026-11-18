@@ -147,6 +147,32 @@ describe('the export toc', () => {
   });
 });
 
+describe('seemore export of a <Term>', () => {
+  let site: string;
+
+  beforeAll(() => {
+    site = mkdtempSync(join(tmpdir(), 'seemore-export-term-'));
+    writeFileSync(join(site, 'index.mdx'), '# Home\n\nThe <Term tip="Most people live there.">populous</Term> country.\n');
+  });
+
+  afterAll(() => {
+    rmSync(site, { recursive: true, force: true });
+  });
+
+  it('keeps the hint in the article, hidden, with the runtime that opens it', async () => {
+    const outFile = join(site, 'out', 'index.html');
+    await runExport({ cwd: site, file: 'index.mdx', outFile });
+
+    const $ = load(readFileSync(outFile, 'utf8'));
+    const trigger = $('p .seemore-term button.seemore-term-trigger');
+    expect(trigger.text()).toBe('populous');
+    const tip = $(`[id="${trigger.attr('aria-describedby')}"]`);
+    expect(tip.attr('hidden')).toBeDefined();
+    expect(tip.text()).toBe('Most people live there.');
+    expect($('script').last().text()).toContain('seemore-term-trigger');
+  });
+});
+
 describe('seemore export --root and --out-file', () => {
   let site: string;
 

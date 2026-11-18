@@ -1,5 +1,6 @@
 import { config } from 'virtual:seemore/config';
 import { THEME_INIT, THEME_TOGGLE } from './themeToggle.js';
+import { bindTerms } from '../features/terms.js';
 
 /**
  * The single-page export: the article you are reading, in one HTML file that renders
@@ -304,6 +305,9 @@ function escapeHtml(text: string): string {
  *
  * `standalone.ts`'s `bindBehaviors` is a hand-written twin of this string (see its file
  * header) — any behavior added or changed here needs the same change made there.
+ *
+ * `<Term>` hints are not twinned: `bindTerms` is the live site's own function, inlined from
+ * its source (`TERMS_RUNTIME`), which is why it has to stay self-contained.
  */
 const RUNTIME = `(function () {
   var root = document.documentElement;
@@ -412,6 +416,8 @@ const RUNTIME = `(function () {
   });
 })();`;
 
+const TERMS_RUNTIME = `(${bindTerms.toString()})(document);`;
+
 /** The root attributes that still mean something once the page is a standalone file. */
 const KEPT_ROOT_ATTRIBUTES = new Set(['lang', 'dir', 'class']);
 
@@ -456,6 +462,7 @@ function buildExportHtml(article: Element, css: string, remoteLinks: string, fav
     `<main class="seemore-export-main">${article.outerHTML}</main>`,
     THEME_TOGGLE,
     `<script>${RUNTIME}</script>`,
+    `<script>${TERMS_RUNTIME}</script>`,
     '</body>',
     '</html>',
   ]

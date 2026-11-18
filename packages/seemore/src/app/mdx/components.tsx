@@ -9,6 +9,7 @@ import { feature } from '../lib/features.js';
 import { D2 } from './D2.js';
 import { Mermaid } from './Mermaid.js';
 import { Pdf } from './Pdf.js';
+import { Term } from './Term.js';
 
 /**
  * Internal links go through React Router so navigation stays client-side.
@@ -87,4 +88,5 @@ export const mdxComponents = {
   // Our own `remarkSeemoreD2` does the same for ```d2 fences.
   D2,
   Pdf,
+  Term,
 };

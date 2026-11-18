@@ -12,7 +12,12 @@
  * in `exportPage.ts`): it needs no diagram half, because its diagrams are already SVG when
  * the export runs. Keep the two in sync — adding, removing or changing a behavior in one
  * `bindBehaviors`/`RUNTIME` requires the identical change in the other.
+ *
+ * `<Term>` hints are the exception: `bindTerms` is one function shared by the live site and
+ * both exports, so it needs no twin.
  */
+
+import { bindTerms } from '../features/terms.js';
 
 const isDark = (): boolean => document.documentElement.classList.contains('dark');
 
@@ -182,6 +187,7 @@ function bindBehaviors(): void {
 
 function main(): void {
   bindBehaviors();
+  bindTerms(document);
   void renderDiagrams();
 }
 

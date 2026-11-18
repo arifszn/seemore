@@ -414,6 +414,31 @@
     @apply line-clamp-6 opacity-80;
   }
 
+  /* <Term>: a dotted underline, as Wikipedia marks a link with a preview, and a hint styled
+     like the page preview above. The trigger is a button for keyboard and touch, made to
+     read as the text it wraps. */
+  .seemore-term-trigger {
+    @apply cursor-help border-b border-dotted border-fd-muted-foreground text-inherit;
+    font: inherit;
+  }
+
+  .seemore-term-trigger:hover,
+  .seemore-term-trigger[aria-expanded='true'] {
+    @apply border-fd-foreground;
+  }
+
+  .seemore-term-tip {
+    @apply fixed z-50 flex w-max max-w-[min(320px,calc(100vw-16px))] flex-col gap-3 rounded-xl border border-fd-border bg-fd-popover p-4 text-sm font-normal leading-relaxed text-fd-popover-foreground shadow-lg;
+  }
+
+  .seemore-term-tip[hidden] {
+    display: none;
+  }
+
+  .seemore-term-image {
+    @apply m-0 max-h-48 w-full rounded-lg object-contain;
+  }
+
   .seemore-loading {
     @apply min-h-[50vh];
   }
@@ -896,6 +921,7 @@
   .seemore-page-actions,
   .seemore-selection-copy,
   .seemore-preview,
+  .seemore-term-tip,
   .seemore-export-theme-toggle,
   .seemore-export-overlay {
     display: none !important;

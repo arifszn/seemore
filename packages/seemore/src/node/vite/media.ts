@@ -18,6 +18,8 @@ const MEDIA: Record<string, readonly string[]> = {
   audio: ['src'],
   source: ['src'],
   track: ['src'],
+  // seemore's own `<Term>` (an .mdx component, so only ever met as JSX).
+  Term: ['image'],
 };
 
 interface JsxAttribute {
