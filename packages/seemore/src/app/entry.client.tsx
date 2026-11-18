@@ -6,6 +6,7 @@ import { decodePath, stripBase, toBasename } from '../shared/base.js';
 import { createRouteObjects } from './router.js';
 import { onVitePreloadError } from './lib/chunkReload.js';
 import { preloadPage } from './lib/pages.js';
+import { bindTerms } from './features/terms.js';
 import './styles/globals.css';
 
 // Vite dispatches this when a chunk preload fails and rethrows when it is not cancelled.
@@ -19,6 +20,9 @@ window.addEventListener('vite:preloadError', (event) => {
     // Storage unavailable (private mode): a reload without a guard could loop.
   }
 });
+
+// Delegated on the document, so one binding covers every page navigated to.
+bindTerms(document);
 
 const container = document.getElementById('root');
 if (container === null) throw new Error('seemore: #root is missing from the page shell.');

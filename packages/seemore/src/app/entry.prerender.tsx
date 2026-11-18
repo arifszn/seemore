@@ -93,7 +93,7 @@ function renderToHtml(element: ReactNode): Promise<{ html: string; failures: unk
  * `exportPage.ts`, which harvests it for the browser export; and the runtime that wires the
  * static markup back up (`RUNTIME` in `exportPage.ts`, `bindBehaviors` in `standalone.ts`).
  */
-const PROVIDED_COMPONENTS = 'Callout, Card, Cards, CodeBlockTabs, Mermaid, D2 and Pdf';
+const PROVIDED_COMPONENTS = 'Callout, Card, Cards, CodeBlockTabs, Mermaid, D2, Pdf and Term';
 
 /**
  * A page that threw, reported the way the rest of the build reports problems: the file it

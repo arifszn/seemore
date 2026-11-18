@@ -62,6 +62,15 @@ describe('rehypeSeemoreMedia', () => {
     expect(warnings).toEqual(['Missing asset clips/missing.png referenced by page.mdx.']);
   });
 
+  it('imports a <Term image> in a .mdx file', async () => {
+    writeFileSync(join(contentRoot, 'clips', 'map.png'), 'png');
+    const code = await run('page.mdx', 'A <Term tip="A country." image="clips/map.png">term</Term>.');
+
+    expect(code).toContain('import __seemoreMedia0 from "./clips/map.png"');
+    expect(code).toContain('image: __seemoreMedia0');
+    expect(warnings).toEqual([]);
+  });
+
   it('leaves remote and root-absolute sources alone', async () => {
     const code = await run(
       'page.md',
