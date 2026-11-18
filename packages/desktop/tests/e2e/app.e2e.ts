@@ -1,6 +1,6 @@
 import { spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, join } from 'node:path';
 import { _electron as electron, type ElectronApplication, type Page } from 'playwright';
@@ -638,6 +638,26 @@ describe('desktop app', () => {
     await page.waitForSelector('.seemore-mermaid svg', { timeout: 60_000 });
     await page.waitForSelector('.seemore-d2 svg', { timeout: 60_000 });
     expect(await page.$('.seemore-mermaid-error, .seemore-d2-error')).toBeNull();
+  });
+
+  // trim-seemore.mjs drops D2's Node wasm; build (with social cards, which load takumi-js)
+  // and export must still work.
+  it('builds with social cards and exports a D2 page with the trimmed CLI', () => {
+    const cli = join(APP_DIR, 'build', 'stage', 'seemore', 'node_modules', 'seemore', 'dist', 'cli', 'index.js');
+    writeFileSync(join(site, 'seemore.config.ts'), "export default { title: 'E2E', features: ['social.cards'] };\n");
+    writeFileSync(join(site, 'diagrams.md'), '# Diagrams\n\n```d2\nx -> y\n```\n');
+    const run = (args: string[]) => spawnSync(process.execPath, [cli, ...args], { cwd: site, encoding: 'utf8', timeout: 180_000 });
+
+    const out = join(workDir, 'dist');
+    const build = run(['build', site, '--out', out]);
+    expect(build.stderr).not.toMatch(/takumi|d2\.wasm/);
+    expect(build.status).toBe(0);
+    expect(readdirSync(join(out, 'api', 'og'), { recursive: true }).some((file) => String(file).endsWith('.png'))).toBe(true);
+
+    const file = join(workDir, 'diagrams.html');
+    const exported = run(['export', join(site, 'diagrams.md'), '--root', site, '--out-file', file]);
+    expect(exported.status).toBe(0);
+    expect(readFileSync(file, 'utf8')).toContain('<title>Diagrams · E2E</title>');
   });
 
   // Windows' packaged path (§9), run here through SEEMORE_CLI_ARCHIVE.

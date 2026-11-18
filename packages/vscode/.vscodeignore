@@ -3,6 +3,8 @@
 **/.github/**
 **/*.map
 **/*.d.ts
+**/*.d.mts
+**/*.d.cts
 
 # mermaid's `exports` map only ever resolves to dist/mermaid.core.mjs (plus its on-demand
 # dist/chunks/*). These are its `<script>`-tag UMD/IIFE bundles, unreachable through the
@@ -16,3 +18,17 @@ node_modules/mermaid/dist/mermaid.esm.min.mjs
 # GIFs are 7 MB of it, more than every native binding in here combined.
 node_modules/**/demo/**
 node_modules/**/demos/**
+
+# The extension only runs `seemore dev`. These are reached only by `seemore build`/`export`.
+# takumi-js renders social cards (`social.cards`, loaded with importOptional).
+node_modules/takumi-js/**
+node_modules/@takumi-rs/**
+# d2's Node builds. Dev aliases d2 to dist/browser/index.js, which embeds its own wasm.
+# node-cjs/index.js stays: d2BrowserEntry() finds the package with require.resolve.
+node_modules/@terrastruct/d2/dist/node-esm/**
+node_modules/@terrastruct/d2/dist/node-cjs/d2.wasm
+node_modules/@terrastruct/d2/dist/node-cjs/elk.js
+
+# Tailwind's WASI fallback. Its package has no `cpu` field, so npm installs it everywhere;
+# the oxide loader only uses it when the native binding fails to load.
+node_modules/@tailwindcss/oxide-wasm32-wasi/**
