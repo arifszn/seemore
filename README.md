@@ -21,7 +21,9 @@
     ·
     <a href="https://arifszn.github.io/seemore/desktop-app">Desktop app</a>
     ·
-    <a href="https://marketplace.visualstudio.com/items?itemName=arifszn.seemore-vscode">VS Code extension</a>
+    <a href="https://open-vsx.org/extension/arifszn/seemore-vscode">Open VSX</a>
+    ·
+    <a href="https://marketplace.visualstudio.com/items?itemName=arifszn.seemore-vscode">VS Code Marketplace</a>
     ·
     <a href="https://github.com/arifszn/seemore-skill">Agent skill</a>
   </p>
@@ -48,7 +50,7 @@ Prefer not to use a terminal? The same site is available three other ways:
 | Way | How |
 | --- | --- |
 | **[Desktop app](https://arifszn.github.io/seemore/desktop-app)** | For macOS, Windows and Linux. Open a folder or a `.md` file as a site, with an integrated terminal. No Node.js needed. |
-| **Code editor extension** | Install from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=arifszn.seemore-vscode) or [Open VSX](https://open-vsx.org/extension/arifszn/seemore-vscode) for Cursor, Antigravity and other compatible editors. The site opens in a panel beside your files. |
+| **Code editor extension** | Install from [Open VSX](https://open-vsx.org/extension/arifszn/seemore-vscode) for Cursor, Antigravity and other compatible editors, or from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=arifszn.seemore-vscode). The site opens in a panel beside your files. |
 | **[Agent skill](https://github.com/arifszn/seemore-skill)** | Ask your AI agent for a docs site, and it runs the preview, writes pages and publishes. In Claude Code: `/plugin marketplace add arifszn/seemore-skill`, then `/plugin install seemore`. |
 
 The [quick start](https://arifszn.github.io/seemore/quick-start) covers what seemore does with your folder and what to do next. The [seemore website](https://arifszn.github.io/seemore) is itself a folder of Markdown, rendered by seemore.
@@ -88,7 +90,7 @@ The app can be your default app for Markdown files, and builds or exports a site
 
 ## Code editor extension
 
-Install **seemore** from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=arifszn.seemore-vscode) or [Open VSX](https://open-vsx.org/extension/arifszn/seemore-vscode). Click the **seemore** icon on any Markdown file, and the rendered site opens beside your editor, scoped to that file's folder. The extension bundles the CLI, so there is no terminal, no `npx` and no browser tab to manage. It works in remote workspaces too.
+Install **seemore** from [Open VSX](https://open-vsx.org/extension/arifszn/seemore-vscode) or the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=arifszn.seemore-vscode). Click the **seemore** icon on any Markdown file, and the rendered site opens beside your editor, scoped to that file's folder. The extension bundles the CLI, so there is no terminal, no `npx` and no browser tab to manage. It works in remote workspaces too.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/vscode-extension.png" alt="VS Code with features.md on the left, labelled Your Markdown, and the seemore panel on the right, labelled seemore panel, rendering the same page with a paragraph open in the inline editor" width="640"/>

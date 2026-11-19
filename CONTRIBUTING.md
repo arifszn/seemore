@@ -64,7 +64,7 @@ A few things that make a pull request easy to merge:
 
 ## Releases
 
-Maintainers publish by pushing a tag: `seemore-v*` publishes the npm package, `vscode-v*` publishes the extension to the VS Code Marketplace and Open VSX, and `desktop-v*` builds the desktop app and attaches it to a GitHub release.
+Maintainers publish by pushing a tag: `seemore-v*` publishes the npm package, `vscode-v*` publishes the extension to Open VSX and the VS Code Marketplace, and `desktop-v*` builds the desktop app and attaches it to a GitHub release.
 
 ## Licence
 
