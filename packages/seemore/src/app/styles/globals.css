@@ -161,8 +161,17 @@
     @apply flex flex-col;
   }
 
+  /* Section labels (`---Label---` in meta.json, and top-level folders under
+     `navigation.sections`): a rule above each section and a heading-style label. */
   .seemore-sidebar-separator {
-    @apply mt-4 mb-1 px-3 text-xs font-medium text-fd-muted-foreground uppercase;
+    @apply mt-4 mb-1 border-t border-fd-border px-3 pt-4 text-[0.6875rem] font-semibold tracking-[0.08em] text-fd-foreground uppercase;
+  }
+
+  /* No rule above the first section. Under `navigation.sections` the label is always the first
+     child of its folder, so there it is the folder's position that counts. */
+  .seemore-sidebar-separator:first-child:not(.seemore-sidebar-folder > *),
+  .seemore-sidebar-folder:first-child > .seemore-sidebar-separator {
+    @apply mt-0 border-t-0 pt-0;
   }
 
   .seemore-sidebar-column {
