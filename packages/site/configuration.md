@@ -33,7 +33,7 @@ Once a config file exists, `title` is required. Every other option is optional. 
 | `nav` | none | Links in the header: `[{ text: 'GitHub', link: 'https://github.com/you/repo' }]` |
 | `footer` | none | A footer below every page. See [Site footer](#site-footer) |
 | `editLink` | none | Adds an "Edit this page" link. See [Edit link](#edit-link) |
-| `features` | see [Feature flags](./feature-flags.md) | Switches for navigation, table of contents, code blocks, search and more |
+| `features` | see [Feature flags](#feature-flags) | Switches for navigation, table of contents, code blocks, search and more |
 | `search` | `'static'` | Search provider. See [Search](#search) |
 | `pageActions` | `['copy-markdown', 'export-html']` | Actions in the button above each page. See [Page actions](#page-actions) |
 | `exclude` | `[]` | Glob patterns to skip. See [Which files are included](#which-files-are-included) |
@@ -65,6 +65,42 @@ export default {
 ```
 
 A mistake in the config, such as an unknown theme or two feature flags that cannot be combined, stops seemore with a message that names the option and the fix.
+
+## Feature flags
+
+Feature flags turn parts of the interface on or off. Set them on the `features` key in `seemore.config.ts`. Name only the flags you are changing, `true` to turn one on and `false` to turn it off. Every other flag keeps its default.
+
+```ts
+// seemore.config.ts
+export default {
+  title: 'My Docs',
+  features: {
+    'navigation.path': true,               // off by default → this turns it on
+    'navigation.instant.prefetch': false,  // on by default → this turns it off
+  },
+};
+```
+
+| Flag | Default | Effect |
+| --- | --- | --- |
+| `navigation.instant.prefetch` | on | Load the target page when the pointer is over a link |
+| `navigation.instant.preview` | off | Show a preview of the target page in a popover. Needs `navigation.instant.prefetch` |
+| `navigation.footer` | on | Previous and next page links. The `footer` option controls the site footer |
+| `navigation.top` | on | Back-to-top button |
+| `navigation.path` | off | Breadcrumbs |
+| `navigation.sections` | off | Top-level entries as sidebar groups |
+| `navigation.prune` | off | Render only the visible part of the sidebar, for large sites |
+| `toc.follow` | on | Keep the active heading visible in the table of contents |
+| `toc.integrate` | off | Merge the table of contents into the sidebar. Cannot be combined with `toc.follow` |
+| `content.code.copy` | on | Copy button on code blocks |
+| `content.action.edit` | on with `editLink` | "Edit this page" link. See [Edit link](#edit-link) |
+| `content.edit` | on | [Inline editing](./live-preview.md#inline-editing) in the live preview. Never part of a build |
+| `content.image.zoom` | on | Click-to-zoom on content images |
+| `search.suggest` | on | Inline query completion |
+| `search.highlight` | on | Highlight the query on the page you land on |
+| `social.cards` | off | A preview image for every page. See [Social cards](./publishing.mdx#social-cards). Cannot be combined with `auth` |
+
+A combination that cannot work stops seemore with a config error that names both flags and the fix. To use `toc.integrate`, also set `'toc.follow': false`. `social.cards` cannot be used with [password protection](./publishing.mdx#password-protection), because social cards are public images.
 
 ## Which files are included
 

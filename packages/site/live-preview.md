@@ -34,7 +34,7 @@ Fix the text and press **Save**. seemore writes the change to the file, and the 
 - To add text to the end of the file, double-click below the last block, or anywhere on an empty page.
 - Inline editing works only in the live preview. A site built with `seemore build` is static and has no editor.
 
-To turn it off, set the `content.edit` [feature flag](./feature-flags.md):
+To turn it off, set the `content.edit` [feature flag](./configuration.md#feature-flags):
 
 ```ts
 // seemore.config.ts
