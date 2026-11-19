@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { gzipSync } from 'node:zlib';
 import { createFromSource } from 'fumadocs-core/search/server';
 import { structure } from 'fumadocs-core/mdx-plugins';
+import remarkMdx from 'remark-mdx';
 import { withBase } from '../base.js';
 import { parseFrontmatter } from '../content/frontmatter.js';
 import type { SeemoreContext } from '../context.js';
@@ -31,13 +32,14 @@ export function toSearchableText(body: string): string {
  */
 export async function buildSearchIndex(ctx: SeemoreContext): Promise<string> {
   const loader = await ctx.source.loader.get();
-  const bodies = new Map<string, string>();
+  const bodies = new Map<string, { body: string; mdx: boolean }>();
 
   for (const page of ctx.pages()) {
     try {
       // The body only: `structure` reads plain Markdown, where a frontmatter block's closing
       // `---` turns its keys into a setext heading and lands in the index as content.
-      bodies.set(page.url, parseFrontmatter(readFileSync(page.absPath, 'utf8'), page.file).content);
+      const body = parseFrontmatter(readFileSync(page.absPath, 'utf8'), page.file).content;
+      bodies.set(page.url, { body, mdx: page.file.endsWith('.mdx') });
     } catch {
       // A file deleted between scan and index is not worth failing a dev rebuild over.
     }
@@ -45,19 +47,39 @@ export async function buildSearchIndex(ctx: SeemoreContext): Promise<string> {
 
   const server = createFromSource(loader, {
     buildIndex(page) {
-      const body = bodies.get(page.url) ?? '';
+      const { body, mdx } = bodies.get(page.url) ?? { body: '', mdx: false };
       return {
         id: page.url,
         url: withBase(ctx.config.base, page.url),
         title: typeof page.data.title === 'string' ? page.data.title : page.url,
         description: typeof page.data.description === 'string' ? page.data.description : undefined,
-        structuredData: structure(toSearchableText(body)),
+        structuredData: structureBody(toSearchableText(body), mdx),
       };
     },
   });
 
   const response = await server.staticGET();
   return await response.text();
+}
+
+/**
+ * An `.mdx` page is parsed as MDX, so its imports, exports and JSX attributes are syntax
+ * rather than text. Read as plain Markdown, a component's source lands in the index, and the
+ * search dialog renders result text as HTML: a `<video ref={video}>` there becomes an element
+ * with a string `ref`, which crashes React.
+ *
+ * A page that does not parse as MDX fails its own compile with a clearer error; here it
+ * falls back to plain Markdown so a half-typed edit does not take dev search down.
+ */
+function structureBody(body: string, mdx: boolean): ReturnType<typeof structure> {
+  if (mdx) {
+    try {
+      return structure(body, [remarkMdx]);
+    } catch {
+      // Fall through.
+    }
+  }
+  return structure(body);
 }
 
 export interface IndexSize {

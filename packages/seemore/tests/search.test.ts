@@ -47,6 +47,22 @@ describe('search index', () => {
     expect(index).not.toContain('secretkey');
   });
 
+  // The search dialog renders result text as HTML, so a component's source in the index
+  // became a live element: `<video ref={video}>` with a string ref crashed the dialog.
+  it('keeps the imports, exports and comments of an .mdx page out of the index', async () => {
+    const contentRoot = fixture({
+      'a.mdx':
+        "---\ntitle: A\n---\n\nimport { useRef } from 'react';\n\nexport function Hero() {\n  const video = useRef(null);\n  return <video ref={video} />;\n}\n\n# A\n\nVisible prose.\n\n{/* hidden note */}\n",
+    });
+    const ctx = createContext({ config: resolveConfig({}, { root: contentRoot }), contentRoot });
+
+    const index = await buildSearchIndex(ctx);
+    expect(index).toContain('Visible prose');
+    for (const code of ['useRef', 'ref={video}', 'export function', 'hidden note']) {
+      expect(index).not.toContain(code);
+    }
+  });
+
   // fumadocs-core 16.15's stringifier recursed forever on strong and emphasis under
   // mdast-util-to-markdown 2.2, failing every dev search and build with such a page.
   it('indexes strong, emphasis and strikethrough text', async () => {
