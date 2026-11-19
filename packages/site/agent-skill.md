@@ -54,6 +54,10 @@ Add a page about how deploys work, and put it after the getting-started page
 Publish this to GitHub Pages behind a password
 ```
 
-Or call the skill by name: `/seemore:seemore` in Claude Code, `seemore` in other agents.
+Or call the skill by name:
+
+```
+/seemore
+```
 
 The agent needs [Node.js](https://nodejs.org) 22 or newer on your machine. If Node is missing, the skill tells you, because installing it is the one step it does not do for you. Publishing can also need a one-time login to the host, which you do in your own terminal.
