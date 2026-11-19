@@ -61,8 +61,8 @@ The [quick start](https://arifszn.github.io/seemore/quick-start) covers what see
 - **[Static build](https://arifszn.github.io/seemore/publishing)**: `seemore build` prerenders every page to HTML, ready for any static host
 - **[Password protection](https://arifszn.github.io/seemore/publishing#password-protection)**: encrypt the built site behind one shared password, with no server
 - **[Page actions](https://arifszn.github.io/seemore/publishing#share-a-single-page)**: copy a page as Markdown, or export it as one self-contained HTML file for Slack, email or an AI chat
-- **[Search](https://arifszn.github.io/seemore/configuration#search)**: static full-text search with no server and no account, with shareable highlighted results. [Algolia](https://algolia.com) and [Orama Cloud](https://orama.com) drop in when you want a hosted index
-- **[Rich Markdown](https://arifszn.github.io/seemore/content)**: GitHub Flavoured Markdown and alerts, `[[wikilinks]]`, [Mermaid](https://mermaid.js.org) and [D2](https://d2lang.com) diagrams, click-to-zoom images, embedded PDFs
+- **[Search](https://arifszn.github.io/seemore/configuration#search)**: static full-text search with no server and no account, with shareable highlighted results. Algolia and Orama Cloud drop in when you want a hosted index
+- **[Rich Markdown](https://arifszn.github.io/seemore/content)**: GitHub Flavoured Markdown and alerts, `[[wikilinks]]`, Mermaid and D2 diagrams, click-to-zoom images, embedded PDFs
 - **[Full MDX](https://arifszn.github.io/seemore/content#components)**: `.mdx` pages take real JSX, your own React components and CSS
 - **[12 themes](https://arifszn.github.io/seemore/themes)**: dark and light follow the system, with a toggle that remembers your choice. Your own CSS always wins
 
