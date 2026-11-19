@@ -5,6 +5,14 @@ import type { ResolvedSeemoreConfig } from './config/schema.js';
 import { toPosix } from './content/slug.js';
 import type { WarningCollector } from './report.js';
 
+/**
+ * True for a favicon given as a remote or `data:` URL. A Windows drive path (`D:\icon.svg`)
+ * also starts with a letter and a colon, so it would pass for a URL scheme without the check.
+ */
+export function isRemoteFavicon(favicon: string): boolean {
+  return isRemoteHref(favicon) && !/^[a-z]:[\\/]/i.test(favicon);
+}
+
 export type Favicon =
   /** A remote or `data:` URL, linked as written. */
   | { href: string; file?: undefined; path?: undefined }
@@ -21,7 +29,7 @@ export type Favicon =
 export function resolveFavicon(config: ResolvedSeemoreConfig, warnings?: WarningCollector): Favicon | undefined {
   const favicon = config.favicon;
   if (favicon === undefined) return undefined;
-  if (isRemoteHref(favicon)) return { href: favicon };
+  if (isRemoteFavicon(favicon)) return { href: favicon };
 
   if (!existsSync(favicon) || !statSync(favicon).isFile()) {
     warnings?.add(`The favicon named by \`favicon\` was not found: ${favicon}`);

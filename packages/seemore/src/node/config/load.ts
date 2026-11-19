@@ -2,7 +2,8 @@ import { existsSync } from 'node:fs';
 import { dirname, isAbsolute, resolve } from 'node:path';
 import { createJiti } from 'jiti';
 import { z } from 'zod';
-import { isRemoteHref, normaliseBase } from '../base.js';
+import { normaliseBase } from '../base.js';
+import { isRemoteFavicon } from '../favicon.js';
 import { FEATURES, resolveFeatures, type FeaturesInput, type ResolvedFeatures } from './features.js';
 import { CONFIG_NAMES } from './names.js';
 import { configSchema, THEMES, type SeemoreConfig, type ResolvedSeemoreConfig, type SearchConfig } from './schema.js';
@@ -45,7 +46,7 @@ export function resolveConfig(
   return {
     title,
     description: parsed.description,
-    favicon: parsed.favicon === undefined || isRemoteHref(parsed.favicon) ? parsed.favicon : resolveFrom(options.root, parsed.favicon),
+    favicon: parsed.favicon === undefined || isRemoteFavicon(parsed.favicon) ? parsed.favicon : resolveFrom(options.root, parsed.favicon),
     base: normaliseBase(parsed.base),
     url: normaliseUrl(parsed.url),
     theme: parsed.theme,
