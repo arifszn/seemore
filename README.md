@@ -174,7 +174,7 @@ export default {
 };
 ```
 
-The [configuration](https://arifszn.github.io/seemore/configuration) page lists every option, including the [feature flags](https://arifszn.github.io/seemore/configuration#feature-flags) for breadcrumbs, prefetching, the table of contents and more.
+The [configuration](https://arifszn.github.io/seemore/configuration) page lists every option, including the feature flags for breadcrumbs, prefetching, the table of contents and more.
 
 ## CLI
 
