@@ -116,9 +116,6 @@ npx seemore build  # static export to dist/ for any host
 
 The result is a `dist/` folder of plain web files. Drop it on [Netlify](https://netlify.com), [Surge](https://surge.sh), [Cloudflare Pages](https://pages.cloudflare.com) or [GitHub Pages](https://pages.github.com), or hand it to any web host. seemore writes each host's own files for you.
 
-> [!TIP]
-> Do you publish to GitHub Pages at `username.github.io/my-repo/`, not at the root? Set the subpath once with `base: '/my-repo/'`. The [publishing guide](https://arifszn.github.io/seemore/publishing#deploy-to-github-pages) has a ready-made GitHub Actions workflow.
-
 ### Password-protect a site
 
 Add `auth: true` to `seemore.config.ts`. Set the password when you build:
