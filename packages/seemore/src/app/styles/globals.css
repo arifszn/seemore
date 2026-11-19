@@ -960,5 +960,91 @@
   }
 }
 
+/* The site error screen (`SiteError.tsx`): a crash outside page content. The header and
+   sidebar are faded shapes, not the real components, which may be what threw. */
+@layer components {
+  .seemore-site-error {
+    @apply flex min-h-screen flex-col bg-fd-background text-fd-foreground;
+  }
+
+  .seemore-site-error-bar {
+    @apply flex items-center gap-4 border-b border-fd-border px-4 py-4;
+  }
+
+  .seemore-site-error-bar span,
+  .seemore-site-error-side span {
+    @apply block h-2.5 rounded-full bg-fd-border;
+  }
+
+  .seemore-site-error-bar span:nth-child(1) {
+    @apply w-24;
+  }
+
+  .seemore-site-error-bar span:nth-child(2) {
+    @apply ms-auto w-36;
+  }
+
+  .seemore-site-error-bar span:nth-child(3) {
+    @apply w-8;
+  }
+
+  .seemore-site-error-body {
+    @apply flex flex-1;
+  }
+
+  .seemore-site-error-side {
+    @apply hidden w-64 shrink-0 flex-col gap-4 border-e border-fd-border px-6 py-8 md:flex;
+  }
+
+  .seemore-site-error-side span:nth-child(even) {
+    @apply w-3/5;
+  }
+
+  .seemore-site-error-main {
+    @apply flex min-w-0 flex-1 items-center justify-center px-4 py-16;
+  }
+
+  .seemore-site-error-box {
+    @apply flex w-full max-w-md flex-col gap-3;
+  }
+
+  .seemore-site-error-box h1 {
+    @apply text-2xl font-semibold tracking-tight text-balance;
+  }
+
+  .seemore-site-error-box p {
+    @apply text-fd-muted-foreground;
+  }
+
+  .seemore-site-error-actions {
+    @apply mt-3 flex flex-wrap items-center gap-3;
+  }
+
+  .seemore-site-error-reload,
+  .seemore-site-error-home {
+    @apply inline-flex items-center rounded-lg border px-4 py-2 text-sm font-medium transition-colors;
+  }
+
+  .seemore-site-error-reload {
+    @apply cursor-pointer border-transparent bg-fd-primary text-fd-primary-foreground hover:bg-fd-primary/90;
+  }
+
+  .seemore-site-error-home {
+    @apply border-fd-border hover:bg-fd-accent hover:text-fd-accent-foreground;
+  }
+
+  .seemore-site-error-details {
+    @apply mt-4 text-sm text-fd-muted-foreground;
+  }
+
+  .seemore-site-error-details summary {
+    @apply cursor-pointer select-none;
+  }
+
+  .seemore-site-error-details pre {
+    @apply mt-2 overflow-x-auto rounded-lg border border-fd-border bg-fd-card p-3 text-xs text-fd-foreground;
+  }
+}
+
 /* seemore:user-css — the stylesheet named by `css` in seemore.config.ts is inlined here, at
    the very end, so that it wins against everything above it. */

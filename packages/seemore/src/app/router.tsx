@@ -4,6 +4,7 @@ import { config } from 'virtual:seemore/config';
 import { decodePath } from '../shared/base.js';
 import type { RouteEntry } from '../shared/types.js';
 import { DocPage, DocsLayout, NotFound, Overview, PageError } from './layout/DocsLayout.js';
+import { SiteError } from './layout/SiteError.js';
 import { useRouteEntry } from './lib/pages.js';
 
 /** The current route URL: React Router has already removed the basename. */
@@ -39,8 +40,9 @@ function PageContent({ url, entry }: { url: string; entry: RouteEntry | undefine
 }
 
 /**
- * The only error boundary in the app. Render errors come from page content — the rest of the
- * tree is seemore's own — so this sits around the page and nothing else.
+ * The boundary around page content, where most render errors come from: it shows the reason
+ * in place of the article and keeps the header and sidebar. A crash in seemore's own layout
+ * goes past it to the route's `errorElement`, `SiteError`.
  */
 class PageErrorBoundary extends Component<
   { children: ReactNode; resetKey: string | undefined },
@@ -86,6 +88,7 @@ export function createRouteObjects(): RouteObject[] {
           </Suspense>
         </DocsLayout>
       ),
+      errorElement: <SiteError />,
     },
   ];
 }
