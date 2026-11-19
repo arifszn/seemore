@@ -475,6 +475,7 @@ export function clientConfig(ctx: SeemoreContext) {
     title: config.title,
     description: config.description,
     base: config.base,
+    url: config.auth === undefined ? config.url : undefined,
     theme: config.theme,
     features: config.features,
     nav: config.nav,
