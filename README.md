@@ -47,9 +47,9 @@ Open the address it prints. Add, rename, retitle or delete a file, and the site 
 
 Prefer not to use a terminal? The same site is available three other ways:
 
-- **[Desktop app](#desktop-app)**
-- **[Code editor extension](#code-editor-extension)**
-- **[Agent skill](#agent-skill)**
+- [Desktop app](#desktop-app)
+- [Code editor extension](#code-editor-extension)
+- [Agent skill](#agent-skill)
 
 The [quick start](https://arifszn.github.io/seemore/quick-start) covers what seemore does with your folder and what to do next. The [seemore website](https://arifszn.github.io/seemore) is itself a folder of Markdown, rendered by seemore.
 
