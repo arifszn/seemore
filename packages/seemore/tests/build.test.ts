@@ -532,7 +532,8 @@ describe('a configured favicon', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     try {
       await runBuild({ cwd: root, outDir: out });
-      expect(warn.mock.calls.flat().join('\n')).toContain(join(root, 'gone.svg'));
+      // Matched by name: on Windows the config folder is the long form of the temp path, not `root`'s short one.
+      expect(warn.mock.calls.flat().join('\n')).toMatch(/favicon` was not found: .*gone\.svg/);
       const icons = load(read(out, 'index.html'))('link[rel="icon"]');
       expect(icons.length).toBe(1);
       expect(icons.attr('href')).toMatch(/^data:/);
