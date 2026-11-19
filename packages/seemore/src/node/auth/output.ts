@@ -2,11 +2,13 @@ import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { encryptFile, isEncrypted } from '../../shared/auth/crypto.js';
 import { PUBLIC_FILES } from '../../shared/auth/files.js';
-import { toPosix } from '../content/slug.js';
 
-/** Every file a protected build may write unencrypted, relative to the output directory. */
+/**
+ * Every file a protected build may write unencrypted, relative to the output directory.
+ * `favicon` is the favicon's published path, from `resolveFavicon`.
+ */
 export function publicFiles(favicon: string | undefined): string[] {
-  return favicon === undefined ? [...PUBLIC_FILES] : [...PUBLIC_FILES, toPosix(favicon)];
+  return favicon === undefined ? [...PUBLIC_FILES] : [...PUBLIC_FILES, favicon];
 }
 
 /**

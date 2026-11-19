@@ -25,7 +25,7 @@ Once a config file exists, `title` is required. Every other option is optional. 
 | --- | --- | --- |
 | `title` | `'Docs'` without a config file | Site name in the header, the browser tab and social cards |
 | `description` | none | Site description, used as the meta description of pages without their own |
-| `favicon` | the seemore icon | The site icon |
+| `favicon` | the seemore icon | Path to the site icon, relative to the config file. The build copies it into the output |
 | `theme` | `'neutral'` | One of the twelve [themes](./themes.md) |
 | `css` | none | Path to a CSS file added after everything else, so its rules win. See [Custom CSS](./themes.md#custom-css) |
 | `base` | `'/'` | Subpath the site is served from, such as `'/my-repo/'`. See [Base path](./publishing.mdx#base-path) |

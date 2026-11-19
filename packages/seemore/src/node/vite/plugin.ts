@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { createReadStream, existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname } from 'node:path';
 import type { Plugin, ViteDevServer } from 'vite';
@@ -6,8 +6,9 @@ import { withBase } from '../base.js';
 import { loadConfig } from '../config/load.js';
 import type { SeemoreContext } from '../context.js';
 import { buildSearchIndex } from '../search/build.js';
-import { toPosix } from '../content/slug.js';
 import { canonicalise } from '../paths.js';
+import { resolveFavicon } from '../favicon.js';
+import { mimeType } from '../mime.js';
 import { appendSource, spliceSource } from '../content/edit.js';
 import type { ContentPage } from '../content/scan.js';
 import type { IncomingMessage, ServerResponse } from 'node:http';
@@ -120,8 +121,31 @@ export function seemorePlugin({ ctx, serveSearch = false }: SeemorePluginOptions
       return undefined;
     },
 
+    /**
+     * A configured favicon replaces the template's default icon rather than following it, so
+     * every page carries one icon link. `post`, so Vite does not try to resolve the href as
+     * an asset of its own: the build copies the file to that path itself.
+     */
+    transformIndexHtml: {
+      order: 'post',
+      handler(html) {
+        const favicon = resolveFavicon(ctx.config, ctx.warnings);
+        if (favicon === undefined) return html;
+        return html.replace(/<link rel="icon" href="data:[^"]*" \/>/, () => `<link rel="icon" href="${escapeAttribute(favicon.href)}" />`);
+      },
+    },
+
     configureServer(devServer) {
       server = devServer;
+
+      // The configured favicon, at the URL the build publishes it under. Without this the
+      // SPA fallback answers that URL with the app's HTML.
+      devServer.middlewares.use((req, res, next) => {
+        const favicon = resolveFavicon(ctx.config);
+        if (favicon?.file === undefined || (req.url ?? '').split('?')[0] !== favicon.href) return next();
+        res.setHeader('Content-Type', mimeType(favicon.file));
+        createReadStream(favicon.file).on('error', next).pipe(res);
+      });
 
       // Vite's own base middleware redirects "/" to the base, but not the bare base path
       // itself without its trailing slash — that falls through to its 404 instead. Registered
@@ -481,12 +505,15 @@ export function clientConfig(ctx: SeemoreContext) {
     footer: config.footer,
     editLink: config.editLink,
     pageActions: config.pageActions,
-    favicon: config.favicon === undefined ? undefined : withBase(config.base, `/${toPosix(config.favicon)}`),
     search:
       config.search.provider === 'static'
         ? { provider: 'static' as const, from: withBase(config.base, '/api/search.json') }
         : config.search,
   };
+}
+
+function escapeAttribute(value: string): string {
+  return value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 /** JSON that is always safe to paste into a module body. */

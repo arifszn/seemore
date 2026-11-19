@@ -1,13 +1,14 @@
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
-import { isAbsolute, join, relative, resolve } from 'node:path';
+import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import pc from 'picocolors';
 import { build as viteBuild } from 'vite';
 import { sealSite } from '../node/auth/build.js';
 import { readPassword } from '../node/auth/password.js';
 import { loadConfig, resolveConfigPath } from '../node/config/load.js';
 import { createContext, type SeemoreContext } from '../node/context.js';
+import { resolveFavicon } from '../node/favicon.js';
 import { normaliseBase } from '../shared/base.js';
 import { resolveContentRoot } from '../node/paths.js';
 import { applyTemplate, outputPathFor, writeHtml } from '../node/prerender/emit.js';
@@ -56,6 +57,13 @@ export async function runBuild(options: BuildOptions): Promise<{ outDir: string;
   // 1. The client bundle, which also produces the HTML template every page is injected into.
   await viteBuild(createViteConfig({ ctx, mode: 'build', outDir, auth: password !== undefined }));
   const template = readFileSync(join(outDir, 'index.html'), 'utf8');
+
+  // The configured favicon, at the path the template's icon link names.
+  const favicon = resolveFavicon(config, ctx.warnings);
+  if (favicon?.file !== undefined) {
+    mkdirSync(dirname(join(outDir, favicon.path)), { recursive: true });
+    copyFileSync(favicon.file, join(outDir, favicon.path));
+  }
 
   // 2. One HTML file per route — or, under `auth`, none: every address falls back to the one
   // lock shell, so no route publishes its slug.

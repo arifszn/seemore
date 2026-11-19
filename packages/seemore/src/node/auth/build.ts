@@ -2,10 +2,9 @@ import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { createManifest } from '../../shared/auth/crypto.js';
 import { APP_FILE, MANIFEST_FILE, WORKER_FILE } from '../../shared/auth/files.js';
-import { withBase } from '../base.js';
 import type { ResolvedSeemoreConfig } from '../config/schema.js';
-import { toPosix } from '../content/slug.js';
 import type { SeemoreContext } from '../context.js';
+import { resolveFavicon } from '../favicon.js';
 import { writeDeployArtifacts } from '../prerender/deploy.js';
 import { applyTemplate, writeHtml } from '../prerender/emit.js';
 import { bundleAuthScript } from './bundle.js';
@@ -28,13 +27,13 @@ export async function sealSite(ctx: SeemoreContext, outDir: string, template: st
 
   // The app's HTML, served by the worker for every navigation. No prerendered body — the
   // client entry renders into an empty root — and a head with nothing page-specific in it.
-  writeHtml(outDir, APP_FILE, applyTemplate(template, { html: '', head: appHead(config, template) }));
+  writeHtml(outDir, APP_FILE, applyTemplate(template, { html: '', head: appHead(config) }));
 
   const shell = renderLockShell({
     title: config.title,
     description: config.description,
     base: config.base,
-    favicon: faviconHref(config, template),
+    favicon: faviconHref(template),
     colours: shellColours(config.theme),
     script: await bundleAuthScript('lock'),
   });
@@ -45,7 +44,7 @@ export async function sealSite(ctx: SeemoreContext, outDir: string, template: st
   const { manifest, contentKey } = await createManifest({ password, id: auth.id, remember: auth.remember });
   writeFileSync(join(outDir, MANIFEST_FILE), `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');
 
-  const open = publicFiles(config.favicon);
+  const open = publicFiles(resolveFavicon(config)?.path);
   writeFileSync(
     join(outDir, WORKER_FILE),
     `var SEEMORE_AUTH=${JSON.stringify({ publicFiles: open })};\n${await bundleAuthScript('sw')}`,
@@ -57,19 +56,20 @@ export async function sealSite(ctx: SeemoreContext, outDir: string, template: st
   return encrypted;
 }
 
-/** The configured favicon, else seemore's own mark, which the app template inlines. */
-export function faviconHref(config: ResolvedSeemoreConfig, template: string): string | undefined {
-  if (config.favicon !== undefined) return withBase(config.base, `/${toPosix(config.favicon)}`);
-  return /<link rel="icon" href="(data:[^"]+)"/.exec(template)?.[1];
+/** The template's one icon: the configured favicon, else seemore's own mark. */
+export function faviconHref(template: string): string | undefined {
+  const href = /<link rel="icon" href="([^"]+)"/.exec(template)?.[1];
+  return href === undefined ? undefined : unescapeAttribute(href);
 }
 
-function appHead(config: ResolvedSeemoreConfig, template: string): string {
+function unescapeAttribute(value: string): string {
+  return value.replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+}
+
+function appHead(config: ResolvedSeemoreConfig): string {
   const tags = [`<title>${escapeHtml(config.title)}</title>`, '<meta name="robots" content="noindex, nofollow" />'];
   if (config.description !== undefined) {
     tags.push(`<meta name="description" content="${escapeHtml(config.description)}" />`);
   }
-  // The template already carries seemore's default mark; only a configured one is added.
-  const favicon = faviconHref(config, template);
-  if (config.favicon !== undefined && favicon !== undefined) tags.push(`<link rel="icon" href="${escapeHtml(favicon)}" />`);
   return tags.join('\n    ');
 }

@@ -170,6 +170,7 @@ export type SearchConfig =
 export interface ResolvedSeemoreConfig {
   title: string;
   description?: string;
+  /** Absolute path, resolved against the config file's directory, or a remote or `data:` URL as written. */
   favicon?: string;
   /** Always normalised to leading + trailing slash. */
   base: string;

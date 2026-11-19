@@ -61,7 +61,6 @@ export interface ClientConfig {
   nav?: NavItem[];
   footer?: { text?: string; links?: { text: string; link: string }[] };
   editLink?: { base: string; text: string };
-  favicon?: string;
   pageActions: ActionId[];
   search: ClientSearchConfig;
 }
