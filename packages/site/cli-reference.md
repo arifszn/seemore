@@ -1,7 +1,6 @@
 ---
 title: CLI reference
 description: Every seemore command and flag.
-order: 10
 ---
 
 # CLI reference

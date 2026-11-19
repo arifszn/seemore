@@ -1,7 +1,6 @@
 ---
 title: Code editor extension
 description: The same rendered site as a panel beside your editor.
-order: 4
 ---
 
 # Code editor extension
@@ -12,7 +11,7 @@ Install **seemore** from the [VS Code Marketplace](https://marketplace.visualstu
 2. Click the **seemore** icon in the editor's title bar, or right-click a folder in the explorer and choose **Open Folder in seemore**.
 3. The rendered site opens beside your editor, scoped to that file's folder.
 
-The panel runs the same dev server as `npx seemore`, so everything about the live preview works here too, including [editing a page's text in place](./features.md): double-click a paragraph in the panel, press **Save**, and the file beside you updates.
+The panel runs the same dev server as `npx seemore`, so everything about the [live preview](./live-preview.md) works here too, including [inline editing](./live-preview.md#inline-editing): double-click a paragraph in the panel, press **Save**, and the file beside you updates.
 
 ![VS Code with features.md on the left, labelled Your Markdown, and the seemore panel on the right, labelled seemore panel, rendering the same page with a paragraph open in the inline editor](./assets/vscode-extension.png)
 
