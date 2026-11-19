@@ -5,7 +5,7 @@ import { MemoryRouter, RouterProvider, createMemoryRouter } from 'react-router';
 import { TabsContent } from 'fumadocs-ui/components/tabs';
 import { config } from 'virtual:seemore/config';
 import { toBasename, withBase } from '../shared/base.js';
-import { ogImagePath } from '../shared/og.js';
+import { ogImageUrl } from '../shared/og.js';
 import { mdxComponents } from './mdx/components.js';
 import { createRouteObjects } from './router.js';
 import { findRoute, preloadPage, routeEntries } from './lib/pages.js';
@@ -177,8 +177,10 @@ function head(url: string): string {
   tags.push(`<meta property="og:title" content="${escapeHtml(title)}" />`);
   if (description != null) tags.push(`<meta property="og:description" content="${escapeHtml(description)}" />`);
 
-  if (config.features['social.cards']) {
-    const card = escapeHtml(withBase(config.base, ogImagePath(url)));
+  // Cards are rendered for content pages only, so the not-found shell and a generated index
+  // get no image tags rather than tags pointing at a file that is never written.
+  if (config.features['social.cards'] && entry !== undefined) {
+    const card = escapeHtml(ogImageUrl(config.url, config.base, url));
     tags.push(`<meta property="og:image" content="${card}" />`);
     tags.push(`<meta name="twitter:card" content="summary_large_image" />`);
     tags.push(`<meta name="twitter:image" content="${card}" />`);

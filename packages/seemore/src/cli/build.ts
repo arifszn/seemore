@@ -76,7 +76,12 @@ export async function runBuild(options: BuildOptions): Promise<{ outDir: string;
   if (config.search.provider !== 'static') await warnIfSearchSdkMissing(ctx, config.search.provider);
 
   // Never together with `auth`: the config loader refuses the combination.
-  if (config.features['social.cards']) await generateSocialCards(ctx, outDir);
+  if (config.features['social.cards']) {
+    await generateSocialCards(ctx, outDir);
+    if (config.url === undefined) {
+      ctx.warnings.add('`social.cards` needs `url`: without it, `og:image` is a root-relative path that link previews cannot load. Set `url` to the origin the site is served from.');
+    }
+  }
 
   // 4. Last, once every other file is written: encrypt everything that is not public.
   if (password !== undefined) {

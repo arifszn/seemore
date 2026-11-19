@@ -132,8 +132,11 @@ Without `url`, nothing is written. A password-protected site never gets a sitema
 Turn on the `social.cards` [feature flag](./configuration.md#feature-flags) and `seemore build` renders a preview image for every page, with its title and description, and adds it to the page's Open Graph tags:
 
 ```ts
+url: 'https://username.github.io',
 features: { 'social.cards': true },
 ```
+
+Link previews need an absolute image URL, so social cards also need [`url`](#sitemap). Without it, the build warns and the image tags carry a root-relative path that link previews cannot load.
 
 ## Password protection
 

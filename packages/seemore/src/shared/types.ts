@@ -56,6 +56,8 @@ export interface ClientConfig {
   title: string;
   description?: string;
   base: string;
+  /** Origin only, no trailing slash. Absent under `auth`, which ignores `url`. */
+  url?: string;
   theme: string;
   features: ResolvedFeatures;
   nav?: NavItem[];

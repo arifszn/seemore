@@ -29,7 +29,7 @@ Once a config file exists, `title` is required. Every other option is optional. 
 | `theme` | `'neutral'` | One of the twelve [themes](./themes.md) |
 | `css` | none | Path to a CSS file added after everything else, so its rules win. See [Custom CSS](./themes.md#custom-css) |
 | `base` | `'/'` | Subpath the site is served from, such as `'/my-repo/'`. See [Base path](./publishing.mdx#base-path) |
-| `url` | none | Origin the site is served from, such as `'https://you.github.io'`. Turns on `sitemap.xml`. See [Sitemap](./publishing.mdx#sitemap) |
+| `url` | none | Origin the site is served from, such as `'https://you.github.io'`. Turns on `sitemap.xml` and makes social card URLs absolute. See [Sitemap](./publishing.mdx#sitemap) |
 | `nav` | none | Links in the header: `[{ text: 'GitHub', link: 'https://github.com/you/repo' }]` |
 | `footer` | none | A footer below every page. See [Site footer](#site-footer) |
 | `editLink` | none | Adds an "Edit this page" link. See [Edit link](#edit-link) |
@@ -98,7 +98,7 @@ export default {
 | `content.image.zoom` | on | Click-to-zoom on content images |
 | `search.suggest` | on | Inline query completion |
 | `search.highlight` | on | Highlight the query on the page you land on |
-| `social.cards` | off | A preview image for every page. See [Social cards](./publishing.mdx#social-cards). Cannot be combined with `auth` |
+| `social.cards` | off | A preview image for every page. Needs `url`. See [Social cards](./publishing.mdx#social-cards). Cannot be combined with `auth` |
 
 A combination that cannot work stops seemore with a config error that names both flags and the fix. To use `toc.integrate`, also set `'toc.follow': false`. `social.cards` cannot be used with [password protection](./publishing.mdx#password-protection), because social cards are public images.
 
