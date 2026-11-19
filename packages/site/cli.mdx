@@ -1,12 +1,11 @@
 ---
-title: CLI
-description: View a folder of Markdown rendered in your browser, live.
-order: 2
+title: Command line
+description: Preview a folder of Markdown in your browser with npx seemore, live as you edit.
 ---
 
-# CLI
+# Command line
 
-## Run it yourself
+seemore needs [Node.js](https://nodejs.org) 22 or newer. Run it in your folder of Markdown files:
 
 <CodeBlockTabs defaultValue="npm">
   <CodeBlockTabsList>
@@ -18,74 +17,70 @@ order: 2
   <CodeBlockTab value="npm">
 
 ```bash
-npx seemore     # view the current folder in your browser, live, no setup
+npx seemore
 ```
 
   </CodeBlockTab>
   <CodeBlockTab value="pnpm">
 
 ```bash
-pnpm dlx seemore     # view the current folder in your browser, live, no setup
+pnpm dlx seemore
 ```
 
   </CodeBlockTab>
   <CodeBlockTab value="yarn">
 
 ```bash
-yarn dlx seemore     # view the current folder in your browser, live, no setup
+yarn dlx seemore
 ```
 
   </CodeBlockTab>
   <CodeBlockTab value="bun">
 
 ```bash
-bunx seemore     # view the current folder in your browser, live, no setup
+bunx seemore
 ```
 
   </CodeBlockTab>
 </CodeBlockTabs>
 
-Run it in your folder of Markdown files. Node.js 20 or newer is required. Open the address it prints, `http://localhost:4040` by default. Add, rename, retitle or delete a file, and the site updates at once, navigation and search included. Point it at a subfolder with `npx seemore docs` if your files live there.
+Open the address it prints, `http://localhost:4040` by default. This is the [live preview](./live-preview.md): add, rename, retitle or delete a file, and the site updates at once, navigation and search included. You can also double-click any block on the page to edit its Markdown in place.
 
-The page in front of you is also an editor. Double-click any paragraph, heading, list item or table cell to open its **Markdown source** in place. See [Features](./features.md) for the details.
+`npx` runs seemore without adding it to your project, and the preview writes nothing into your folder unless you save an inline edit.
 
-See the [CLI reference](./cli-reference.md) for every flag.
-
-## Or ask an AI agent to set it up
-
-If you would rather not run commands, use the [seemore skill](https://github.com/arifszn/seemore-skill) instead. It teaches an AI agent to do everything on this page for you: install seemore, start the preview, add and reorder pages, build, and publish.
-
-### Claude Code (Plugin Marketplace)
+## Common options
 
 ```bash
-/plugin marketplace add arifszn/seemore-skill
+npx seemore docs          # serve a subfolder instead of the current folder
+npx seemore --port 3000   # use another port
+npx seemore --open        # open a browser tab on start
+npx seemore --host        # make the preview reachable from other devices on your network
 ```
+
+## Build and export
 
 ```bash
-/plugin install seemore
+npx seemore build                 # build a static site into dist/
+npx seemore export notes/plan.md  # write plan.html, one self-contained file, next to the Markdown
 ```
 
-### Other agents (Codex, OpenCode, Antigravity, Gemini, Cursor, …)
+[Publishing](./publishing.mdx) covers hosting the build, base paths and password protection. The [CLI reference](./cli-reference.md) lists every command and flag.
 
-This is a standalone skill that works in any agent supporting the `SKILL.md` format. See [INSTALL.md](https://github.com/arifszn/seemore-skill/blob/main/INSTALL.md) for per-agent skills paths and copy-paste commands.
+## Add it to a project
 
-Or just tell your agent to install it by pasting this:
+For docs that live in a repository, add seemore as a dev dependency so everyone uses the same version:
 
-```
-Fetch and follow the install instructions from
-https://raw.githubusercontent.com/arifszn/seemore-skill/refs/heads/main/INSTALL.md
-```
-
-### Usage
-
-After you install it, describe what you want:
-
-```
-Turn this folder of notes into a docs site I can read in my browser
+```bash
+npm install --save-dev seemore
 ```
 
-Or invoke the skill by name:
+```json title="package.json"
+{
+  "scripts": {
+    "docs": "seemore docs",
+    "docs:build": "seemore build docs"
+  }
+}
+```
 
-```
-/seemore
-```
+Then `npm run docs` starts the preview and `npm run docs:build` writes `dist/`.

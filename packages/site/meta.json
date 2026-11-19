@@ -1,0 +1,20 @@
+{
+  "pages": [
+    "index",
+    "---Get started---",
+    "quick-start",
+    "desktop-app",
+    "cli",
+    "code-editor-extension",
+    "agent-skill",
+    "---Guides---",
+    "content",
+    "live-preview",
+    "publishing",
+    "themes",
+    "---Reference---",
+    "configuration",
+    "cli-reference",
+    "..."
+  ]
+}

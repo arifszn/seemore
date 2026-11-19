@@ -1,0 +1,56 @@
+---
+title: Quick start
+description: Open a folder of Markdown as a site, then edit, organise and publish it.
+---
+
+# Quick start
+
+seemore works on a folder you already have. There is nothing to create first: no project, no config file, no `docs/` layout.
+
+## 1. Open your folder
+
+Pick the way that suits you. They all render the same site.
+
+| Way | How |
+| --- | --- |
+| [Desktop app](./desktop-app.mdx) | Download it, then use **File > Open Folder**, or drag the folder onto the app. No Node.js needed. |
+| [Command line](./cli.mdx) | Run `npx seemore` in the folder, then open `http://localhost:4040`. Needs Node.js 22 or newer. |
+| [Code editor extension](./code-editor-extension.md) | Install it in VS Code, Cursor or another compatible editor, open a Markdown file and click the **seemore** icon. |
+| [Agent skill](./agent-skill.md) | Install the skill and ask your AI agent: *Turn this folder of notes into a docs site I can read in my browser.* |
+
+## 2. See what seemore made of it
+
+- Every `.md`, `.markdown` and `.mdx` file is a page, and each folder is a section in the sidebar.
+- A root `README.md` or `index.md` is the home page. With neither, seemore generates a home page with a card for every page, grouped by folder.
+- A page's title is its frontmatter `title`. Without one, seemore uses the file name: `getting-started.md` becomes **Getting Started**.
+- Search works at once. Press <kbd>⌘</kbd> <kbd>K</kbd> or <kbd>Ctrl</kbd> <kbd>K</kbd>.
+- Folders that are almost never documentation, such as `node_modules`, `dist` and dot folders, are skipped. [Configuration](./configuration.md#which-files-are-included) shows how to change that.
+
+## 3. Edit
+
+Keep editing the files in your editor, or let your AI agent write them. The site updates as each file changes, with no reload: new pages appear in the sidebar, deleted ones disappear, and search follows.
+
+To fix a typo without leaving the page, double-click any paragraph, heading, list item or table cell, edit its Markdown and press **Save**. See [Live preview and editing](./live-preview.md).
+
+## 4. Organise
+
+Pages are sorted by title. To choose the order, add `order: 1` to a page's frontmatter, or list the pages in a `meta.json` file in their folder. [Writing content](./content.mdx#ordering) has both.
+
+## 5. Publish
+
+When you want to share it, build the site:
+
+```bash
+npx seemore build
+```
+
+The result is a `dist/` folder of static files for any web host, optionally behind a password. See [Publishing](./publishing.mdx).
+
+## Next steps
+
+<Cards>
+  <Card title="Writing content" href="/content" description="Alerts, wikilinks, diagrams, code blocks, PDFs and MDX components." />
+  <Card title="Themes" href="/themes" description="Twelve built-in colour presets, and your own CSS on top." />
+  <Card title="Configuration" href="/configuration" description="Every option in seemore.config.ts. All of them are optional." />
+  <Card title="Publishing" href="/publishing" description="Static build, GitHub Pages, password protection and single-page export." />
+</Cards>

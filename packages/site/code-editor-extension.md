@@ -1,18 +1,17 @@
 ---
 title: Code editor extension
 description: The same rendered site as a panel beside your editor.
-order: 4
 ---
 
 # Code editor extension
 
-Install **seemore** from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=arifszn.seemore-vscode) or [Open VSX](https://open-vsx.org/extension/arifszn/seemore-vscode). You get the same rendered site as a panel beside your editor, with no terminal, no `npx` and no browser tab to manage. Open VSX also covers VS Code-compatible editors such as Cursor and Antigravity. The panel works in remote workspaces and Codespaces too.
+Install **seemore** from [Open VSX](https://open-vsx.org/extension/arifszn/seemore-vscode) or the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=arifszn.seemore-vscode). You get the same rendered site as a panel beside your editor, with no terminal, no `npx` and no browser tab to manage. Open VSX also covers VS Code-compatible editors such as Cursor and Antigravity. The panel works in remote workspaces and Codespaces too.
 
 1. Open any Markdown file.
 2. Click the **seemore** icon in the editor's title bar, or right-click a folder in the explorer and choose **Open Folder in seemore**.
 3. The rendered site opens beside your editor, scoped to that file's folder.
 
-The panel runs the same dev server as `npx seemore`, so everything about the live preview works here too, including [editing a page's text in place](./features.md): double-click a paragraph in the panel, press **Save**, and the file beside you updates.
+The panel runs the same dev server as `npx seemore`, so everything about the [live preview](./live-preview.md) works here too, including [inline editing](./live-preview.md#inline-editing): double-click a paragraph in the panel, press **Save**, and the file beside you updates.
 
 ![VS Code with features.md on the left, labelled Your Markdown, and the seemore panel on the right, labelled seemore panel, rendering the same page with a paragraph open in the inline editor](./assets/vscode-extension.png)
 

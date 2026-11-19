@@ -1,7 +1,6 @@
 ---
 title: Desktop app
 description: Download seemore for macOS, Windows or Linux. Open a folder or a Markdown file as a site, with an integrated terminal and no Node install.
-order: 3
 ---
 
 import { useEffect, useState } from 'react';
@@ -154,7 +153,7 @@ export function FileCard({ file, platform, title, type }) {
 
 # Desktop app
 
-Open a folder or a `.md` file as a site in its own window. An integrated terminal opens in the site's folder: run an AI agent, git or a script there, and the pages update as the files change.
+Open a folder or a `.md` file as a site in its own window. The app includes seemore itself, so there is no Node.js to install. An integrated terminal opens in the site's folder: run an AI agent, git or a script there, and the pages update as the files change.
 
 <PlatformButtons />
 
@@ -234,3 +233,16 @@ The AppImage needs FUSE 2. On Ubuntu 24.04, install it with `sudo apt install li
 </div>
 
 <p className="seemore-download-footer">All files and checksums are on the [latest release](https://github.com/arifszn/seemore/releases/latest).</p>
+
+## Using the app
+
+- **Open a folder** with **File > Open Folder**, or drag the folder onto the app. The folder becomes the site.
+- **Open a file** by double-clicking a `.md` file, or with **File > Open File**. It opens inside the site it belongs to, so its images and links to other pages work.
+- **Make seemore the default app for Markdown** when the app asks on first launch, or later from **Make seemore the Default for Markdown**, in the app menu on macOS and under **Help** on Windows and Linux. The AppImage does not offer this.
+- **Open the terminal** with **View > Terminal** or <kbd>Ctrl</kbd> <kbd>`</kbd>. It starts in the site's folder, and can hold several shells.
+- **Build the site** with **File > Build Site**. Choose the output folder and, if you need them, a base path and a password. See [Publishing](./publishing.mdx).
+- **Export the current page** as one HTML file with **File > Export Page as HTML**.
+- **Open several folders** at once, each in its own window, with **File > New Window**.
+
+The app checks for updates on its own. To check now, use **Check for Updates**, in the app menu on macOS and under **Help** on Windows and Linux.
+

@@ -18,7 +18,7 @@ Paths are where most bugs live, so mention your operating system and Node versio
 
 ## Working on the code
 
-Requires [Node.js](https://nodejs.org) 20 or newer and [pnpm](https://pnpm.io).
+Requires [Node.js](https://nodejs.org) 22 or newer and [pnpm](https://pnpm.io).
 
 ```bash
 git clone https://github.com/arifszn/seemore.git
@@ -27,12 +27,14 @@ pnpm install
 pnpm build
 ```
 
-The repo is a pnpm workspace with three packages:
+The repo is a pnpm workspace with five packages:
 
 | Package | What it is |
 | --- | --- |
 | `packages/seemore` | The CLI and the site it renders |
 | `packages/vscode` | The VS Code extension, which runs that CLI |
+| `packages/desktop` | The desktop app, which runs that CLI |
+| `packages/host` | Code shared by the extension and the desktop app. Never published |
 | `packages/site` | The documentation site, itself built with seemore |
 
 To see your changes, build the CLI and serve the docs site with it:
@@ -41,8 +43,6 @@ To see your changes, build the CLI and serve the docs site with it:
 pnpm --filter seemore build
 pnpm --filter site dev
 ```
-
-Each package has a `SPEC.md` describing how it is meant to behave. Read the relevant one before changing behaviour, and update it when the behaviour changes.
 
 ## Before opening a pull request
 
@@ -64,7 +64,7 @@ A few things that make a pull request easy to merge:
 
 ## Releases
 
-Maintainers publish by pushing a tag: `seemore-v*` publishes the npm package, `vscode-v*` publishes the extension to the VS Code Marketplace and Open VSX.
+Maintainers publish by pushing a tag: `seemore-v*` publishes the npm package, `vscode-v*` publishes the extension to Open VSX and the VS Code Marketplace, and `desktop-v*` builds the desktop app and attaches it to a GitHub release.
 
 ## Licence
 
