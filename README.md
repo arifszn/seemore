@@ -47,11 +47,9 @@ Open the address it prints. Add, rename, retitle or delete a file, and the site 
 
 Prefer not to use a terminal? The same site is available three other ways:
 
-| Way | How |
-| --- | --- |
-| **[Desktop app](https://arifszn.github.io/seemore/desktop-app)** | For macOS, Windows and Linux. Open a folder or a `.md` file as a site, with an integrated terminal. No Node.js needed. |
-| **Code editor extension** | Install from [Open VSX](https://open-vsx.org/extension/arifszn/seemore-vscode) for Cursor, Antigravity and other compatible editors, or from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=arifszn.seemore-vscode). The site opens in a panel beside your files. |
-| **[Agent skill](https://github.com/arifszn/seemore-skill)** | Ask your AI agent for a docs site, and it runs the preview, writes pages and publishes. In Claude Code: `/plugin marketplace add arifszn/seemore-skill`, then `/plugin install seemore`. |
+- [Desktop app](#desktop-app)
+- [Code editor extension](#code-editor-extension)
+- [Agent skill](#agent-skill)
 
 The [quick start](https://arifszn.github.io/seemore/quick-start) covers what seemore does with your folder and what to do next. The [seemore website](https://arifszn.github.io/seemore) is itself a folder of Markdown, rendered by seemore.
 
@@ -80,7 +78,7 @@ Inline editing works in the live preview: the command line, the desktop app and 
 
 ## Desktop app
 
-[Download the app](https://arifszn.github.io/seemore/desktop-app) for macOS, Windows or Linux. It opens a folder or a `.md` file as a site in its own window. The integrated terminal opens in the site's folder, so you can run an AI agent, git or a script next to the pages it changes.
+[Download the app](https://arifszn.github.io/seemore/desktop-app) for macOS, Windows or Linux. It opens a folder or a `.md` file as a site in its own window, and needs no Node.js. The integrated terminal opens in the site's folder, so you can run an AI agent, git or a script next to the pages it changes.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/desktop-app.png" alt="The seemore desktop app in the black theme, showing a folder of research notes as a site: a paragraph's Markdown source open in the inline editor above a flowchart, and the integrated terminal listing the folder's Markdown files" width="640"/>
@@ -90,11 +88,25 @@ The app can be your default app for Markdown files, and builds or exports a site
 
 ## Code editor extension
 
-Install **seemore** from [Open VSX](https://open-vsx.org/extension/arifszn/seemore-vscode) or the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=arifszn.seemore-vscode). Click the **seemore** icon on any Markdown file, and the rendered site opens beside your editor, scoped to that file's folder. The extension bundles the CLI, so there is no terminal, no `npx` and no browser tab to manage. It works in remote workspaces too.
+Install **seemore** from [Open VSX](https://open-vsx.org/extension/arifszn/seemore-vscode) for Cursor, Antigravity and other compatible editors, or from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=arifszn.seemore-vscode). Click the **seemore** icon on any Markdown file, and the rendered site opens beside your editor, scoped to that file's folder. The extension bundles the CLI, so there is no terminal, no `npx` and no browser tab to manage. It works in remote workspaces too.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/arifszn/seemore/main/packages/site/assets/vscode-extension.png" alt="VS Code with features.md on the left, labelled Your Markdown, and the seemore panel on the right, labelled seemore panel, rendering the same page with a paragraph open in the inline editor" width="640"/>
 </p>
+
+## Agent skill
+
+Install the [seemore agent skill](https://github.com/arifszn/seemore-skill), then ask your AI agent for a docs site. It runs the preview, writes pages and publishes. In Claude Code:
+
+```bash
+/plugin marketplace add arifszn/seemore-skill
+```
+
+```bash
+/plugin install seemore
+```
+
+For other agents, see [Agent skill](https://arifszn.github.io/seemore/agent-skill).
 
 ## Publish it
 
