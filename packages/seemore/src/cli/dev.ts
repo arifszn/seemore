@@ -1,6 +1,7 @@
 import { createServer, type ViteDevServer } from 'vite';
 import pc from 'picocolors';
 import { loadConfig, resolveConfigPath } from '../node/config/load.js';
+import { resolveFavicon } from '../node/favicon.js';
 import { createContext, type SeemoreContext } from '../node/context.js';
 import { normaliseBase } from '../shared/base.js';
 import { resolveContentRoot } from '../node/paths.js';
@@ -59,6 +60,8 @@ export async function runDev(options: DevOptions): Promise<DevServer> {
   if (scan.pages.length === 0) {
     ctx.warnings.add(`No Markdown files found under ${contentRoot}. seemore will serve an empty site until there are.`);
   }
+  // Checked here so a missing file is reported with the startup warnings, not on first request.
+  resolveFavicon(config, ctx.warnings);
 
   // Password protection is build-only: the dev server stays open, and says so once.
   if (config.auth !== undefined && options.json !== true) {

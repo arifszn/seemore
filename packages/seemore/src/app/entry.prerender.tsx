@@ -172,7 +172,6 @@ function head(url: string): string {
 
   const tags = [`<title>${escapeHtml(title)}</title>`];
   if (description != null) tags.push(`<meta name="description" content="${escapeHtml(description)}" />`);
-  if (config.favicon !== undefined) tags.push(`<link rel="icon" href="${escapeHtml(config.favicon)}" />`);
 
   tags.push(`<meta property="og:title" content="${escapeHtml(title)}" />`);
   if (description != null) tags.push(`<meta property="og:description" content="${escapeHtml(description)}" />`);

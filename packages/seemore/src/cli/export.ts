@@ -1,10 +1,12 @@
 import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync, mkdirSync } from 'node:fs';
-import { basename, dirname, extname, isAbsolute, join, relative, resolve, sep } from 'node:path';
+import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { tmpdir } from 'node:os';
 import pc from 'picocolors';
 import { build as viteBuild } from 'vite';
 import { loadConfig, resolveConfigPath } from '../node/config/load.js';
 import { createContext } from '../node/context.js';
+import { resolveFavicon, type Favicon } from '../node/favicon.js';
+import { mimeType } from '../node/mime.js';
 import { appRoot, canonicalise, resolveContentRoot } from '../node/paths.js';
 import { loadPrerenderModule } from '../node/prerender/render.js';
 import { createViteConfig } from '../node/vite/config.js';
@@ -79,8 +81,8 @@ export async function runExport(options: ExportOptions): Promise<void> {
   try {
     await viteBuild(createViteConfig({ ctx, mode: 'build', outDir }));
     const css = readBuiltCss(outDir);
-    // The template carries the site's default favicon inlined as a data URI — the same
-    // artwork the built site ships, so the exported file wants it too.
+    // The template carries the site's icon link: seemore's default inlined as a data URI,
+    // or the configured favicon: the same icon the built site ships.
     const template = readFileSync(join(outDir, 'index.html'), 'utf8');
 
     // 2. The article, rendered without a shred of layout around it.
@@ -90,7 +92,8 @@ export async function runExport(options: ExportOptions): Promise<void> {
     // 3. The diagram runtime, bundled from the same components the site itself uses.
     const runtime = await bundleRuntime();
 
-    const html = assemble({ article, css, runtime, config, outDir, contentRoot, template });
+    const favicon = resolveFavicon(config, ctx.warnings);
+    const html = assemble({ article, css, runtime, config, favicon, outDir, contentRoot, template });
 
     const filename = `${basename(target).replace(/\.(?:md|markdown|mdx)$/i, '')}.html`;
     const targetPath =
@@ -162,7 +165,8 @@ function assemble(input: {
   article: { html: string; title: string; description?: string };
   css: string;
   runtime: string;
-  config: { base: string; title: string; description?: string; favicon?: string };
+  config: { base: string; title: string; description?: string };
+  favicon: Favicon | undefined;
   outDir: string;
   contentRoot: string;
   template: string;
@@ -172,7 +176,7 @@ function assemble(input: {
   const content = withExportToc(inlineHtmlAssets(article.html, config.base, outDir, contentRoot));
   const title = article.title === '' ? config.title : `${article.title} · ${config.title}`;
   const description = article.description ?? config.description;
-  const favicon = faviconLink(config, contentRoot, template);
+  const favicon = faviconLink(input.favicon, template);
 
   return [
     '<!doctype html>',
@@ -246,48 +250,25 @@ function resolveAsset(src: string, base: string, outDir: string, contentRoot: st
   return undefined;
 }
 
-const MIME: Record<string, string> = {
-  '.svg': 'image/svg+xml',
-  '.png': 'image/png',
-  '.jpg': 'image/jpeg',
-  '.jpeg': 'image/jpeg',
-  '.gif': 'image/gif',
-  '.webp': 'image/webp',
-  '.avif': 'image/avif',
-  '.ico': 'image/x-icon',
-  '.pdf': 'application/pdf',
-  '.woff': 'font/woff',
-  '.woff2': 'font/woff2',
-  '.ttf': 'font/ttf',
-  '.otf': 'font/otf',
-  '.mp4': 'video/mp4',
-  '.webm': 'video/webm',
-};
-
 function dataUriFor(file: string): string {
-  const mime = MIME[extname(file).toLowerCase()] ?? 'application/octet-stream';
-  return `data:${mime};base64,${readFileSync(file).toString('base64')}`;
+  return `data:${mimeType(file)};base64,${readFileSync(file).toString('base64')}`;
 }
 
 /**
  * The site's icon, as a `<link>` for the exported head.
  *
- * A configured favicon is a file in the content root, so it is read and inlined — a local
- * `href` would 404 from `file://`. Without one, the template's own inlined default is used.
+ * A configured favicon file is read and inlined: a local `href` would 404 from `file://`.
+ * Otherwise the template's own icon link is used: a remote favicon, or seemore's inlined default.
  */
-function faviconLink(config: { favicon?: string }, contentRoot: string, template: string): string {
-  if (config.favicon !== undefined) {
-    const file = join(contentRoot, config.favicon);
-    if (existsSync(file)) {
-      try {
-        return `<link rel="icon" href="${dataUriFor(file)}" />`;
-      } catch {
-        // Fall through to the default below.
-      }
+function faviconLink(favicon: Favicon | undefined, template: string): string {
+  if (favicon?.file !== undefined) {
+    try {
+      return `<link rel="icon" href="${dataUriFor(favicon.file)}" />`;
+    } catch {
+      // Fall through to the template's link below.
     }
   }
-  const matches = Array.from(template.matchAll(/<link rel="icon"[^>]*>/gi));
-  return matches.at(-1)?.[0] ?? '';
+  return /<link rel="icon"[^>]*>/i.exec(template)?.[0] ?? '';
 }
 
 /**

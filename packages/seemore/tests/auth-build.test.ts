@@ -166,6 +166,53 @@ describe('seemore build with auth', () => {
   });
 });
 
+describe('seemore build with auth and a favicon', () => {
+  const SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"/>';
+  let root: string;
+  let outDir: string;
+
+  beforeAll(async () => {
+    root = mkdtempSync(join(tmpdir(), 'seemore-auth-favicon-'));
+    outDir = join(root, 'dist');
+    writeFileSync(join(root, 'favicon.svg'), SVG);
+    writeFileSync(
+      join(root, 'seemore.config.ts'),
+      "export default { title: 'Vault', favicon: './favicon.svg', base: '/sub/', auth: true };",
+    );
+    process.env.SEEMORE_PASSWORD = PASSWORD;
+    try {
+      await runBuild({ cwd: FIXTURE, configPath: join(root, 'seemore.config.ts'), outDir });
+    } finally {
+      delete process.env.SEEMORE_PASSWORD;
+    }
+  }, 300_000);
+
+  afterAll(() => {
+    rmSync(root, { recursive: true, force: true });
+  });
+
+  const read = (path: string) => readFileSync(join(outDir, path));
+
+  it('ships the favicon unencrypted and lists it as public', () => {
+    expect(read('favicon.svg').toString('utf8')).toBe(SVG);
+    expect(read('sw.js').toString('utf8')).toContain('"favicon.svg"');
+    expect(() => assertOutputEncrypted(outDir, publicFiles('favicon.svg'))).not.toThrow();
+  });
+
+  it('links it once from the lock shell and once from the app', async () => {
+    const shell = load(read('index.html').toString('utf8'))('link[rel="icon"]');
+    expect(shell.length).toBe(1);
+    expect(shell.attr('href')).toBe('/sub/favicon.svg');
+
+    const manifest = parseManifest(JSON.parse(read('auth.json').toString('utf8')));
+    const contentKey = await unlockManifest(manifest, await deriveManifestKek(PASSWORD, manifest));
+    const app = new TextDecoder().decode(await decryptFile(contentKey, 'app.html', new Uint8Array(read('app.html'))));
+    const icons = load(app)('link[rel="icon"]');
+    expect(icons.length).toBe(1);
+    expect(icons.attr('href')).toBe('/sub/favicon.svg');
+  });
+});
+
 describe('seemore build with auth: failures', () => {
   it('fails before writing anything when SEEMORE_PASSWORD is missing', async () => {
     const root = mkdtempSync(join(tmpdir(), 'seemore-auth-fail-'));

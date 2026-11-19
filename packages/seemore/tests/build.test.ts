@@ -492,6 +492,58 @@ describe('stylesheet composition', () => {
   });
 });
 
+describe('a configured favicon', () => {
+  const SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"/>';
+  let contentRoot: string;
+  let outDir: string;
+
+  beforeAll(async () => {
+    contentRoot = mkdtempSync(join(tmpdir(), 'seemore-favicon-'));
+    outDir = join(contentRoot, 'out');
+    writeFileSync(join(contentRoot, 'index.md'), '---\ntitle: Home\n---\n\n# Home\n');
+    writeFileSync(join(contentRoot, 'guide.md'), '---\ntitle: Guide\n---\n\n# Guide\n');
+    writeFileSync(join(contentRoot, 'favicon.svg'), SVG);
+    writeFileSync(
+      join(contentRoot, 'seemore.config.ts'),
+      "export default { title: 'Icon', favicon: './favicon.svg', base: '/sub/' };",
+    );
+    await runBuild({ cwd: contentRoot, outDir });
+  }, 300_000);
+
+  afterAll(() => {
+    rmSync(contentRoot, { recursive: true, force: true });
+  });
+
+  it('is the one icon link on every page, and the file it names is in the output', () => {
+    for (const page of ['index.html', 'guide/index.html', '404.html', '200.html']) {
+      const icons = load(read(outDir, page))('link[rel="icon"]');
+      expect(icons.length, page).toBe(1);
+      const href = icons.attr('href') ?? '';
+      expect(href, page).toBe('/sub/favicon.svg');
+      expect(read(outDir, href.slice('/sub/'.length))).toBe(SVG);
+    }
+  });
+
+  it('warns, naming the path, and keeps the default icon when the file is missing', async () => {
+    const root = mkdtempSync(join(tmpdir(), 'seemore-favicon-missing-'));
+    const out = join(root, 'out');
+    writeFileSync(join(root, 'index.md'), '---\ntitle: Home\n---\n\n# Home\n');
+    writeFileSync(join(root, 'seemore.config.ts'), "export default { title: 'Icon', favicon: './gone.svg' };");
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      await runBuild({ cwd: root, outDir: out });
+      // Matched by name: on Windows the config folder is the long form of the temp path, not `root`'s short one.
+      expect(warn.mock.calls.flat().join('\n')).toMatch(/favicon` was not found: .*gone\.svg/);
+      const icons = load(read(out, 'index.html'))('link[rel="icon"]');
+      expect(icons.length).toBe(1);
+      expect(icons.attr('href')).toMatch(/^data:/);
+    } finally {
+      warn.mockRestore();
+      rmSync(root, { recursive: true, force: true });
+    }
+  }, 300_000);
+});
+
 describe('the code copy button', () => {
   const MARKDOWN = [
     '---',

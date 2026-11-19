@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { loadConfig, resolveConfig } from '../src/node/config/load.js';
 import { isFeatureEnabled } from '../src/node/config/features.js';
+import { isRemoteFavicon } from '../src/node/favicon.js';
 
 function tmp(): string {
   return mkdtempSync(join(tmpdir(), 'seemore-config-'));
@@ -193,5 +194,22 @@ describe('loadConfig', () => {
     const empty = tmp();
     const { config } = await loadConfig({ root: empty });
     expect(config.title).toBe('Docs');
+  });
+});
+
+describe('favicon', () => {
+  it('tells a remote or data: URL from a local path, Windows drive paths included', () => {
+    for (const value of ['https://cdn.test/icon.svg', '//cdn.test/icon.svg', 'data:image/svg+xml,%3Csvg%3E']) {
+      expect(isRemoteFavicon(value), value).toBe(true);
+    }
+    for (const value of ['D:\\site\\favicon.svg', 'c:/site/favicon.svg', '/site/favicon.svg', './favicon.svg', 'favicon.svg']) {
+      expect(isRemoteFavicon(value), value).toBe(false);
+    }
+  });
+
+  it('resolves a local favicon against the config folder, and keeps a URL as written', () => {
+    const root = mkdtempSync(join(tmpdir(), 'seemore-favicon-config-'));
+    expect(resolveConfig({ favicon: './favicon.svg' }, { root }).favicon).toBe(join(root, 'favicon.svg'));
+    expect(resolveConfig({ favicon: 'https://cdn.test/icon.svg' }, { root }).favicon).toBe('https://cdn.test/icon.svg');
   });
 });

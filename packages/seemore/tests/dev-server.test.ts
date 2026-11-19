@@ -76,6 +76,41 @@ describe('dev server machine-readable ready line', () => {
   });
 });
 
+describe('dev server favicon', () => {
+  let contentRoot: string;
+  let dev: DevServer | undefined;
+
+  afterEach(async () => {
+    await dev?.close();
+    dev = undefined;
+    if (contentRoot) rmSync(contentRoot, { recursive: true, force: true });
+  });
+
+  it('serves the configured favicon at the URL the page links', async () => {
+    const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"/>';
+    contentRoot = mkdtempSync(join(tmpdir(), 'seemore-favicon-dev-'));
+    writeFileSync(join(contentRoot, 'a.md'), '# A\n');
+    writeFileSync(join(contentRoot, 'favicon.svg'), svg);
+    writeFileSync(
+      join(contentRoot, 'seemore.config.ts'),
+      "export default { title: 'Icon', favicon: './favicon.svg', base: '/sub/' };",
+    );
+
+    const spy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    dev = await runDev({ cwd: contentRoot, port: 0 });
+    spy.mockRestore();
+
+    const html = await (await fetch(dev.url)).text();
+    const icons = [...html.matchAll(/<link rel="icon" href="([^"]*)"/g)].map((match) => match[1]);
+    expect(icons).toEqual(['/sub/favicon.svg']);
+
+    const res = await fetch(`${new URL(dev.url).origin}/sub/favicon.svg`);
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-type')).toBe('image/svg+xml');
+    expect(await res.text()).toBe(svg);
+  });
+});
+
 describe('dev-only route endpoint', () => {
   let contentRoot: string;
   let dev: DevServer | undefined;
